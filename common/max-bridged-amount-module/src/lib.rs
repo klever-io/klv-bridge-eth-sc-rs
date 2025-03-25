@@ -1,8 +1,8 @@
 #![no_std]
 
-use multiversx_sc::imports::*;
+use klever_sc::imports::*;
 
-#[multiversx_sc::module]
+#[klever_sc::module]
 pub trait MaxBridgedAmountModule {
     #[only_owner]
     #[endpoint(setMaxBridgedAmount)]

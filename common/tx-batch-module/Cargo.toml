@@ -1,14 +1,16 @@
 [package]
 name = "tx-batch-module"
 version = "0.0.0"
-authors = ["dorin-iancu <dorin.iancu@elrond.com>"]
+authors = ["you"]
 edition = "2018"
-
-[dependencies.multiversx-sc]
-version = "=0.52.3"
 
 [dependencies.transaction]
 path = "../transaction"
 
-[dev-dependencies.multiversx-sc-scenario]
-version = "=0.52.3"
+[dependencies.klever-sc]
+version = "0.43.3"
+path="/home/remoh/Documents/work-klever/klever-vm-sdk-rs-internal/framework/base"
+
+[dev-dependencies.klever-sc-scenario]
+version = "0.43.3"
+path="/home/remoh/Documents/work-klever/klever-vm-sdk-rs-internal/framework/scenario"

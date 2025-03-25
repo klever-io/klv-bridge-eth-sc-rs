@@ -1,10 +1,11 @@
 #![no_std]
 
-use multiversx_sc::derive_imports::*;
-use multiversx_sc::{
+use klever_sc::derive_imports::*;
+use klever_sc::{
     api::ManagedTypeApi,
     types::{ManagedBuffer, ManagedByteArray},
 };
+
 
 pub const ETH_ADDRESS_LEN: usize = 20;
 

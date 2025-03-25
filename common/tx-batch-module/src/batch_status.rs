@@ -1,6 +1,6 @@
-use multiversx_sc::derive_imports::*;
+use klever_sc::derive_imports::*;
 
-use multiversx_sc::{api::ManagedTypeApi, types::ManagedVec};
+use klever_sc::{api::ManagedTypeApi, types::ManagedVec};
 use transaction::{BlockNonce, TxNonce};
 
 #[type_abi]

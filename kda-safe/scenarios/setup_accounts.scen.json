@@ -1,0 +1,212 @@
+{
+    "name": "setup accounts",
+    "steps": [
+        {
+            "step": "setState",
+            "accounts": {
+                "address:owner": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "storage": {}
+                },
+                "address:user1": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "kda": {
+                        "str:BRIDGE-123456": "2,000,000"
+                    },
+                    "storage": {}
+                },
+                "address:user2": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "kda": {
+                        "str:BRIDGE-123456": "2,000,000"
+                    },
+                    "storage": {}
+                }
+            },
+            "newAddresses": [
+                {
+                    "creatorAddress": "address:owner",
+                    "creatorNonce": "1",
+                    "newAddress": "sc:kda-safe"
+                },
+                {
+                    "creatorAddress": "address:owner",
+                    "creatorNonce": "2",
+                    "newAddress": "sc:multi-transfer"
+                },
+                {
+                    "creatorAddress": "address:owner",
+                    "creatorNonce": "3",
+                    "newAddress": "sc:bridged-tokens-wrapper"
+                }
+            ]
+        },
+        {
+            "step": "scDeploy",
+            "txId": "deploy",
+            "tx": {
+                "from": "address:owner",
+                "contractCode": "file:../output/kda-safe.wasm",
+                "value": "0",
+                "arguments": [
+                    "sc:price-aggregator",
+                    "sc:multi-transfer",
+                    "150,000"
+                ],
+                "gasLimit": "20,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "add-token-1",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda-safe",
+                "value": "0",
+                "function": "addTokenToWhitelist",
+                "arguments": [
+                    "str:BRIDGE-123456",
+                    "str:BRIDGE",
+                    "true",
+                    "false",
+                    "0",
+                    "0",
+                    "0"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "add-bridged-tokens-wrapper-addr",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda-safe",
+                "value": "0",
+                "function": "setBridgedTokensWrapperAddress",
+                "arguments": [
+                    "sc:bridged-tokens-wrapper"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "checkState",
+            "accounts": {
+                "sc:kda-safe": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "storage": {
+                        "str:feeEstimatorContractAddress": "sc:price-aggregator",
+                        "str:multiTransferContractAddress": "sc:multi-transfer",
+                        "str:bridgedTokensWrapperAddress": "sc:bridged-tokens-wrapper",
+                        "str:maxTxBatchSize": "10",
+                        "str:maxTxBatchBlockDuration": "100",
+                        "str:firstBatchId": "1",
+                        "str:lastBatchId": "1",
+                        "str:ethTxGasLimit": "150,000",
+                        "str:tokenTicker|nested:str:BRIDGE-123456": "str:BRIDGE",
+                        "str:tokenTicker|nested:str:GWEI": "str:GWEI",
+                        "str:tokenWhitelist.index|nested:str:BRIDGE-123456": "1",
+                        "str:pause_module:paused": "true",
+                        "+": ""
+                    },
+                    "code": "file:../output/kda-safe.wasm"
+                },
+                "+": {}
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "unpause",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda-safe",
+                "function": "unpause",
+                "arguments": [],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "out": [],
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "setState",
+            "comment": "setting local burn role",
+            "accounts": {
+                "sc:kda-safe": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "kda": {
+                        "str:BRIDGE-123456": {
+                            "balance": "0",
+                            "roles": [
+                                "ESDTRoleLocalBurn",
+                                "ESDTRoleLocalMint"
+                            ]
+                        }
+                    },
+                    "storage": {
+                        "str:feeEstimatorContractAddress": "sc:price-aggregator",
+                        "str:multiTransferContractAddress": "sc:multi-transfer",
+                        "str:bridgedTokensWrapperAddress": "sc:bridged-tokens-wrapper",
+                        "str:maxTxBatchSize": "10",
+                        "str:maxTxBatchBlockDuration": "100",
+                        "str:firstBatchId": "1",
+                        "str:lastBatchId": "1",
+                        "str:ethTxGasLimit": "150,000",
+                        "str:tokenTicker|nested:str:BRIDGE-123456": "str:BRIDGE",
+                        "str:tokenTicker|nested:str:GWEI": "str:GWEI",
+                        "str:tokenWhitelist.index|nested:str:BRIDGE-123456": "1",
+                        "str:tokenWhitelist.item|u32:1": "str:BRIDGE-123456",
+                        "str:tokenWhitelist.len": "1"
+                    },
+                    "code": "file:../output/kda-safe.wasm",
+                    "owner": "address:owner"
+                }
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "get-all-known-tokens",
+            "tx": {
+                "to": "sc:kda-safe",
+                "function": "getAllKnownTokens"
+            },
+            "expect": {
+                "out": [
+                    "str:BRIDGE-123456"
+                ]
+            }
+        }
+    ]
+}

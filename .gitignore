@@ -10,3 +10,9 @@
 **/mxpy.data-storage.json
 **/testnet/
 **/deploy-child-sc-spam.json
+
+# Klever IDE
+**/node_modules
+**/output/**
+**/testnet/**
+**/*.interaction.json

@@ -1,5 +1,7 @@
 [workspace]
 members = [
+  "kda-safe",
+  "kda-safe/meta",
   "price-aggregator",
   "price-aggregator/meta"
 ]

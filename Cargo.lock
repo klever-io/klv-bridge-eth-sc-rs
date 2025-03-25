@@ -518,10 +518,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "eth-address"
+version = "0.0.0"
+dependencies = [
+ "klever-sc",
+]
+
+[[package]]
 name = "fastrand"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37909eebbb50d72f9059c3b6d82c0463f2ff062c9e95845c43a6c9c0355411be"
+
+[[package]]
+name = "fee-estimator-module"
+version = "0.0.0"
+dependencies = [
+ "klever-sc",
+ "klever-sc-scenario",
+]
 
 [[package]]
 name = "flate2"
@@ -1048,6 +1063,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "kda-safe"
+version = "0.0.0"
+dependencies = [
+ "eth-address",
+ "fee-estimator-module",
+ "klever-sc",
+ "klever-sc-modules",
+ "klever-sc-scenario",
+ "klv-price-aggregator-sc",
+ "max-bridged-amount-module",
+ "num-bigint",
+ "token-module",
+ "transaction",
+ "tx-batch-module",
+]
+
+[[package]]
+name = "kda-safe-meta"
+version = "0.0.0"
+dependencies = [
+ "kda-safe",
+ "klever-sc-meta",
+]
+
+[[package]]
 name = "keccak"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1286,6 +1326,14 @@ name = "log"
 version = "0.4.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a7a70ba024b9dc04c27ea2f0c0548feb474ec5c54bba33a7f72f873a39d07b24"
+
+[[package]]
+name = "max-bridged-amount-module"
+version = "0.0.0"
+dependencies = [
+ "klever-sc",
+ "klever-sc-scenario",
+]
 
 [[package]]
 name = "memchr"
@@ -2138,6 +2186,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
+name = "token-module"
+version = "0.0.0"
+dependencies = [
+ "fee-estimator-module",
+ "klever-sc",
+ "klever-sc-scenario",
+]
+
+[[package]]
 name = "tokio"
 version = "1.42.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2281,10 +2338,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "transaction"
+version = "0.0.0"
+dependencies = [
+ "eth-address",
+ "klever-sc",
+]
+
+[[package]]
 name = "try-lock"
 version = "0.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
+
+[[package]]
+name = "tx-batch-module"
+version = "0.0.0"
+dependencies = [
+ "klever-sc",
+ "klever-sc-scenario",
+ "transaction",
+]
 
 [[package]]
 name = "typenum"

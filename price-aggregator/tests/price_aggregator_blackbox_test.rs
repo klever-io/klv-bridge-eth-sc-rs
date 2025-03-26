@@ -8,7 +8,7 @@ use klever_sc_scenario::imports::*;
 mod price_aggregator_proxy;
 
 const DECIMALS: u8 = 0;
-const EGLD_TICKER: &[u8] = b"EGLD";
+const KLV_TICKER: &[u8] = b"KLV";
 const NR_ORACLES: usize = 4;
 const SLASH_AMOUNT: u64 = 10;
 const SLASH_QUORUM: usize = 3;
@@ -19,12 +19,11 @@ const USD_TICKER: &[u8] = b"USDC";
 const PRICE_AGGREGATOR_ADDRESS: TestSCAddress = TestSCAddress::new("price-aggregator");
 const OWNER_ADDRESS: TestAddress = TestAddress::new("owner");
 const PRICE_AGGREGATOR_PATH: KleverscPath =
-    KleverscPath::new("output/klv-price-aggregator-sc.mxsc.json");
+    KleverscPath::new("output/klv-price-aggregator-sc.kleversc.json");
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
 
-    blockchain.set_current_dir_from_workspace("contracts/core/price-aggregator");
     blockchain.register_contract(
         PRICE_AGGREGATOR_PATH,
         klv_price_aggregator_sc::ContractBuilder,
@@ -42,7 +41,7 @@ impl PriceAggregatorTestState {
     fn new() -> Self {
         let mut world = world();
 
-        world.account(OWNER_ADDRESS).nonce(1);
+        world.account(OWNER_ADDRESS).nonce(0);
         world.current_block().block_timestamp(100);
 
         world.new_address(OWNER_ADDRESS, 1, PRICE_AGGREGATOR_ADDRESS);
@@ -103,7 +102,7 @@ impl PriceAggregatorTestState {
             .from(OWNER_ADDRESS)
             .to(PRICE_AGGREGATOR_ADDRESS)
             .typed(price_aggregator_proxy::PriceAggregatorProxy)
-            .set_pair_decimals(EGLD_TICKER, USD_TICKER, DECIMALS)
+            .set_pair_decimals(KLV_TICKER, USD_TICKER, DECIMALS)
             .run();
     }
 
@@ -124,7 +123,7 @@ impl PriceAggregatorTestState {
             .to(PRICE_AGGREGATOR_ADDRESS)
             .typed(price_aggregator_proxy::PriceAggregatorProxy)
             .submit(
-                EGLD_TICKER,
+                KLV_TICKER,
                 USD_TICKER,
                 submission_timestamp,
                 price,
@@ -146,13 +145,13 @@ impl PriceAggregatorTestState {
             .to(PRICE_AGGREGATOR_ADDRESS)
             .typed(price_aggregator_proxy::PriceAggregatorProxy)
             .submit(
-                EGLD_TICKER,
+                KLV_TICKER,
                 USD_TICKER,
                 submission_timestamp,
                 price,
                 DECIMALS,
             )
-            .with_result(ExpectStatus(4))
+            .with_result(ExpectStatus(57))
             .with_result(ExpectMessage(err_message))
             .run();
     }
@@ -195,11 +194,13 @@ fn test_price_aggregator_submit() {
 
     let current_timestamp = 100;
 
-    state.world.query().to(PRICE_AGGREGATOR_ADDRESS).whitebox(
-        klv_price_aggregator_sc::contract_obj,
+    let price_whitebox = WhiteboxContract::new("sc:price-aggregator", klv_price_aggregator_sc::contract_obj);
+    state.world
+        .whitebox_query(
+        &price_whitebox,
         |sc| {
             let token_pair = TokenPair {
-                from: managed_buffer!(EGLD_TICKER),
+                from: managed_buffer!(KLV_TICKER),
                 to: managed_buffer!(USD_TICKER),
             };
             assert_eq!(
@@ -235,8 +236,10 @@ fn test_price_aggregator_submit() {
     // first oracle submit again - submission not accepted
     state.submit(&state.oracles[0].clone(), 95, 100);
 
-    state.world.query().to(PRICE_AGGREGATOR_ADDRESS).whitebox(
-        klv_price_aggregator_sc::contract_obj,
+    let price_whitebox = WhiteboxContract::new("sc:price-aggregator", klv_price_aggregator_sc::contract_obj);
+    state.world
+        .whitebox_query(
+        &price_whitebox,
         |sc| {
             assert_eq!(
                 sc.oracle_status()
@@ -277,15 +280,17 @@ fn test_price_aggregator_submit_round_ok() {
     // submit third
     state.submit(&state.oracles[2].clone(), 105, 12_000);
 
-    state.world.query().to(PRICE_AGGREGATOR_ADDRESS).whitebox(
-       klv_price_aggregator_sc::contract_obj,
+    let price_whitebox = WhiteboxContract::new("sc:price-aggregator", klv_price_aggregator_sc::contract_obj);
+    state.world
+        .whitebox_query(
+        &price_whitebox,
         |sc| {
             let result =
-                sc.latest_price_feed(managed_buffer!(EGLD_TICKER), managed_buffer!(USD_TICKER));
+                sc.latest_price_feed(managed_buffer!(KLV_TICKER), managed_buffer!(USD_TICKER));
 
             let (round_id, from, to, timestamp, price, decimals) = result.into_tuple();
             assert_eq!(round_id, 1);
-            assert_eq!(from, managed_buffer!(EGLD_TICKER));
+            assert_eq!(from, managed_buffer!(KLV_TICKER));
             assert_eq!(to, managed_buffer!(USD_TICKER));
             assert_eq!(timestamp, current_timestamp);
             assert_eq!(price, managed_biguint!(11_000));
@@ -333,11 +338,13 @@ fn test_price_aggregator_discarded_round() {
     // submit second - this will discard the previous submission
     state.submit(&state.oracles[1].clone(), current_timestamp - 1, 11_000);
 
-    state.world.query().to(PRICE_AGGREGATOR_ADDRESS).whitebox(
-        klv_price_aggregator_sc::contract_obj,
+    let price_whitebox = WhiteboxContract::new("sc:price-aggregator", klv_price_aggregator_sc::contract_obj);
+    state.world
+        .whitebox_query(
+        &price_whitebox,
         |sc| {
             let token_pair = TokenPair {
-                from: managed_buffer!(EGLD_TICKER),
+                from: managed_buffer!(KLV_TICKER),
                 to: managed_buffer!(USD_TICKER),
             };
             let submissions = sc.submissions().get(&token_pair).unwrap();

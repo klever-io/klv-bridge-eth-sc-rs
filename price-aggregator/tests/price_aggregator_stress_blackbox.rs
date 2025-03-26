@@ -6,12 +6,12 @@ use klv_price_aggregator_sc::{
 use klever_sc_scenario::imports::*;
 
 const DECIMALS: u8 = 0;
-const EGLD_TICKER: &[u8] = b"EGLD";
+const KLV_TICKER: &[u8] = b"KLV";
 const NR_ORACLES: usize = 50;
 const OWNER: TestAddress = TestAddress::new("owner");
 const PRICE_AGGREGATOR_ADDRESS: TestSCAddress = TestSCAddress::new("price-aggregator");
 const PRICE_AGGREGATOR_PATH: KleverscPath =
-    KleverscPath::new("../output/klv-price-aggregator-sc.mxsc.json");
+    KleverscPath::new("../output/klv-price-aggregator-sc.kleversc.json");
 const SLASH_AMOUNT: u64 = 10;
 const SLASH_QUORUM: usize = 3;
 const STAKE_AMOUNT: u64 = 20;
@@ -23,7 +23,6 @@ mod price_aggregator_proxy;
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
 
-    blockchain.set_current_dir_from_workspace("contracts/core/price-aggregator");
     blockchain.register_contract(
         PRICE_AGGREGATOR_PATH,
         klv_price_aggregator_sc::ContractBuilder,
@@ -44,7 +43,7 @@ impl PriceAggregatorTestState {
 
         world
             .account(OWNER)
-            .nonce(1)
+            .nonce(0)
             .new_address(OWNER, 1, PRICE_AGGREGATOR_ADDRESS)
             .current_block()
             .block_timestamp(100);
@@ -95,7 +94,7 @@ impl PriceAggregatorTestState {
                 .gas(5_000_000u64)
                 .typed(price_aggregator_proxy::PriceAggregatorProxy)
                 .stake()
-                .egld(STAKE_AMOUNT)
+                .klv(STAKE_AMOUNT)
                 .run();
         }
 
@@ -108,7 +107,7 @@ impl PriceAggregatorTestState {
             .from(OWNER)
             .to(PRICE_AGGREGATOR_ADDRESS)
             .typed(price_aggregator_proxy::PriceAggregatorProxy)
-            .set_pair_decimals(EGLD_TICKER, USD_TICKER, DECIMALS)
+            .set_pair_decimals(KLV_TICKER, USD_TICKER, DECIMALS)
             .run();
     }
 
@@ -131,7 +130,7 @@ impl PriceAggregatorTestState {
             .gas(7_000_000u64)
             .typed(price_aggregator_proxy::PriceAggregatorProxy)
             .submit(
-                EGLD_TICKER,
+                KLV_TICKER,
                 USD_TICKER,
                 submission_timestamp,
                 price,
@@ -161,13 +160,16 @@ fn test_price_aggregator_submit() {
     }
 
     let current_timestamp = 100;
-    state.world.query().to(PRICE_AGGREGATOR_ADDRESS).whitebox(
-        klv_price_aggregator_sc::contract_obj,
-        |sc| {
+
+    let price_whitebox = WhiteboxContract::new("sc:price-aggregator", klv_price_aggregator_sc::contract_obj);
+    
+    state.world
+        .whitebox_query(&price_whitebox, 
+            |sc| {
             let blockchain_timestamp = sc.blockchain().get_block_timestamp();
 
             let token_pair = TokenPair {
-                from: managed_buffer!(EGLD_TICKER),
+                from: managed_buffer!(KLV_TICKER),
                 to: managed_buffer!(USD_TICKER),
             };
             assert_eq!(blockchain_timestamp, current_timestamp);

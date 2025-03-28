@@ -12,4 +12,4 @@ path = "../eth-address"
 
 [dependencies.klever-sc]
 version = "0.43.3"
-path="/home/remoh/Documents/work-klever/klever-vm-sdk-rs-internal/framework/base"
+path="../../../klever-vm-sdk-rs-internal/framework/base"

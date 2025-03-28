@@ -9,8 +9,8 @@ path = "../transaction"
 
 [dependencies.klever-sc]
 version = "0.43.3"
-path="/home/remoh/Documents/work-klever/klever-vm-sdk-rs-internal/framework/base"
+path="../../../klever-vm-sdk-rs-internal/framework/base"
 
 [dev-dependencies.klever-sc-scenario]
 version = "0.43.3"
-path="/home/remoh/Documents/work-klever/klever-vm-sdk-rs-internal/framework/scenario"
+path="../../../klever-vm-sdk-rs-internal/framework/scenario"

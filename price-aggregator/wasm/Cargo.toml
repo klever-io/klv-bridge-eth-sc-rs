@@ -27,7 +27,7 @@ path = ".."
 
 [dependencies.klever-sc-wasm-adapter]
 version = "0.43.3"
-path = "/home/remoh/Documents/work-klever/klever-vm-sdk-rs-internal/framework/wasm-adapter"
+path = "../../../klever-vm-sdk-rs-internal/framework/wasm-adapter"
 
 [workspace]
 members = ["."]

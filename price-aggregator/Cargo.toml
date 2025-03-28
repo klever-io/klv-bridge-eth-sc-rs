@@ -9,18 +9,18 @@ path = "src/lib.rs"
 
 [dependencies.klever-sc]
 version = "0.43.3"
-path="/home/remoh/Documents/work-klever/klever-vm-sdk-rs-internal/framework/base"
+path="../../klever-vm-sdk-rs-internal/framework/base"
 
 [dependencies.staking-module]
 path = "../common/staking-module"
 
 [dependencies.klever-sc-modules]
 version = "0.43.3"
-path="/home/remoh/Documents/work-klever/klever-vm-sdk-rs-internal/contracts/modules"
+path="../../klever-vm-sdk-rs-internal/contracts/modules"
 
 [dev-dependencies.klever-sc-scenario]
 version = "0.43.3"
-path="/home/remoh/Documents/work-klever/klever-vm-sdk-rs-internal/framework/scenario"
+path="../../klever-vm-sdk-rs-internal/framework/scenario"
 
 
 [dependencies]

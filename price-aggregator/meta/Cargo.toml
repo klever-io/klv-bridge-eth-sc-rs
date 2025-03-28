@@ -10,10 +10,10 @@ path = ".."
 
 [dependencies.klever-sc]
 version = "0.43.3"
-path="/home/remoh/Documents/work-klever/klever-vm-sdk-rs-internal/framework/base"
+path="../../../klever-vm-sdk-rs-internal/framework/base"
 
 
 [dependencies.klever-sc-meta]
 version = "0.43.3"
-path = "/home/remoh/Documents/work-klever/klever-vm-sdk-rs-internal/framework/meta"
+path = "../../../klever-vm-sdk-rs-internal/framework/meta"
 default-features = false

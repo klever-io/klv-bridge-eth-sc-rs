@@ -424,7 +424,7 @@ fn test_price_aggregator_slashing() {
         ScCallStep::new()
         .from(&oracles[0]), 
         |sc| {
-            sc.vote_slash_member(ManagedAddress::from(&oracles[1]));
+            sc.slash_member(ManagedAddress::from(&oracles[1]));
         }
     );
 

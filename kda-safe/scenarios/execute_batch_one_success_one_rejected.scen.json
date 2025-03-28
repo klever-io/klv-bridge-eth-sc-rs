@@ -43,7 +43,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Nothing to refund",
                 "gas": "*",
                 "refund": "*"
@@ -77,7 +77,7 @@
                 "address:user1": {
                     "nonce": "*",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "499,600"
                     },
                     "storage": {}
@@ -85,7 +85,7 @@
                 "address:user2": {
                     "nonce": "*",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "500,000"
                     },
                     "storage": {}

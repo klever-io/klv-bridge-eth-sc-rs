@@ -33,7 +33,7 @@
                 "address:owner": {
                     "nonce": "*",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "3,000,000"
                     },
                     "storage": {}
@@ -41,13 +41,11 @@
                 "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": {
                             "balance": "400",
-                            "roles": [
-                                "ESDTRoleLocalBurn",
-                                "ESDTRoleLocalMint"
-                            ]
+                            "canBurn": true,
+                            "canMin": true
                         }
                     },
                     "storage": {

@@ -2,6 +2,10 @@
     "name": "setup accounts",
     "steps": [
         {
+            "step": "externalSteps",
+            "path": "../../price-aggregator/scenarios/get_latest_price_feed.scen.json"
+        },
+        {
             "step": "setState",
             "accounts": {
                 "address:owner": {
@@ -30,17 +34,17 @@
                 {
                     "creatorAddress": "address:owner",
                     "creatorNonce": "1",
-                    "newAddress": "sc:kda-safe"
+                    "newAddress": "sc:kda_safe"
                 },
                 {
                     "creatorAddress": "address:owner",
                     "creatorNonce": "2",
-                    "newAddress": "sc:multi-transfer"
+                    "newAddress": "sc:multi_transfer"
                 },
                 {
                     "creatorAddress": "address:owner",
                     "creatorNonce": "3",
-                    "newAddress": "sc:bridged-tokens-wrapper"
+                    "newAddress": "sc:bridged_tokens_wrapper"
                 }
             ]
         },
@@ -52,8 +56,8 @@
                 "contractCode": "file:../output/kda-safe.wasm",
                 "value": "0",
                 "arguments": [
-                    "sc:price-aggregator",
-                    "sc:multi-transfer",
+                    "sc:price_aggregator",
+                    "sc:multi_transfer",
                     "150,000"
                 ],
                 "gasLimit": "20,000,000",
@@ -71,7 +75,7 @@
             "txId": "add-token-1",
             "tx": {
                 "from": "address:owner",
-                "to": "sc:kda-safe",
+                "to": "sc:kda_safe",
                 "value": "0",
                 "function": "addTokenToWhitelist",
                 "arguments": [
@@ -98,11 +102,11 @@
             "txId": "add-bridged-tokens-wrapper-addr",
             "tx": {
                 "from": "address:owner",
-                "to": "sc:kda-safe",
+                "to": "sc:kda_safe",
                 "value": "0",
                 "function": "setBridgedTokensWrapperAddress",
                 "arguments": [
-                    "sc:bridged-tokens-wrapper"
+                    "sc:bridged_tokens_wrapper"
                 ],
                 "gasLimit": "50,000,000",
                 "gasPrice": "0"
@@ -117,13 +121,13 @@
         {
             "step": "checkState",
             "accounts": {
-                "sc:kda-safe": {
+                "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
                     "storage": {
-                        "str:feeEstimatorContractAddress": "sc:price-aggregator",
-                        "str:multiTransferContractAddress": "sc:multi-transfer",
-                        "str:bridgedTokensWrapperAddress": "sc:bridged-tokens-wrapper",
+                        "str:feeEstimatorContractAddress": "sc:price_aggregator",
+                        "str:multiTransferContractAddress": "sc:multi_transfer",
+                        "str:bridgedTokensWrapperAddress": "sc:bridged_tokens_wrapper",
                         "str:maxTxBatchSize": "10",
                         "str:maxTxBatchBlockDuration": "100",
                         "str:firstBatchId": "1",
@@ -145,7 +149,7 @@
             "txId": "unpause",
             "tx": {
                 "from": "address:owner",
-                "to": "sc:kda-safe",
+                "to": "sc:kda_safe",
                 "function": "unpause",
                 "arguments": [],
                 "gasLimit": "100,000,000",
@@ -163,22 +167,20 @@
             "step": "setState",
             "comment": "setting local burn role",
             "accounts": {
-                "sc:kda-safe": {
+                "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
                     "kda": {
                         "str:BRIDGE-123456": {
                             "balance": "0",
-                            "roles": [
-                                "ESDTRoleLocalBurn",
-                                "ESDTRoleLocalMint"
-                            ]
+                            "canBurn": true,
+                            "canMin": true
                         }
                     },
                     "storage": {
-                        "str:feeEstimatorContractAddress": "sc:price-aggregator",
-                        "str:multiTransferContractAddress": "sc:multi-transfer",
-                        "str:bridgedTokensWrapperAddress": "sc:bridged-tokens-wrapper",
+                        "str:feeEstimatorContractAddress": "sc:price_aggregator",
+                        "str:multiTransferContractAddress": "sc:multi_transfer",
+                        "str:bridgedTokensWrapperAddress": "sc:bridged_tokens_wrapper",
                         "str:maxTxBatchSize": "10",
                         "str:maxTxBatchBlockDuration": "100",
                         "str:firstBatchId": "1",
@@ -199,7 +201,7 @@
             "step": "scQuery",
             "txId": "get-all-known-tokens",
             "tx": {
-                "to": "sc:kda-safe",
+                "to": "sc:kda_safe",
                 "function": "getAllKnownTokens"
             },
             "expect": {

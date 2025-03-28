@@ -11,7 +11,7 @@
             "tx": {
                 "from": "address:user2",
                 "to": "sc:kda_safe",
-                "esdtValue": [
+                "kdaValue": [
                     {
                         "tokenIdentifier": "str:BRIDGE-123456",
                         "value": "1,500,900"
@@ -59,7 +59,7 @@
                 "address:user2": {
                     "nonce": "*",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "499,100"
                     },
                     "storage": {}
@@ -67,13 +67,11 @@
                 "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": {
                             "balance": "3,001,300",
-                            "roles": [
-                                "ESDTRoleLocalBurn",
-                                "ESDTRoleLocalMint"
-                            ]
+                            "canBurn": true,
+                            "canMin": true
                         }
                     },
                     "storage": {

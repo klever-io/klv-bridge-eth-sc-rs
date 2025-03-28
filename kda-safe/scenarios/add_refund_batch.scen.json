@@ -40,7 +40,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "out": [],
                 "message": "str:Invalid caller",
                 "gas": "*",

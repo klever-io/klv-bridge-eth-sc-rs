@@ -55,7 +55,7 @@
                 "address:user1": {
                     "nonce": "*",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "500,000"
                     },
                     "storage": {}
@@ -63,13 +63,11 @@
                 "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": {
                             "balance": "1,500,000",
-                            "roles": [
-                                "ESDTRoleLocalBurn",
-                                "ESDTRoleLocalMint"
-                            ]
+                            "canBurn": true,
+                            "canMin": true
                         }
                     },
                     "storage": {

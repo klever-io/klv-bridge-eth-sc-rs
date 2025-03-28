@@ -33,13 +33,11 @@
                 "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": {
                             "balance": "0",
-                            "roles": [
-                                "ESDTRoleLocalBurn",
-                                "ESDTRoleLocalMint"
-                            ]
+                            "canBurn": true,
+                            "canMin": true
                         }
                     },
                     "storage": {
@@ -57,7 +55,7 @@
             "tx": {
                 "from": "address:user1",
                 "to": "sc:kda_safe",
-                "esdtValue": [
+                "kdaValue": [
                     {
                         "tokenIdentifier": "str:BRIDGE-123456",
                         "value": "1,500,400"
@@ -84,7 +82,7 @@
                 "address:user1": {
                     "nonce": "*",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "499,600"
                     },
                     "storage": {}
@@ -92,13 +90,11 @@
                 "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": {
                             "balance": "1,500,400",
-                            "roles": [
-                                "ESDTRoleLocalBurn",
-                                "ESDTRoleLocalMint"
-                            ]
+                            "canBurn": true,
+                            "canMin": true
                         }
                     },
                     "storage": {

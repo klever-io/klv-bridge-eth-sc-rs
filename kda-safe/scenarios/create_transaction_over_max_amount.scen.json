@@ -33,7 +33,7 @@
             "tx": {
                 "from": "address:user1",
                 "to": "sc:kda_safe",
-                "esdtValue": [
+                "kdaValue": [
                     {
                         "tokenIdentifier": "str:BRIDGE-123456",
                         "value": "1,800,000"
@@ -47,7 +47,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Deposit over max amount",
                 "gas": "*",
                 "refund": "*"
@@ -59,7 +59,7 @@
             "tx": {
                 "from": "address:user1",
                 "to": "sc:kda_safe",
-                "esdtValue": [
+                "kdaValue": [
                     {
                         "tokenIdentifier": "str:BRIDGE-123456",
                         "value": "1,600,000"

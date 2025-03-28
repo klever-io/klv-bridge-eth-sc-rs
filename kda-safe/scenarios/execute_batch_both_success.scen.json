@@ -43,7 +43,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Nothing to refund",
                 "gas": "*",
                 "refund": "*"
@@ -64,7 +64,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Nothing to refund",
                 "gas": "*",
                 "refund": "*"
@@ -76,7 +76,7 @@
                 "address:user1": {
                     "nonce": "*",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "499,600"
                     },
                     "storage": {}
@@ -84,7 +84,7 @@
                 "address:user2": {
                     "nonce": "*",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "499,100"
                     },
                     "storage": {}
@@ -92,13 +92,11 @@
                 "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": {
                             "balance": "3,001,300",
-                            "roles": [
-                                "ESDTRoleLocalBurn",
-                                "ESDTRoleLocalMint"
-                            ]
+                            "canBurn": true,
+                            "canMin": true
                         }
                     },
                     "storage": {

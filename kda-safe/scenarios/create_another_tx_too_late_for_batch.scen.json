@@ -14,7 +14,7 @@
                 "address:user2": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "2,000,000"
                     },
                     "storage": {}
@@ -45,7 +45,7 @@
             "tx": {
                 "from": "address:user2",
                 "to": "sc:kda_safe",
-                "esdtValue": [
+                "kdaValue": [
                     {
                         "tokenIdentifier": "str:BRIDGE-123456",
                         "value": "1,500,100"
@@ -72,7 +72,7 @@
                 "address:user2": {
                     "nonce": "*",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "499,900"
                     },
                     "storage": {}
@@ -80,13 +80,11 @@
                 "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": {
                             "balance": "4,501,400",
-                            "roles": [
-                                "ESDTRoleLocalBurn",
-                                "ESDTRoleLocalMint"
-                            ]
+                            "canBurn": true,
+                            "canMin": true
                         }
                     },
                     "storage": {
@@ -164,7 +162,7 @@
                 "address:user3": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "2,000,000"
                     },
                     "storage": {}
@@ -177,7 +175,7 @@
             "tx": {
                 "from": "address:user3",
                 "to": "sc:kda_safe",
-                "esdtValue": [
+                "kdaValue": [
                     {
                         "tokenIdentifier": "str:BRIDGE-123456",
                         "value": "1,500,100"
@@ -204,7 +202,7 @@
                 "address:user2": {
                     "nonce": "*",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "499,900"
                     },
                     "storage": {}
@@ -212,13 +210,11 @@
                 "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": {
                             "balance": "6,001,500",
-                            "roles": [
-                                "ESDTRoleLocalBurn",
-                                "ESDTRoleLocalMint"
-                            ]
+                            "canBurn": true,
+                            "canMin": true
                         }
                     },
                     "storage": {

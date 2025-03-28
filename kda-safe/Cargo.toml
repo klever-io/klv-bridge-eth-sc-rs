@@ -1,7 +1,7 @@
 [package]
 name = "kda-safe"
 version = "0.0.0"
-authors = ["you"]
+authors = ["Klever <contact@klever.com>"]
 edition = "2021"
 publish = false
 

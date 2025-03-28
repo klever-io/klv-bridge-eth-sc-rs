@@ -1,7 +1,7 @@
 [package]
 name = "staking-module"
 version = "0.0.0"
-authors = ["you"]
+authors = ["MultiversX <contact@multiversx.com>","Klever <contact@klever.com>"]
 edition = "2018"
 
 [dependencies.klever-sc]

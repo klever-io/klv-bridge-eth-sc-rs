@@ -1,8 +1,14 @@
 [package]
 name = "klv-price-aggregator-sc"
-version = "0.57.0"
+version = "0.0.0"
+authors = [
+    "Claudiu-Marcel Bruda <claudiu.bruda@multiversx.com>",
+    "MultiversX <contact@multiversx.com>",
+    "Klever <contact@klever.com>"
+]
+license = "GPL-3.0-only"
+readme = "README.md"
 edition = "2021"
-publish = false
 
 [lib]
 path = "src/lib.rs"

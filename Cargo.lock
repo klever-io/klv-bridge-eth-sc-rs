@@ -1261,7 +1261,7 @@ dependencies = [
 
 [[package]]
 name = "klv-price-aggregator-sc"
-version = "0.57.0"
+version = "0.0.0"
 dependencies = [
  "arrayvec",
  "getrandom 0.2.15",

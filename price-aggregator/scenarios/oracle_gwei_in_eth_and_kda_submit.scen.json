@@ -1,5 +1,5 @@
 {
-    "name": "oracle submit mapping for (GWEI, ETH) and (GWEI, EGLD)",
+    "name": "oracle submit mapping for (GWEI, ETH) and (GWEI, KLV)",
     "steps": [
         {
             "step": "externalSteps",
@@ -40,7 +40,7 @@
                 "function": "submit",
                 "arguments": [
                     "str:GWEI",
-                    "str:WEGLD",
+                    "str:WKLV",
                     "u64:0",
                     "10",
                     "9"

@@ -38,7 +38,7 @@
             "newAddresses": [
                 {
                     "creatorAddress": "address:aggregator-owner",
-                    "creatorNonce": "0",
+                    "creatorNonce": "1",
                     "newAddress": "sc:price_aggregator"
                 }
             ]
@@ -51,7 +51,7 @@
                 "contractCode": "file:../output/klv-price-aggregator-sc.wasm",
                 "value": "0",
                 "arguments": [
-                    "str:EGLD",
+                    "str:KLV",
                     "20",
                     "10",
                     "3",
@@ -105,7 +105,7 @@
                 "function": "setPairDecimals",
                 "arguments": [
                     "str:GWEI",
-                    "str:WEGLD",
+                    "str:WKLV",
                     "u8:9"
                 ],
                 "gasLimit": "40,000,000",
@@ -181,7 +181,7 @@
                         },
                         "+": ""
                     },
-                    "code": "file:../klv-price-aggregator-sc.wasm"
+                    "code": "file:../output/klv-price-aggregator-sc.wasm"
                 },
                 "+": {}
             }

@@ -136,7 +136,7 @@ pub trait BridgedTokensWrapper:
     #[payable("*")]
     #[endpoint(depositLiquidity)]
     fn deposit_liquidity(&self) {
-        let (payment_token, payment_amount) = self.call_value().single_fungible_esdt();
+        let (payment_token, payment_amount) = self.call_value().single_fungible_kda();
         self.token_liquidity(&payment_token)
             .update(|liq| *liq += payment_amount);
     }
@@ -146,7 +146,7 @@ pub trait BridgedTokensWrapper:
     #[endpoint(wrapTokens)]
     fn wrap_tokens(&self) -> PaymentsVec<Self::Api> {
         require!(self.not_paused(), "Contract is paused");
-        let original_payments = self.call_value().all_esdt_transfers().deref().clone();
+        let original_payments = self.call_value().all_kda_transfers().deref().clone();
         if original_payments.is_empty() {
             return original_payments;
         }
@@ -176,7 +176,7 @@ pub trait BridgedTokensWrapper:
             );
 
             self.send()
-                .esdt_local_mint(&universal_token_id, 0, &converted_amount);
+                .kda_mint(&universal_token_id, 0, &converted_amount);
             new_payments.push(KdaTokenPayment::new(
                 universal_token_id.clone(),
                 0,
@@ -187,7 +187,7 @@ pub trait BridgedTokensWrapper:
 
         self.tx()
             .to(ToCaller)
-            .multi_esdt(new_payments.clone())
+            .multi_kda(new_payments.clone())
             .transfer();
 
         new_payments
@@ -199,13 +199,13 @@ pub trait BridgedTokensWrapper:
         let converted_amount = self.unwrap_token_common(&requested_token);
         self.tx()
             .to(ToCaller)
-            .single_esdt(&requested_token, 0, &converted_amount)
+            .single_kda(&requested_token, 0, &converted_amount)
             .transfer();
     }
 
     fn unwrap_token_common(&self, requested_token: &TokenIdentifier) -> BigUint {
         require!(self.not_paused(), "Contract is paused");
-        let (payment_token, payment_amount) = self.call_value().single_fungible_esdt();
+        let (payment_token, payment_amount) = self.call_value().single_fungible_kda();
         require!(payment_amount > 0u32, "Must pay more than 0 tokens!");
 
         let universal_bridged_token_ids = self
@@ -235,7 +235,7 @@ pub trait BridgedTokensWrapper:
         });
 
         self.send()
-            .esdt_local_burn(&universal_bridged_token_ids, 0, &payment_amount);
+            .kda_burn(&universal_bridged_token_ids, 0, &payment_amount);
 
         self.unwrap_tokens_event(chain_specific_token_id, converted_amount.clone());
         converted_amount
@@ -254,16 +254,16 @@ pub trait BridgedTokensWrapper:
         let caller = self.blockchain().get_caller();
         self.tx()
             .to(safe_address)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .create_transaction(
                 to,
-                OptionalValue::Some(esdt_safe_proxy::RefundInfo {
+                OptionalValue::Some(kda_safe_proxy::RefundInfo {
                     address: caller,
                     initial_batch_id: 0,
                     initial_nonce: 0,
                 }),
             )
-            .single_esdt(&requested_token, 0, &converted_amount)
+            .single_kda(&requested_token, 0, &converted_amount)
             .sync_call();
     }
 

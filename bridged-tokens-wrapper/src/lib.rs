@@ -9,13 +9,13 @@ pub use dfp_big_uint::DFPBigUint;
 use transaction::PaymentsVec;
 
 use eth_address::*;
-use multiversx_sc::imports::*;
+use klever_sc::imports::*;
 
 impl<M: ManagedTypeApi> DFPBigUint<M> {}
 
-#[multiversx_sc::contract]
+#[klever_sc::contract]
 pub trait BridgedTokensWrapper:
-    multiversx_sc_modules::pause::PauseModule + events::EventsModule
+    klever_sc_modules::pause::PauseModule + events::EventsModule
 {
     #[init]
     fn init(&self) {
@@ -177,7 +177,7 @@ pub trait BridgedTokensWrapper:
 
             self.send()
                 .esdt_local_mint(&universal_token_id, 0, &converted_amount);
-            new_payments.push(EsdtTokenPayment::new(
+            new_payments.push(KdaTokenPayment::new(
                 universal_token_id.clone(),
                 0,
                 converted_amount.clone(),
@@ -280,10 +280,10 @@ pub trait BridgedTokensWrapper:
     }
 
     fn require_mint_and_burn_roles(&self, token_id: &TokenIdentifier) {
-        let roles = self.blockchain().get_esdt_local_roles(token_id);
+        let kda_properties = &self.blockchain().get_kda_properties(token_id);
 
         require!(
-            roles.has_role(&EsdtLocalRole::Mint) && roles.has_role(&EsdtLocalRole::Burn),
+            kda_properties.can_mint && kda_properties.can_burn,
             "Must set local role first"
         );
     }

@@ -1,7 +1,7 @@
 #![no_std]
 
 mod dfp_big_uint;
-mod esdt_safe_proxy;
+mod kda_safe_proxy;
 mod events;
 use core::ops::Deref;
 

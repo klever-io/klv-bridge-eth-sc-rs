@@ -7,7 +7,6 @@
 
 # Local testnet files
 **/deploy-testnet.interaction.json
-**/mxpy.data-storage.json
 **/testnet/
 **/deploy-child-sc-spam.json
 

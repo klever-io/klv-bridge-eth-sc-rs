@@ -68,7 +68,7 @@
                 "function": "latestPriceFeedOptional",
                 "arguments": [
                     "str:RAND-TOKEN",
-                    "str:WKLV-123456"
+                    "str:WKLV-1234"
                 ],
                 "gasLimit": "40,000,000",
                 "gasPrice": "0"

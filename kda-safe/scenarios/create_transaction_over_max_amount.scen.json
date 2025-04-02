@@ -13,7 +13,7 @@
                 "to": "sc:kda_safe",
                 "function": "setMaxBridgedAmount",
                 "arguments": [
-                    "str:BRIDGE-123456",
+                    "str:BRIDGE-1234",
                     "1,600,000"
                 ],
                 "gasLimit": "60,000,000",
@@ -35,7 +35,7 @@
                 "to": "sc:kda_safe",
                 "kdaValue": [
                     {
-                        "tokenIdentifier": "str:BRIDGE-123456",
+                        "tokenIdentifier": "str:BRIDGE-1234",
                         "value": "1,800,000"
                     }
                 ],
@@ -61,7 +61,7 @@
                 "to": "sc:kda_safe",
                 "kdaValue": [
                     {
-                        "tokenIdentifier": "str:BRIDGE-123456",
+                        "tokenIdentifier": "str:BRIDGE-1234",
                         "value": "1,600,000"
                     }
                 ],

@@ -37,7 +37,7 @@
                 "value": "0",
                 "function": "claimRefund",
                 "arguments": [
-                    "str:BRIDGE-123456"
+                    "str:BRIDGE-1234"
                 ],
                 "gasLimit": "50,000,000",
                 "gasPrice": "0"
@@ -58,7 +58,7 @@
                 "value": "0",
                 "function": "claimRefund",
                 "arguments": [
-                    "str:BRIDGE-123456"
+                    "str:BRIDGE-1234"
                 ],
                 "gasLimit": "50,000,000",
                 "gasPrice": "0"
@@ -78,7 +78,7 @@
                     "nonce": "*",
                     "balance": "0",
                     "kda": {
-                        "str:BRIDGE-123456": "499,600"
+                        "str:BRIDGE-1234": "499,600"
                     },
                     "storage": {}
                 },
@@ -86,7 +86,7 @@
                     "nonce": "*",
                     "balance": "0",
                     "kda": {
-                        "str:BRIDGE-123456": "500,000"
+                        "str:BRIDGE-1234": "500,000"
                     },
                     "storage": {}
                 },

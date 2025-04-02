@@ -34,7 +34,7 @@
                     "nonce": "*",
                     "balance": "0",
                     "kda": {
-                        "str:BRIDGE-123456": "3,000,000"
+                        "str:BRIDGE-1234": "3,000,000"
                     },
                     "storage": {}
                 },
@@ -42,14 +42,14 @@
                     "nonce": "0",
                     "balance": "0",
                     "kda": {
-                        "str:BRIDGE-123456": {
+                        "str:BRIDGE-1234": {
                             "balance": "400",
                             "canBurn": true,
                             "canMin": true
                         }
                     },
                     "storage": {
-                        "str:accumulatedTransactionFees|nested:str:BRIDGE-123456": "0",
+                        "str:accumulatedTransactionFees|nested:str:BRIDGE-1234": "0",
                         "+": ""
                     },
                     "code": "file:../output/kda-safe.wasm"

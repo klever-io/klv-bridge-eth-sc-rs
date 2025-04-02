@@ -36,7 +36,7 @@
                 "value": "0",
                 "function": "claimRefund",
                 "arguments": [
-                    "str:BRIDGE-123456"
+                    "str:BRIDGE-1234"
                 ],
                 "gasLimit": "50,000,000",
                 "gasPrice": "0"
@@ -55,7 +55,7 @@
                     "nonce": "*",
                     "balance": "0",
                     "kda": {
-                        "str:BRIDGE-123456": "499,600"
+                        "str:BRIDGE-1234": "499,600"
                     },
                     "storage": {}
                 },
@@ -63,7 +63,7 @@
                     "nonce": "0",
                     "balance": "0",
                     "kda": {
-                        "str:BRIDGE-123456": {
+                        "str:BRIDGE-1234": {
                             "balance": "1,500,400",
                             "canBurn": true,
                             "canMin": true
@@ -74,7 +74,7 @@
                         "str:firstBatchId": "2",
                         "str:lastBatchId": "2",
 
-                        "str:accumulatedTransactionFees|nested:str:BRIDGE-123456": "1,500,000",
+                        "str:accumulatedTransactionFees|nested:str:BRIDGE-1234": "1,500,000",
 
                         "+": ""
                     },

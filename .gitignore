@@ -12,6 +12,7 @@
 **/deploy-child-sc-spam.json
 
 # Klever IDE
+kleverchain.workspace.json
 **/node_modules
 **/output/**
 **/testnet/**

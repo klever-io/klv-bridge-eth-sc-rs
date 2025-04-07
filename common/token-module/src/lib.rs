@@ -221,10 +221,16 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
     // private
 
     fn internal_mint(&self, token_id: &TokenIdentifier, amount: &BigUint) -> bool {
-        let kda_properties = &self.blockchain().get_kda_properties(token_id);
-        if !kda_properties.can_mint {
+        let sc_role = self.get_token_role_by_address(token_id, self.blockchain().get_sc_address());
+        let sc_role = match sc_role {
+            Some(roles) => roles,
+            None => return false
+        };
+
+        if !sc_role.has_role_mint {
             return false;
         }
+
         self.send().kda_mint(token_id, 0, amount);
         return true;
     }
@@ -236,6 +242,11 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
         }
         self.send().kda_burn(token_id, 0, amount);
         return true;
+    }
+
+    fn get_token_role_by_address(&self,token_id: &TokenIdentifier, address: ManagedAddress) -> Option<RolesInfo<Self::Api>> {
+        let roles = self.blockchain().get_kda_roles(token_id);
+        roles.iter().find(|role| role.address == address)
     }
 
     fn require_token_in_whitelist(&self, token_id: &TokenIdentifier) {

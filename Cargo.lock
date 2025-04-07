@@ -248,6 +248,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "bridged-tokens-wrapper-meta"
+version = "0.0.0"
+dependencies = [
+ "bridged-tokens-wrapper",
+ "klever-sc-meta",
+]
+
+[[package]]
 name = "bstr"
 version = "1.11.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"

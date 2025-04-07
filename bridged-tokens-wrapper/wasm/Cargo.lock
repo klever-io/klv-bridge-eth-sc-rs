@@ -16,17 +16,17 @@ checksum = "0c4b4d0bd25bd0b74681c0ad21497610ce1b7c91b1022cd21c80c6fbdd9476b0"
 
 [[package]]
 name = "bitflags"
-version = "2.6.0"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b048fb63fd8b5923fc5aa7b340d8e156aec7ec02f0c78fa8a6ddc2613f6f71de"
+checksum = "cf4b9d6a944f767f8e5e0db018570623c85f3d925ac718db4e06d0187adb21c1"
 
 [[package]]
 name = "bridged-tokens-wrapper"
 version = "0.0.0"
 dependencies = [
  "eth-address",
- "multiversx-sc",
- "multiversx-sc-modules",
+ "klever-sc",
+ "klever-sc-modules",
  "token-module",
  "transaction",
  "tx-batch-module",
@@ -37,7 +37,7 @@ name = "bridged-tokens-wrapper-wasm"
 version = "0.0.0"
 dependencies = [
  "bridged-tokens-wrapper",
- "multiversx-sc-wasm-adapter",
+ "klever-sc-wasm-adapter",
 ]
 
 [[package]]
@@ -50,14 +50,14 @@ checksum = "c34f04666d835ff5d62e058c3995147c06f42fe86ff053337632bca83e42702d"
 name = "eth-address"
 version = "0.0.0"
 dependencies = [
- "multiversx-sc",
+ "klever-sc",
 ]
 
 [[package]]
 name = "fee-estimator-module"
 version = "0.0.0"
 dependencies = [
- "multiversx-sc",
+ "klever-sc",
 ]
 
 [[package]]
@@ -73,35 +73,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
 
 [[package]]
-name = "multiversx-sc"
-version = "0.52.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "526760b1d6236c011285b264a70a0a9dd3b3dbc53c3b5f76932f4bcfd3a8910c"
+name = "klever-sc"
+version = "0.43.3"
 dependencies = [
  "bitflags",
  "hex-literal",
- "multiversx-sc-codec",
- "multiversx-sc-derive",
+ "klever-sc-codec",
+ "klever-sc-derive",
  "num-traits",
  "unwrap-infallible",
 ]
 
 [[package]]
-name = "multiversx-sc-codec"
-version = "0.20.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad4f318427761faecf26c1f3115a3beeb5f61858845a60547d9763aa981ddd2d"
+name = "klever-sc-codec"
+version = "0.18.1"
 dependencies = [
  "arrayvec",
- "multiversx-sc-codec-derive",
+ "klever-sc-codec-derive",
  "unwrap-infallible",
 ]
 
 [[package]]
-name = "multiversx-sc-codec-derive"
-version = "0.20.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "476501462b0c2654b64f9dec6f2c480e24b4e9b7133ec10b7167e64acda35d04"
+name = "klever-sc-codec-derive"
+version = "0.18.1"
 dependencies = [
  "hex",
  "proc-macro2",
@@ -110,10 +104,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "multiversx-sc-derive"
-version = "0.52.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3557f2f12640a8a07fa6af66cc2a13b188c5b61bed72db22fe631fb3a60c3e96"
+name = "klever-sc-derive"
+version = "0.43.3"
 dependencies = [
  "hex",
  "proc-macro2",
@@ -123,21 +115,17 @@ dependencies = [
 ]
 
 [[package]]
-name = "multiversx-sc-modules"
-version = "0.52.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61f5c29c6044f3dc9e866858feee625d7fae5604a68ac7bd66dec683eee97563"
+name = "klever-sc-modules"
+version = "0.43.3"
 dependencies = [
- "multiversx-sc",
+ "klever-sc",
 ]
 
 [[package]]
-name = "multiversx-sc-wasm-adapter"
-version = "0.52.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed13aaca9cbdbc6911174cd3029e750a7563d85dd3daaa1107b1fd31c7f17245"
+name = "klever-sc-wasm-adapter"
+version = "0.43.3"
 dependencies = [
- "multiversx-sc",
+ "klever-sc",
 ]
 
 [[package]]
@@ -160,9 +148,9 @@ dependencies = [
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.86"
+version = "1.0.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5e719e8df665df0d1c8fbfd238015744736151d4445ec0836b8e628aae103b77"
+checksum = "0b33eb56c327dec362a9e55b3ad14f9d2f0904fb5a5b03b513ab5465399e9f43"
 dependencies = [
  "unicode-ident",
 ]
@@ -194,9 +182,9 @@ checksum = "3c5e1a9a646d36c3599cd173a41282daf47c44583ad367b8e6837255952e5c67"
 
 [[package]]
 name = "syn"
-version = "2.0.72"
+version = "2.0.87"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc4b9b9bf2add8093d3f2c0204471e951b2285580335de42f9d2534f3ae7a8af"
+checksum = "25aa4ce346d03a6dcd68dd8b4010bcb74e54e62c90c573f394c46eae99aba32d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -208,7 +196,7 @@ name = "token-module"
 version = "0.0.0"
 dependencies = [
  "fee-estimator-module",
- "multiversx-sc",
+ "klever-sc",
 ]
 
 [[package]]
@@ -216,14 +204,14 @@ name = "transaction"
 version = "0.0.0"
 dependencies = [
  "eth-address",
- "multiversx-sc",
+ "klever-sc",
 ]
 
 [[package]]
 name = "tx-batch-module"
 version = "0.0.0"
 dependencies = [
- "multiversx-sc",
+ "klever-sc",
  "transaction",
 ]
 

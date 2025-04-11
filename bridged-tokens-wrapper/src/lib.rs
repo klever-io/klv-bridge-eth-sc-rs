@@ -214,7 +214,7 @@ pub trait BridgedTokensWrapper:
 
         require!(
             payment_token == universal_bridged_token_ids,
-            "Esdt token unavailable"
+            "KDA token unavailable"
         );
         self.require_tokens_have_set_decimals_num(&payment_token, requested_token);
 
@@ -281,11 +281,21 @@ pub trait BridgedTokensWrapper:
 
     fn require_mint_and_burn_roles(&self, token_id: &TokenIdentifier) {
         let kda_properties = &self.blockchain().get_kda_properties(token_id);
+        let sc_role = self.get_token_role_by_address(token_id, self.blockchain().get_sc_address());
+        let sc_role = match sc_role {
+            Some(roles) => roles,
+            None => sc_panic!("Token not found"),
+        };
 
         require!(
-            kda_properties.can_mint && kda_properties.can_burn,
+            sc_role.has_role_mint && kda_properties.can_burn,
             "Must set local role first"
         );
+    }
+
+    fn get_token_role_by_address(&self,token_id: &TokenIdentifier, address: ManagedAddress) -> Option<RolesInfo<Self::Api>> {
+        let roles = self.blockchain().get_kda_roles(token_id);
+        roles.iter().find(|role| role.address.eq(&address))
     }
 
     fn require_tokens_have_set_decimals_num(

@@ -1,6 +1,5 @@
 {
     "name": "add wrapped token",
-    "gasSchedule": "v4",
     "steps": [
         {
             "step": "setState",
@@ -40,29 +39,25 @@
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-ghijkl": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-mnopqr": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:USDC-aaaaaa": {
@@ -153,29 +148,25 @@
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-ghijkl": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-mnopqr": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:USDC-aaaaaa": {

@@ -12,7 +12,7 @@
                 },
                 "address:user": {
                     "nonce": "7",
-                    "esdt": {
+                    "kda": {
                         "str:USDC-aaaaaa": {
                             "balance": "300000000000000"
                         },
@@ -36,33 +36,33 @@
                 },
                 "sc:bridged_tokens_wrapper": {
                     "nonce": "0",
-                    "esdt": {
+                    "kda": {
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:WUSDC-ghijkl": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:WUSDC-mnopqr": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:USDC-aaaaaa": {
@@ -125,7 +125,7 @@
                 },
                 "address:user": {
                     "nonce": "7",
-                    "esdt": {
+                    "kda": {
                         "str:USDC-aaaaaa": {
                             "balance": "300000000000000"
                         },
@@ -149,33 +149,33 @@
                 },
                 "sc:bridged_tokens_wrapper": {
                     "nonce": "0",
-                    "esdt": {
+                    "kda": {
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:WUSDC-ghijkl": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:WUSDC-mnopqr": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:USDC-aaaaaa": {

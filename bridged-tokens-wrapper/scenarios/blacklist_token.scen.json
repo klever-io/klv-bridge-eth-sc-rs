@@ -33,7 +33,7 @@
                 "from": "address:user",
                 "to": "sc:bridged_tokens_wrapper",
                 "value": "0",
-                "esdt": {
+                "kda": {
                     "tokenIdentifier": "str:WUSDC-abcdef",
                     "value": "100"
                 },
@@ -61,7 +61,7 @@
                 },
                 "address:user": {
                     "nonce": "5",
-                    "esdt": {
+                    "kda": {
                         "str:USDC-aaaaaa": {
                             "balance": "200000000000000"
                         },
@@ -79,19 +79,19 @@
                 },
                 "sc:bridged_tokens_wrapper": {
                     "nonce": "0",
-                    "esdt": {
+                    "kda": {
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:USDC-aaaaaa": {

@@ -13,7 +13,7 @@
                 "from": "address:user",
                 "to": "sc:bridged_tokens_wrapper",
                 "value": "0",
-                "esdt": {
+                "kda": {
                     "tokenIdentifier": "str:WUSDC-abcdef",
                     "value": "300"
                 },
@@ -38,7 +38,7 @@
                 "from": "address:user",
                 "to": "sc:bridged_tokens_wrapper",
                 "value": "0",
-                "esdt": {
+                "kda": {
                     "tokenIdentifier": "str:WUSDC-abcdef",
                     "value": "500"
                 },
@@ -63,7 +63,7 @@
                 "from": "address:user",
                 "to": "sc:bridged_tokens_wrapper",
                 "value": "0",
-                "esdt": {
+                "kda": {
                     "tokenIdentifier": "str:WUSDC-mnopqr",
                     "value": "500"
                 },
@@ -88,7 +88,7 @@
                 "from": "address:user",
                 "to": "sc:bridged_tokens_wrapper",
                 "value": "0",
-                "esdt": {
+                "kda": {
                     "tokenIdentifier": "str:WUSDC-ghijkl",
                     "value": "500"
                 },
@@ -113,7 +113,7 @@
                 "from": "address:user",
                 "to": "sc:bridged_tokens_wrapper",
                 "value": "0",
-                "esdt": {
+                "kda": {
                     "tokenIdentifier": "str:WUSDC-abcdef",
                     "value": "100"
                 },
@@ -141,7 +141,7 @@
                 },
                 "address:user": {
                     "nonce": "12",
-                    "esdt": {
+                    "kda": {
                         "str:USDC-aaaaaa": {
                             "balance": "400000000000000"
                         },
@@ -165,33 +165,33 @@
                 },
                 "sc:bridged_tokens_wrapper": {
                     "nonce": "0",
-                    "esdt": {
+                    "kda": {
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:WUSDC-ghijkl": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:WUSDC-mnopqr": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint",
+                                "KDARoleBurn"
                             ]
                         },
                         "str:USDC-aaaaaa": {

@@ -27,7 +27,7 @@ path = "../kda-safe"
 path = "../bridged-tokens-wrapper"
 
 [dependencies.klever-sc]
-version = "0.43.3"
+version = "0.44.0"
 path="../../klever-vm-sdk-rs-internal/framework/base"
 
 [dependencies.crowdfunding-kda]
@@ -37,5 +37,5 @@ path="../../klever-vm-sdk-rs-internal/contracts/examples/crowdfunding-kda"
 num-bigint = "0.4.2"
 
 [dev-dependencies.klever-sc-scenario]
-version = "0.43.3"
+version = "0.44.0"
 path="../../klever-vm-sdk-rs-internal/framework/scenario"

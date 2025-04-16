@@ -1,6 +1,5 @@
 {
     "name": "whitelist token",
-    "gasSchedule": "v4",
     "steps": [
         {
             "step": "externalSteps",
@@ -22,7 +21,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Endpoint can only be called by owner",
                 "gas": "*",
                 "refund": "*"
@@ -104,15 +103,13 @@
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         }
                     },

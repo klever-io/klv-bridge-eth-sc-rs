@@ -1,6 +1,5 @@
 {
     "name": "unwrap token",
-    "gasSchedule": "v4",
     "steps": [
         {
             "step": "externalSteps",
@@ -25,8 +24,8 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
-                "message": "str:Esdt token unavailable",
+                "status": "57",
+                "message": "str:KDA token unavailable",
                 "gas": "*",
                 "refund": "*"
             }
@@ -50,7 +49,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Contract does not have enough funds",
                 "gas": "*",
                 "refund": "*"
@@ -75,7 +74,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Universal token requires updating",
                 "gas": "*",
                 "refund": "*"
@@ -100,7 +99,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Chain-specific token requires updating",
                 "gas": "*",
                 "refund": "*"
@@ -121,7 +120,7 @@
                 "arguments": [
                     "str:USDC-aaaaaa"
                 ],
-                "gasLimit": "5,000,000",
+                "gasLimit": "10,000,000",
                 "gasPrice": "0"
             },
             "expect": {
@@ -169,29 +168,25 @@
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-ghijkl": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-mnopqr": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:USDC-aaaaaa": {

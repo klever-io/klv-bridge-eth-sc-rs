@@ -22,13 +22,16 @@
                             "balance": "400000000000000"
                         },
                         "str:WUSDC-abcdef": {
-                            "balance": "900"
+                            "balance": "900",
+                            "canBurn": true
                         },
                         "str:WUSDC-ghijkl": {
-                            "balance": "900"
+                            "balance": "900",
+                            "canBurn": true
                         },
                         "str:WUSDC-mnopqr": {
-                            "balance": "900"
+                            "balance": "900",
+                            "canBurn": true
                         }
                     },
                     "storage": {}
@@ -38,24 +41,28 @@
                     "kda": {
                         "str:WUSDC-abcdef": {
                             "balance": "1",
+                            "canBurn": true,
                             "roles": [
                                 "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-ghijkl": {
                             "balance": "1",
+                            "canBurn": true,
                             "roles": [
                                 "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-mnopqr": {
                             "balance": "1",
+                            "canBurn": true,
                             "roles": [
                                 "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
+                            "canBurn": true,
                             "roles": [
                                 "KDARoleMint"
                             ]

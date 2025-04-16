@@ -1,6 +1,5 @@
 {
     "name": "add wrapped token",
-    "gasSchedule": "v4",
     "steps": [
         {
             "step": "setState",
@@ -23,7 +22,8 @@
                             "balance": "500000000000000"
                         },
                         "str:WUSDC-abcdef": {
-                            "balance": "500"
+                            "balance": "500",
+                            "canBurn": true
                         }
                     },
                     "storage": {}
@@ -34,15 +34,13 @@
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         }
                     },
@@ -104,15 +102,13 @@
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         }
                     },

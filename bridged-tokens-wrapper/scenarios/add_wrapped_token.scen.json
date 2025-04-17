@@ -39,6 +39,7 @@
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
+                            "canBurn": true,
                             "roles": [
                                 "KDARoleMint"
                             ]

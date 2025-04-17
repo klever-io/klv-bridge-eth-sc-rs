@@ -1,6 +1,5 @@
 {
     "name": "wrap token",
-    "gasSchedule": "v4",
     "steps": [
         {
             "step": "externalSteps",
@@ -18,7 +17,7 @@
                     "value": "300000000000000"
                 },
                 "arguments": [],
-                "gasLimit": "5,000,000",
+                "gasLimit": "7,000,000",
                 "gasPrice": "0"
             },
             "expect": {
@@ -43,7 +42,7 @@
                     "value": "300000000000000"
                 },
                 "arguments": [],
-                "gasLimit": "5,000,000",
+                "gasLimit": "11,000,000",
                 "gasPrice": "0"
             },
             "expect": {
@@ -68,7 +67,7 @@
                     "value": "100000000000000"
                 },
                 "arguments": [],
-                "gasLimit": "5,000,000",
+                "gasLimit": "11,000,000",
                 "gasPrice": "0"
             },
             "expect": {
@@ -113,15 +112,13 @@
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:USDC-aaaaaa": {

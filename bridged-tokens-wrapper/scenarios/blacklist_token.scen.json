@@ -1,6 +1,5 @@
 {
     "name": "blacklist token",
-    "gasSchedule": "v4",
     "steps": [
         {
             "step": "externalSteps",
@@ -45,8 +44,8 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
-                "message": "str:Esdt token unavailable",
+                "status": "57",
+                "message": "str:KDA token unavailable",
                 "gas": "*",
                 "refund": "*"
             }
@@ -83,15 +82,13 @@
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "KDARoleMint",
-                                "KDARoleBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:USDC-aaaaaa": {

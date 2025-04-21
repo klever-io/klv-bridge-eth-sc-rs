@@ -1,11 +1,11 @@
 #![no_std]
 
-use multiversx_sc::imports::*;
+use klever_sc::imports::*;
 mod price_aggregator_proxy;
 
 pub const GWEI_STRING: &[u8] = b"GWEI";
 
-#[multiversx_sc::module]
+#[klever_sc::module]
 pub trait FeeEstimatorModule {
     #[only_owner]
     #[endpoint(setFeeEstimatorContractAddress)]

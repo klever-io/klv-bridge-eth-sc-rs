@@ -1,0 +1,35 @@
+[package]
+name = "klv-price-aggregator-sc"
+version = "0.0.0"
+authors = [
+    "Claudiu-Marcel Bruda <claudiu.bruda@multiversx.com>",
+    "MultiversX <contact@multiversx.com>",
+    "Klever <contact@klever.com>"
+]
+license = "GPL-3.0-only"
+readme = "README.md"
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies.klever-sc]
+version = "0.43.3"
+path="../../klever-vm-sdk-rs-internal/framework/base"
+
+[dependencies.staking-module]
+path = "../common/staking-module"
+
+[dependencies.klever-sc-modules]
+version = "0.43.3"
+path="../../klever-vm-sdk-rs-internal/contracts/modules"
+
+[dev-dependencies.klever-sc-scenario]
+version = "0.43.3"
+path="../../klever-vm-sdk-rs-internal/framework/scenario"
+
+
+[dependencies]
+arrayvec = { version = "0.7", default-features = false }
+rand = { version = "0.8.5" }
+getrandom = { version = "0.2", features = ["js"] }

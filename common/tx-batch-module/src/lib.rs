@@ -1,6 +1,6 @@
 #![no_std]
 
-use multiversx_sc::imports::*;
+use klever_sc::imports::*;
 
 pub use batch_status::BatchStatus;
 use transaction::{Transaction, TxBatchSplitInFields, MIN_BLOCKS_FOR_FINALITY};
@@ -9,7 +9,7 @@ use tx_batch_mapper::TxBatchMapper;
 pub mod batch_status;
 pub mod tx_batch_mapper;
 
-#[multiversx_sc::module]
+#[klever_sc::module]
 pub trait TxBatchModule {
     // endpoints - owner-only
 

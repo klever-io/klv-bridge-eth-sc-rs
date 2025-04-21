@@ -1,4 +1,4 @@
-use multiversx_sc::derive_imports::*;
+use klever_sc::derive_imports::*;
 
 #[type_abi]
 #[derive(

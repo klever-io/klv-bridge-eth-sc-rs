@@ -1,7 +1,7 @@
 #![no_std]
 
-use multiversx_sc::derive_imports::*;
-use multiversx_sc::imports::*;
+use klever_sc::derive_imports::*;
+use klever_sc::imports::*;
 
 use eth_address::EthAddress;
 pub mod transaction_status;
@@ -22,7 +22,7 @@ pub type TxAsMultiValue<M> = MultiValue6<
     TokenIdentifier<M>,
     BigUint<M>,
 >;
-pub type PaymentsVec<M> = ManagedVec<M, EsdtTokenPayment<M>>;
+pub type PaymentsVec<M> = ManagedVec<M, KdaTokenPayment<M>>;
 pub type TxBatchSplitInFields<M> = MultiValue2<u64, MultiValueEncoded<M, TxAsMultiValue<M>>>;
 
 #[type_abi]

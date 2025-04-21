@@ -1,4 +1,4 @@
-use multiversx_sc::{
+use klever_sc::{
     api::{ErrorApiImpl, StorageMapperApi},
     storage::{
         mappers::{StorageClearable, StorageMapper, VecMapper},

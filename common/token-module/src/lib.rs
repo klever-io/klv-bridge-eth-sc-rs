@@ -1,7 +1,7 @@
 #![no_std]
 
-use multiversx_sc::derive_imports::*;
-use multiversx_sc::imports::*;
+use klever_sc::derive_imports::*;
+use klever_sc::imports::*;
 
 pub const PERCENTAGE_TOTAL: u32 = 10_000; // precision of 2 decimals
 pub static INVALID_PERCENTAGE_SUM_OVER_ERR_MSG: &[u8] = b"Percentages do not add up to 100%";
@@ -13,7 +13,7 @@ pub struct AddressPercentagePair<M: ManagedTypeApi> {
     pub percentage: u32,
 }
 
-#[multiversx_sc::module]
+#[klever_sc::module]
 pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
     // endpoints - owner-only
 
@@ -54,7 +54,7 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
 
                     self.tx()
                         .to(&pair.address)
-                        .single_esdt(&token_id, 0, &amount_to_send)
+                        .single_kda(&token_id, 0, &amount_to_send)
                         .transfer();
                 }
             }
@@ -94,7 +94,7 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
                     "Mint-burn tokens must have 0 total balance!"
                 );
                 require!(
-                    self.call_value().all_esdt_transfers().is_empty(),
+                    self.call_value().all_kda_transfers().is_empty(),
                     "No payment required for mint burn tokens!"
                 );
                 self.init_supply_mint_burn(token_id, mint_balance, burn_balance);
@@ -143,7 +143,7 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
                 });
                 self.tx()
                     .to(ToCaller)
-                    .single_esdt(token_id, 0, amount)
+                    .single_kda(token_id, 0, amount)
                     .transfer();
 
                 return true;
@@ -167,7 +167,7 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
         }
         self.tx()
             .to(ToCaller)
-            .single_esdt(token_id, 0, amount)
+            .single_kda(token_id, 0, amount)
             .transfer();
 
         mint_balances_mapper.update(|minted| {
@@ -181,7 +181,7 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
     #[payable("*")]
     #[endpoint(initSupply)]
     fn init_supply(&self, token_id: &TokenIdentifier, amount: &BigUint) {
-        let (payment_token, payment_amount) = self.call_value().single_fungible_esdt();
+        let (payment_token, payment_amount) = self.call_value().single_fungible_kda();
         require!(token_id == &payment_token, "Invalid token ID");
         require!(amount == &payment_amount, "Invalid amount");
 
@@ -221,19 +221,32 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
     // private
 
     fn internal_mint(&self, token_id: &TokenIdentifier, amount: &BigUint) -> bool {
-        if !self.is_local_role_set(token_id, &EsdtLocalRole::Mint) {
+        let sc_role = self.get_token_role_by_address(token_id, self.blockchain().get_sc_address());
+        let sc_role = match sc_role {
+            Some(roles) => roles,
+            None => return false
+        };
+
+        if !sc_role.has_role_mint {
             return false;
         }
-        self.send().esdt_local_mint(token_id, 0, amount);
+
+        self.send().kda_mint(token_id, 0, amount);
         return true;
     }
 
     fn internal_burn(&self, token_id: &TokenIdentifier, amount: &BigUint) -> bool {
-        if !self.is_local_role_set(token_id, &EsdtLocalRole::Burn) {
+        let kda_properties = &self.blockchain().get_kda_properties(token_id);
+        if !kda_properties.can_burn {
             return false;
         }
-        self.send().esdt_local_burn(token_id, 0, amount);
+        self.send().kda_burn(token_id, 0, amount);
         return true;
+    }
+
+    fn get_token_role_by_address(&self,token_id: &TokenIdentifier, address: ManagedAddress) -> Option<RolesInfo<Self::Api>> {
+        let roles = self.blockchain().get_kda_roles(token_id);
+        roles.iter().find(|role| role.address == address)
     }
 
     fn require_token_in_whitelist(&self, token_id: &TokenIdentifier) {
@@ -241,19 +254,6 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
             self.token_whitelist().contains(token_id),
             "Token not in whitelist"
         );
-    }
-
-    fn require_local_role_set(&self, token_id: &TokenIdentifier, role: &EsdtLocalRole) {
-        require!(
-            self.is_local_role_set(token_id, role),
-            "Must set local role first"
-        );
-    }
-
-    fn is_local_role_set(&self, token_id: &TokenIdentifier, role: &EsdtLocalRole) -> bool {
-        let roles = self.blockchain().get_esdt_local_roles(token_id);
-
-        roles.has_role(role)
     }
 
     #[only_owner]

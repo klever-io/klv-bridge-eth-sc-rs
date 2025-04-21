@@ -7,6 +7,12 @@
 
 # Local testnet files
 **/deploy-testnet.interaction.json
-**/mxpy.data-storage.json
 **/testnet/
 **/deploy-child-sc-spam.json
+
+# Klever IDE
+kleverchain.workspace.json
+**/node_modules
+**/output/**
+**/testnet/**
+**/*.interaction.json

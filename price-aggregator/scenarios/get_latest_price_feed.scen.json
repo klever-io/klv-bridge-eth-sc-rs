@@ -68,13 +68,13 @@
                 "function": "latestPriceFeedOptional",
                 "arguments": [
                     "str:RAND-TOKEN",
-                    "str:WEGLD-123456"
+                    "str:WKLV-1234"
                 ],
                 "gasLimit": "40,000,000",
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:token pair not found"
             }
         }

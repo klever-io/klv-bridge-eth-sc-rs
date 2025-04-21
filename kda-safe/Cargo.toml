@@ -1,0 +1,46 @@
+[package]
+name = "kda-safe"
+version = "0.0.0"
+authors = ["Klever <contact@klever.com>"]
+edition = "2021"
+publish = false
+
+[lib]
+path = "src/kda_safe.rs"
+
+[dependencies.klever-sc]
+version = "0.43.3"
+path="../../klever-vm-sdk-rs-internal/framework/base"
+
+[dev-dependencies]
+num-bigint = "0.4.2"
+
+[dev-dependencies.klever-sc-scenario]
+version = "0.43.3"
+path="../../klever-vm-sdk-rs-internal/framework/scenario"
+
+[dependencies.klever-sc-modules]
+version = "0.43.3"
+path="../../klever-vm-sdk-rs-internal/contracts/modules"
+
+[dependencies.eth-address]
+path = "../common/eth-address"
+
+[dependencies.fee-estimator-module]
+path = "../common/fee-estimator-module"
+
+[dependencies.max-bridged-amount-module]
+path = "../common/max-bridged-amount-module"
+
+[dependencies.token-module]
+path = "../common/token-module"
+
+[dependencies.transaction]
+path = "../common/transaction"
+
+[dependencies.tx-batch-module]
+path = "../common/tx-batch-module"
+
+[dependencies.klv-price-aggregator-sc]
+path = "../price-aggregator/"
+

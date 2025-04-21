@@ -1,11 +1,12 @@
 [package]
 name = "eth-address"
 version = "0.0.0"
-authors = ["dorin-iancu <dorin.iancu@elrond.com>"]
-edition = "2018"
+authors = ["dorin-iancu <dorin.iancu@elrond.com>","Klever <contact@klever.com>"]
+edition = "2021"
 
 [lib]
 path = "src/lib.rs"
 
-[dependencies.multiversx-sc]
-version = "=0.52.3"
+[dependencies.klever-sc]
+version = "0.43.3"
+path="../../../klever-vm-sdk-rs-internal/framework/base"

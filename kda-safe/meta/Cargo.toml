@@ -1,0 +1,12 @@
+[package]
+name = "kda-safe-meta"
+version = "0.0.0"
+edition = "2021"
+publish = false
+[dependencies.kda-safe]
+path = ".."
+
+[dependencies.klever-sc-meta]
+version = "0.43.3"
+path = "../../../klever-vm-sdk-rs-internal/framework/meta"
+default-features = false

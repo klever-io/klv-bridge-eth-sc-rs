@@ -1,7 +1,7 @@
 [package]
 name = "transaction"
 version = "0.0.0"
-authors = ["dorin-iancu <dorin.iancu@elrond.com>"]
+authors = ["dorin-iancu <dorin.iancu@elrond.com>","Klever <contact@klever.com>"]
 edition = "2018"
 
 [lib]
@@ -10,5 +10,6 @@ path = "src/lib.rs"
 [dependencies.eth-address]
 path = "../eth-address"
 
-[dependencies.multiversx-sc]
-version = "=0.52.3"
+[dependencies.klever-sc]
+version = "0.43.3"
+path="../../../klever-vm-sdk-rs-internal/framework/base"

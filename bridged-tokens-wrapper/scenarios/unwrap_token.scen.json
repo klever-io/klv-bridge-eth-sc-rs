@@ -1,6 +1,5 @@
 {
     "name": "unwrap token",
-    "gasSchedule": "v4",
     "steps": [
         {
             "step": "externalSteps",
@@ -13,7 +12,7 @@
                 "from": "address:user",
                 "to": "sc:bridged_tokens_wrapper",
                 "value": "0",
-                "esdt": {
+                "kda": {
                     "tokenIdentifier": "str:WUSDC-abcdef",
                     "value": "300"
                 },
@@ -25,8 +24,8 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
-                "message": "str:Esdt token unavailable",
+                "status": "57",
+                "message": "str:KDA token unavailable",
                 "gas": "*",
                 "refund": "*"
             }
@@ -38,7 +37,7 @@
                 "from": "address:user",
                 "to": "sc:bridged_tokens_wrapper",
                 "value": "0",
-                "esdt": {
+                "kda": {
                     "tokenIdentifier": "str:WUSDC-abcdef",
                     "value": "500"
                 },
@@ -50,7 +49,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Contract does not have enough funds",
                 "gas": "*",
                 "refund": "*"
@@ -63,7 +62,7 @@
                 "from": "address:user",
                 "to": "sc:bridged_tokens_wrapper",
                 "value": "0",
-                "esdt": {
+                "kda": {
                     "tokenIdentifier": "str:WUSDC-mnopqr",
                     "value": "500"
                 },
@@ -75,7 +74,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Universal token requires updating",
                 "gas": "*",
                 "refund": "*"
@@ -88,7 +87,7 @@
                 "from": "address:user",
                 "to": "sc:bridged_tokens_wrapper",
                 "value": "0",
-                "esdt": {
+                "kda": {
                     "tokenIdentifier": "str:WUSDC-ghijkl",
                     "value": "500"
                 },
@@ -100,7 +99,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Chain-specific token requires updating",
                 "gas": "*",
                 "refund": "*"
@@ -113,7 +112,7 @@
                 "from": "address:user",
                 "to": "sc:bridged_tokens_wrapper",
                 "value": "0",
-                "esdt": {
+                "kda": {
                     "tokenIdentifier": "str:WUSDC-abcdef",
                     "value": "100"
                 },
@@ -121,7 +120,7 @@
                 "arguments": [
                     "str:USDC-aaaaaa"
                 ],
-                "gasLimit": "5,000,000",
+                "gasLimit": "10,000,000",
                 "gasPrice": "0"
             },
             "expect": {
@@ -141,7 +140,7 @@
                 },
                 "address:user": {
                     "nonce": "12",
-                    "esdt": {
+                    "kda": {
                         "str:USDC-aaaaaa": {
                             "balance": "400000000000000"
                         },
@@ -165,33 +164,29 @@
                 },
                 "sc:bridged_tokens_wrapper": {
                     "nonce": "0",
-                    "esdt": {
+                    "kda": {
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-ghijkl": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-mnopqr": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:USDC-aaaaaa": {

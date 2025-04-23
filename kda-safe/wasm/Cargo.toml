@@ -3,7 +3,7 @@
 # ############## AUTO-GENERATED #############
 # ##########################################
 [package]
-name = "klv-price-aggregator-sc-wasm"
+name = "kda-safe-wasm"
 version = "0.0.0"
 edition = "2021"
 publish = false
@@ -22,7 +22,7 @@ overflow-checks = false
 [profile.dev]
 panic = "abort"
 
-[dependencies.klv-price-aggregator-sc]
+[dependencies.kda-safe]
 path = ".."
 
 [dependencies.klever-sc-wasm-adapter]

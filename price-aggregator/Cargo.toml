@@ -14,18 +14,18 @@ edition = "2021"
 path = "src/lib.rs"
 
 [dependencies.klever-sc]
-version = "0.43.3"
+version = "0.44.0"
 path="../../klever-vm-sdk-rs-internal/framework/base"
 
 [dependencies.staking-module]
 path = "../common/staking-module"
 
 [dependencies.klever-sc-modules]
-version = "0.43.3"
+version = "0.44.0"
 path="../../klever-vm-sdk-rs-internal/contracts/modules"
 
 [dev-dependencies.klever-sc-scenario]
-version = "0.43.3"
+version = "0.44.0"
 path="../../klever-vm-sdk-rs-internal/framework/scenario"
 
 

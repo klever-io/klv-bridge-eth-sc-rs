@@ -9,11 +9,11 @@ path = ".."
 
 
 [dependencies.klever-sc]
-version = "0.43.3"
+version = "0.44.0"
 path="../../../klever-vm-sdk-rs-internal/framework/base"
 
 
 [dependencies.klever-sc-meta]
-version = "0.43.3"
+version = "0.44.0"
 path = "../../../klever-vm-sdk-rs-internal/framework/meta"
 default-features = false

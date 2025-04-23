@@ -1,6 +1,5 @@
 {
     "name": "remove wrapped token",
-    "gasSchedule": "v4",
     "steps": [
         {
             "step": "externalSteps",
@@ -57,7 +56,7 @@
                 },
                 "address:user": {
                     "nonce": "5",
-                    "esdt": {
+                    "kda": {
                         "str:USDC-aaaaaa": {
                             "balance": "200000000000000"
                         },
@@ -75,19 +74,17 @@
                 },
                 "sc:bridged_tokens_wrapper": {
                     "nonce": "0",
-                    "esdt": {
+                    "kda": {
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:USDC-aaaaaa": {

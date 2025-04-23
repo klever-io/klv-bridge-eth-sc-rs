@@ -2,6 +2,10 @@
 resolver = "2"
 
 members = [
+  "bridge-proxy",
+  "bridge-proxy/meta",
+  "bridged-tokens-wrapper",
+  "bridged-tokens-wrapper/meta",
   "kda-safe",
   "kda-safe/meta",
   "price-aggregator",

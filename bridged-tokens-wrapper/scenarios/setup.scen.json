@@ -1,6 +1,5 @@
 {
     "name": "add wrapped token",
-    "gasSchedule": "v4",
     "steps": [
         {
             "step": "setState",
@@ -12,7 +11,7 @@
                 },
                 "address:user": {
                     "nonce": "7",
-                    "esdt": {
+                    "kda": {
                         "str:USDC-aaaaaa": {
                             "balance": "300000000000000"
                         },
@@ -23,46 +22,49 @@
                             "balance": "400000000000000"
                         },
                         "str:WUSDC-abcdef": {
-                            "balance": "900"
+                            "balance": "900",
+                            "canBurn": true
                         },
                         "str:WUSDC-ghijkl": {
-                            "balance": "900"
+                            "balance": "900",
+                            "canBurn": true
                         },
                         "str:WUSDC-mnopqr": {
-                            "balance": "900"
+                            "balance": "900",
+                            "canBurn": true
                         }
                     },
                     "storage": {}
                 },
                 "sc:bridged_tokens_wrapper": {
                     "nonce": "0",
-                    "esdt": {
+                    "kda": {
                         "str:WUSDC-abcdef": {
                             "balance": "1",
+                            "canBurn": true,
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-ghijkl": {
                             "balance": "1",
+                            "canBurn": true,
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-mnopqr": {
                             "balance": "1",
+                            "canBurn": true,
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
+                            "canBurn": true,
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:USDC-aaaaaa": {
@@ -125,7 +127,7 @@
                 },
                 "address:user": {
                     "nonce": "7",
-                    "esdt": {
+                    "kda": {
                         "str:USDC-aaaaaa": {
                             "balance": "300000000000000"
                         },
@@ -149,33 +151,29 @@
                 },
                 "sc:bridged_tokens_wrapper": {
                     "nonce": "0",
-                    "esdt": {
+                    "kda": {
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-ghijkl": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-mnopqr": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:USDC-aaaaaa": {

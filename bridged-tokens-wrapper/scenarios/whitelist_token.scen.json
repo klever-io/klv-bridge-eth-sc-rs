@@ -1,6 +1,5 @@
 {
     "name": "whitelist token",
-    "gasSchedule": "v4",
     "steps": [
         {
             "step": "externalSteps",
@@ -22,7 +21,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Endpoint can only be called by owner",
                 "gas": "*",
                 "refund": "*"
@@ -82,7 +81,7 @@
                 },
                 "address:user": {
                     "nonce": "1",
-                    "esdt": {
+                    "kda": {
                         "str:USDC-aaaaaa": {
                             "balance": "500000000000000"
                         },
@@ -100,19 +99,17 @@
                 },
                 "sc:bridged_tokens_wrapper": {
                     "nonce": "0",
-                    "esdt": {
+                    "kda": {
                         "str:WUSDC-abcdef": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WUSDC-uvwxyz": {
                             "balance": "1",
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         }
                     },

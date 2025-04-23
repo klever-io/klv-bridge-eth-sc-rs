@@ -1,5 +1,5 @@
 use bridged_tokens_wrapper::DFPBigUint;
-use multiversx_sc_scenario::DebugApi;
+use klever_sc_scenario::DebugApi;
 
 #[test]
 fn test_biguint() {

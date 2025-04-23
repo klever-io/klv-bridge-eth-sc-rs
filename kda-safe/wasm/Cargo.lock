@@ -39,6 +39,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c34f04666d835ff5d62e058c3995147c06f42fe86ff053337632bca83e42702d"
 
 [[package]]
+name = "eth-address"
+version = "0.0.0"
+dependencies = [
+ "klever-sc",
+]
+
+[[package]]
+name = "fee-estimator-module"
+version = "0.0.0"
+dependencies = [
+ "klever-sc",
+]
+
+[[package]]
 name = "getrandom"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -71,6 +85,29 @@ checksum = "1cfaf33c695fc6e08064efbc1f72ec937429614f25eef83af942d0e227c3a28f"
 dependencies = [
  "once_cell",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "kda-safe"
+version = "0.0.0"
+dependencies = [
+ "eth-address",
+ "fee-estimator-module",
+ "klever-sc",
+ "klever-sc-modules",
+ "klv-price-aggregator-sc",
+ "max-bridged-amount-module",
+ "token-module",
+ "transaction",
+ "tx-batch-module",
+]
+
+[[package]]
+name = "kda-safe-wasm"
+version = "0.0.0"
+dependencies = [
+ "kda-safe",
+ "klever-sc-wasm-adapter",
 ]
 
 [[package]]
@@ -142,24 +179,23 @@ dependencies = [
 ]
 
 [[package]]
-name = "klv-price-aggregator-sc-wasm"
-version = "0.0.0"
-dependencies = [
- "klever-sc-wasm-adapter",
- "klv-price-aggregator-sc",
-]
-
-[[package]]
 name = "libc"
-version = "0.2.171"
+version = "0.2.172"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c19937216e9d3aa9956d9bb8dfc0b0c8beb6058fc4f7a4dc4d850edf86a237d6"
+checksum = "d750af042f7ef4f724306de029d18836c26c1765a54a6a3f094cbd23a7267ffa"
 
 [[package]]
 name = "log"
 version = "0.4.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13dc2df351e3202783a1fe0d44375f7295ffb4049267b0f3018346dc122a1d94"
+
+[[package]]
+name = "max-bridged-amount-module"
+version = "0.0.0"
+dependencies = [
+ "klever-sc",
+]
 
 [[package]]
 name = "nibble_vec"
@@ -181,9 +217,9 @@ dependencies = [
 
 [[package]]
 name = "once_cell"
-version = "1.21.1"
+version = "1.21.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d75b0bedcc4fe52caa0e03d9f1151a323e4aa5e2d78ba3580400cd3c9e2bc4bc"
+checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 
 [[package]]
 name = "ppv-lite86"
@@ -254,9 +290,9 @@ dependencies = [
 
 [[package]]
 name = "smallvec"
-version = "1.14.0"
+version = "1.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fcf8323ef1faaee30a44a340193b1ac6814fd9b7b4e88e9d4519a3e4abe1cfd"
+checksum = "8917285742e9f3e1683f0a9c4e6b57960b7314d0b08d30d1ecd426713ee2eee9"
 
 [[package]]
 name = "staking-module"
@@ -274,6 +310,30 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "token-module"
+version = "0.0.0"
+dependencies = [
+ "fee-estimator-module",
+ "klever-sc",
+]
+
+[[package]]
+name = "transaction"
+version = "0.0.0"
+dependencies = [
+ "eth-address",
+ "klever-sc",
+]
+
+[[package]]
+name = "tx-batch-module"
+version = "0.0.0"
+dependencies = [
+ "klever-sc",
+ "transaction",
 ]
 
 [[package]]

@@ -1,4 +1,4 @@
-#[multiversx_sc::module]
+#[klever_sc::module]
 pub trait EventsModule {
     #[event("wrap_tokens")]
     fn wrap_tokens_event(&self, #[indexed] token_id: TokenIdentifier, #[indexed] amount: BigUint);

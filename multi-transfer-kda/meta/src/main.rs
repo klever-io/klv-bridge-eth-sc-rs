@@ -1,3 +1,3 @@
 fn main() {
-    multiversx_sc_meta_lib::cli_main::<multi_transfer_esdt::AbiProvider>();
+    klever_sc_meta_lib::cli_main::<multi_transfer_kda::AbiProvider>();
 }

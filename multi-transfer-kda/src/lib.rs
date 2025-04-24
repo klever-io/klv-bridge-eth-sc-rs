@@ -1,21 +1,21 @@
 #![no_std]
 
-use multiversx_sc::{imports::*, storage::StorageKey};
+use klever_sc::{imports::*, storage::StorageKey};
 
 use eth_address::EthAddress;
 use transaction::{EthTransaction, PaymentsVec, Transaction, TxNonce};
 
 pub mod bridge_proxy_contract_proxy;
 pub mod bridged_tokens_wrapper_proxy;
-pub mod esdt_safe_proxy;
+pub mod kda_safe_proxy;
 pub mod multi_transfer_proxy;
 
 const DEFAULT_MAX_TX_BATCH_SIZE: usize = 10;
 const DEFAULT_MAX_TX_BATCH_BLOCK_DURATION: u64 = u64::MAX;
 const CHAIN_SPECIFIC_TO_UNIVERSAL_TOKEN_MAPPING: &[u8] = b"chainSpecificToUniversalMapping";
 
-#[multiversx_sc::contract]
-pub trait MultiTransferEsdt:
+#[klever_sc::contract]
+pub trait MultiTransferKda:
     tx_batch_module::TxBatchModule + max_bridged_amount_module::MaxBridgedAmountModule
 {
     #[init]
@@ -41,8 +41,8 @@ pub trait MultiTransferEsdt:
     }
 
     #[only_owner]
-    #[endpoint(batchTransferEsdtToken)]
-    fn batch_transfer_esdt_token(
+    #[endpoint(batchTransferKdaToken)]
+    fn batch_transfer_kda_token(
         &self,
         batch_id: u64,
         transfers: MultiValueEncoded<EthTransaction<Self::Api>>,
@@ -54,13 +54,13 @@ pub trait MultiTransferEsdt:
         let own_sc_address = self.blockchain().get_sc_address();
         let sc_shard = self.blockchain().get_shard_of_address(&own_sc_address);
 
-        let safe_address = self.esdt_safe_contract_address().get();
+        let safe_address = self.kda_safe_contract_address().get();
 
         for eth_tx in transfers {
             let is_success: bool = self
                 .tx()
                 .to(safe_address.clone())
-                .typed(esdt_safe_proxy::EsdtSafeProxy)
+                .typed(kda_safe_proxy::KDASafeProxy)
                 .get_tokens(&eth_tx.token_id, &eth_tx.amount)
                 .returns(ReturnsResult)
                 .sync_call();
@@ -99,7 +99,7 @@ pub trait MultiTransferEsdt:
             );
 
             valid_tx_list.push(eth_tx.clone());
-            valid_payments_list.push(EsdtTokenPayment::new(eth_tx.token_id, 0, eth_tx.amount));
+            valid_payments_list.push(KdaTokenPayment::new(eth_tx.token_id, 0, eth_tx.amount));
         }
 
         let payments_after_wrapping = self.wrap_tokens(valid_payments_list);
@@ -128,7 +128,7 @@ pub trait MultiTransferEsdt:
 
                     if self.is_refund_valid(&token_identifier) {
                         refund_batch.push(Transaction::from(tx_fields));
-                        refund_payments.push(EsdtTokenPayment::new(token_identifier, 0, amount));
+                        refund_payments.push(KdaTokenPayment::new(token_identifier, 0, amount));
                     } else {
                         self.unprocessed_refund_txs(tx_nonce)
                             .set(Transaction::from(tx_fields));
@@ -137,10 +137,10 @@ pub trait MultiTransferEsdt:
                     }
                 }
 
-                let esdt_safe_addr = self.esdt_safe_contract_address().get();
+                let kda_safe_addr = self.kda_safe_contract_address().get();
                 self.tx()
-                    .to(esdt_safe_addr)
-                    .typed(esdt_safe_proxy::EsdtSafeProxy)
+                    .to(kda_safe_addr)
+                    .typed(kda_safe_proxy::KDASafeProxy)
                     .add_refund_batch(refund_batch)
                     .payment(refund_payments)
                     .sync_call();
@@ -193,24 +193,24 @@ pub trait MultiTransferEsdt:
     }
 
     #[only_owner]
-    #[endpoint(setEsdtSafeContractAddress)]
-    fn set_esdt_safe_contract_address(&self, opt_new_address: OptionalValue<ManagedAddress>) {
+    #[endpoint(setKdaSafeContractAddress)]
+    fn set_kda_safe_contract_address(&self, opt_new_address: OptionalValue<ManagedAddress>) {
         match opt_new_address {
             OptionalValue::Some(sc_addr) => {
-                self.esdt_safe_contract_address().set(&sc_addr);
+                self.kda_safe_contract_address().set(&sc_addr);
             }
-            OptionalValue::None => self.esdt_safe_contract_address().clear(),
+            OptionalValue::None => self.kda_safe_contract_address().clear(),
         }
     }
 
     // private
 
     fn is_refund_valid(&self, token_id: &TokenIdentifier) -> bool {
-        let esdt_safe_addr = self.esdt_safe_contract_address().get();
+        let kda_safe_addr = self.kda_safe_contract_address().get();
         let own_sc_address = self.blockchain().get_sc_address();
         let sc_shard = self.blockchain().get_shard_of_address(&own_sc_address);
 
-        if self.is_account_same_shard_frozen(sc_shard, &esdt_safe_addr, token_id) {
+        if self.is_account_same_shard_frozen(sc_shard, &kda_safe_addr, token_id) {
             return false;
         }
         return true;
@@ -246,12 +246,6 @@ pub trait MultiTransferEsdt:
         }
     }
 
-    fn is_local_role_set(&self, token_id: &TokenIdentifier, role: &EsdtLocalRole) -> bool {
-        let roles = self.blockchain().get_esdt_local_roles(token_id);
-
-        roles.has_role(role)
-    }
-
     fn is_account_same_shard_frozen(
         &self,
         sc_shard: u32,
@@ -265,7 +259,7 @@ pub trait MultiTransferEsdt:
 
         let token_data = self
             .blockchain()
-            .get_esdt_token_data(dest_address, token_id, 0);
+            .get_kda_token_data(dest_address, token_id, 0);
         token_data.frozen
     }
 
@@ -297,12 +291,12 @@ pub trait MultiTransferEsdt:
                     .to(bridge_proxy_addr.clone())
                     .typed(bridge_proxy_contract_proxy::BridgeProxyContractProxy)
                     .deposit(&eth_tx, batch_id)
-                    .single_esdt(&p.token_identifier, 0, &p.amount)
+                    .single_kda(&p.token_identifier, 0, &p.amount)
                     .sync_call();
             } else {
                 self.tx()
                     .to(&eth_tx.to)
-                    .single_esdt(&p.token_identifier, 0, &p.amount)
+                    .single_kda(&p.token_identifier, 0, &p.amount)
                     .transfer();
             }
         }
@@ -317,9 +311,9 @@ pub trait MultiTransferEsdt:
     #[storage_mapper("bridgeProxyContractAddress")]
     fn bridge_proxy_contract_address(&self) -> SingleValueMapper<ManagedAddress>;
 
-    #[view(getEsdtSafeContractAddress)]
-    #[storage_mapper("esdtSafeContractAddress")]
-    fn esdt_safe_contract_address(&self) -> SingleValueMapper<ManagedAddress>;
+    #[view(getKdaSafeContractAddress)]
+    #[storage_mapper("kdaSafeContractAddress")]
+    fn kda_safe_contract_address(&self) -> SingleValueMapper<ManagedAddress>;
 
     #[storage_mapper("unprocessedRefundTxs")]
     fn unprocessed_refund_txs(&self, tx_id: u64) -> SingleValueMapper<Transaction<Self::Api>>;

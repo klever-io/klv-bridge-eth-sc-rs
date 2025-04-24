@@ -1,4 +1,4 @@
 [settings]
 
 [[proxy]]
-path = "../multisig/src/multi_transfer_esdt_proxy.rs"
+path = "../multisig/src/multi_transfer_kda_proxy.rs"

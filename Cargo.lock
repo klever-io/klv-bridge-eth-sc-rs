@@ -1411,6 +1411,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "multi-transfer-kda"
+version = "0.0.0"
+dependencies = [
+ "bridge-proxy",
+ "bridged-tokens-wrapper",
+ "eth-address",
+ "kda-safe",
+ "klever-sc",
+ "klever-sc-modules",
+ "klever-sc-scenario",
+ "max-bridged-amount-module",
+ "token-module",
+ "transaction",
+ "tx-batch-module",
+]
+
+[[package]]
+name = "multi-transfer-kda-meta"
+version = "0.0.0"
+dependencies = [
+ "klever-sc-meta",
+ "multi-transfer-kda",
+]
+
+[[package]]
 name = "native-tls"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"

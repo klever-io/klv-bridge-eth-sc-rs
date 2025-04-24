@@ -1,5 +1,5 @@
 [package]
-name = "multi-transfer-esdt-meta"
+name = "multi-transfer-kda-meta"
 version = "0.0.0"
 authors = ["you"]
 edition = "2018"
@@ -7,9 +7,10 @@ publish = false
 
 [dev-dependencies]
 
-[dependencies.multi-transfer-esdt]
+[dependencies.multi-transfer-kda]
 path = ".."
 
-[dependencies.multiversx-sc-meta-lib]
-version = "=0.52.3"
+[dependencies.klever-sc-meta]
+version = "0.44.0"
+path = "../../../klever-vm-sdk-rs-internal/framework/meta"
 default-features = false

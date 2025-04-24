@@ -225,6 +225,7 @@ dependencies = [
  "eth-address",
  "kda-safe",
  "klever-sc",
+ "klever-sc-modules",
  "klever-sc-scenario",
  "num-bigint",
  "token-module",

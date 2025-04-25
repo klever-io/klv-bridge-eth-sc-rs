@@ -51,9 +51,6 @@ pub trait MultiTransferKda:
         let mut valid_tx_list = ManagedVec::new();
         let mut refund_tx_list = ManagedVec::new();
 
-        let own_sc_address = self.blockchain().get_sc_address();
-        let sc_shard = self.blockchain().get_shard_of_address(&own_sc_address);
-
         let safe_address = self.kda_safe_contract_address().get();
 
         for eth_tx in transfers {
@@ -67,17 +64,12 @@ pub trait MultiTransferKda:
 
             require!(is_success, "Invalid token or amount");
 
-            let universal_token = self.get_universal_token(eth_tx.clone());
-
             let mut must_refund = false;
             if eth_tx.to.is_zero() {
                 self.transfer_failed_invalid_destination(batch_id, eth_tx.tx_nonce);
                 must_refund = true;
             } else if self.is_above_max_amount(&eth_tx.token_id, &eth_tx.amount) {
                 self.transfer_over_max_amount(batch_id, eth_tx.tx_nonce);
-                must_refund = true;
-            } else if self.is_account_same_shard_frozen(sc_shard, &eth_tx.to, &universal_token) {
-                self.transfer_failed_frozen_destination_account(batch_id, eth_tx.tx_nonce);
                 must_refund = true;
             }
 
@@ -123,18 +115,11 @@ pub trait MultiTransferKda:
                 let mut refund_payments = ManagedVec::new();
 
                 for tx_fields in all_tx_fields {
-                    let (_, tx_nonce, _, _, token_identifier, amount) =
+                    let (_, _, _, _, token_identifier, amount) =
                         tx_fields.clone().into_tuple();
 
-                    if self.is_refund_valid(&token_identifier) {
                         refund_batch.push(Transaction::from(tx_fields));
                         refund_payments.push(KdaTokenPayment::new(token_identifier, 0, amount));
-                    } else {
-                        self.unprocessed_refund_txs(tx_nonce)
-                            .set(Transaction::from(tx_fields));
-
-                        self.unprocessed_refund_txs_event(tx_nonce);
-                    }
                 }
 
                 let kda_safe_addr = self.kda_safe_contract_address().get();
@@ -205,17 +190,6 @@ pub trait MultiTransferKda:
 
     // private
 
-    fn is_refund_valid(&self, token_id: &TokenIdentifier) -> bool {
-        let kda_safe_addr = self.kda_safe_contract_address().get();
-        let own_sc_address = self.blockchain().get_sc_address();
-        let sc_shard = self.blockchain().get_shard_of_address(&own_sc_address);
-
-        if self.is_account_same_shard_frozen(sc_shard, &kda_safe_addr, token_id) {
-            return false;
-        }
-        return true;
-    }
-
     fn get_universal_token(&self, eth_tx: EthTransaction<Self::Api>) -> TokenIdentifier {
         let mut storage_key = StorageKey::new(CHAIN_SPECIFIC_TO_UNIVERSAL_TOKEN_MAPPING);
         storage_key.append_item(&eth_tx.token_id);
@@ -244,23 +218,6 @@ pub trait MultiTransferKda:
             amount: eth_tx.amount,
             is_refund_tx: true,
         }
-    }
-
-    fn is_account_same_shard_frozen(
-        &self,
-        sc_shard: u32,
-        dest_address: &ManagedAddress,
-        token_id: &TokenIdentifier,
-    ) -> bool {
-        let dest_shard = self.blockchain().get_shard_of_address(dest_address);
-        if sc_shard != dest_shard {
-            return false;
-        }
-
-        let token_data = self
-            .blockchain()
-            .get_kda_token_data(dest_address, token_id, 0);
-        token_data.frozen
     }
 
     fn wrap_tokens(&self, payments: PaymentsVec<Self::Api>) -> PaymentsVec<Self::Api> {

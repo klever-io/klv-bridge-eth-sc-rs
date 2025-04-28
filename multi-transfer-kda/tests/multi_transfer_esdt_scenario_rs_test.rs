@@ -1,19 +1,15 @@
-use multiversx_sc_scenario::*;
+use klever_sc_scenario::*;
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
 
     blockchain.register_contract(
-        "file:output/multi-transfer-esdt.wasm",
-        multi_transfer_esdt::ContractBuilder,
+        "file:output/multi-transfer-kda.wasm",
+        multi_transfer_kda::ContractBuilder,
     );
     blockchain.register_contract(
-        "file:../esdt-safe/output/esdt-safe.wasm",
-        esdt_safe::ContractBuilder,
-    );
-    blockchain.register_contract(
-        "file:../bridge-proxy/output/bridge-proxy.wasm",
-        bridge_proxy::ContractBuilder,
+        "file:../kda-safe/output/kda-safe.wasm",
+        kda_safe::ContractBuilder,
     );
     blockchain.register_contract(
         "file:../bridged-tokens-wrapper/output/bridged-tokens-wrapper.wasm",

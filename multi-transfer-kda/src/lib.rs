@@ -5,7 +5,6 @@ use klever_sc::{imports::*, storage::StorageKey};
 use eth_address::EthAddress;
 use transaction::{EthTransaction, PaymentsVec, Transaction, TxNonce};
 
-pub mod bridge_proxy_contract_proxy;
 pub mod bridged_tokens_wrapper_proxy;
 pub mod kda_safe_proxy;
 pub mod multi_transfer_proxy;
@@ -95,7 +94,7 @@ pub trait MultiTransferKda:
         }
 
         let payments_after_wrapping = self.wrap_tokens(valid_payments_list);
-        self.distribute_payments(valid_tx_list, payments_after_wrapping, batch_id);
+        self.distribute_payments(valid_tx_list, payments_after_wrapping);
 
         self.add_multiple_tx_to_batch(&refund_tx_list);
     }
@@ -147,22 +146,6 @@ pub trait MultiTransferKda:
                 self.wrapping_contract_address().set(&sc_addr);
             }
             OptionalValue::None => self.wrapping_contract_address().clear(),
-        }
-    }
-
-    #[only_owner]
-    #[endpoint(setBridgeProxyContractAddress)]
-    fn set_bridge_proxy_contract_address(&self, opt_new_address: OptionalValue<ManagedAddress>) {
-        match opt_new_address {
-            OptionalValue::Some(sc_addr) => {
-                require!(
-                    self.blockchain().is_smart_contract(&sc_addr),
-                    "Invalid bridge proxy contract address"
-                );
-
-                self.bridge_proxy_contract_address().set(&sc_addr);
-            }
-            OptionalValue::None => self.bridge_proxy_contract_address().clear(),
         }
     }
 
@@ -239,23 +222,12 @@ pub trait MultiTransferKda:
         &self,
         transfers: ManagedVec<EthTransaction<Self::Api>>,
         payments: PaymentsVec<Self::Api>,
-        batch_id: u64,
     ) {
-        let bridge_proxy_addr = self.bridge_proxy_contract_address().get();
         for (eth_tx, p) in transfers.iter().zip(payments.iter()) {
-            if self.blockchain().is_smart_contract(&eth_tx.to) {
-                self.tx()
-                    .to(bridge_proxy_addr.clone())
-                    .typed(bridge_proxy_contract_proxy::BridgeProxyContractProxy)
-                    .deposit(&eth_tx, batch_id)
-                    .single_kda(&p.token_identifier, 0, &p.amount)
-                    .sync_call();
-            } else {
-                self.tx()
-                    .to(&eth_tx.to)
-                    .single_kda(&p.token_identifier, 0, &p.amount)
-                    .transfer();
-            }
+            self.tx()
+                .to(&eth_tx.to)
+                .single_kda(&p.token_identifier, 0, &p.amount)
+                .transfer();
         }
     }
 
@@ -263,10 +235,6 @@ pub trait MultiTransferKda:
     #[view(getWrappingContractAddress)]
     #[storage_mapper("wrappingContractAddress")]
     fn wrapping_contract_address(&self) -> SingleValueMapper<ManagedAddress>;
-
-    #[view(getBridgeProxyContractAddress)]
-    #[storage_mapper("bridgeProxyContractAddress")]
-    fn bridge_proxy_contract_address(&self) -> SingleValueMapper<ManagedAddress>;
 
     #[view(getKdaSafeContractAddress)]
     #[storage_mapper("kdaSafeContractAddress")]

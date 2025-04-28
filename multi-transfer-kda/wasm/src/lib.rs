@@ -5,8 +5,8 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           19
-// Total number of exported functions:  21
+// Endpoints:                           17
+// Total number of exported functions:  19
 
 #![no_std]
 
@@ -21,11 +21,9 @@ klever_sc_wasm_adapter::endpoints! {
         batchTransferKdaToken => batch_transfer_kda_token
         moveRefundBatchToSafe => move_refund_batch_to_safe
         setWrappingContractAddress => set_wrapping_contract_address
-        setBridgeProxyContractAddress => set_bridge_proxy_contract_address
         addUnprocessedRefundTxToBatch => add_unprocessed_refund_tx_to_batch
         setKdaSafeContractAddress => set_kda_safe_contract_address
         getWrappingContractAddress => wrapping_contract_address
-        getBridgeProxyContractAddress => bridge_proxy_contract_address
         getKdaSafeContractAddress => kda_safe_contract_address
         setMaxTxBatchSize => set_max_tx_batch_size
         setMaxTxBatchBlockDuration => set_max_tx_batch_block_duration

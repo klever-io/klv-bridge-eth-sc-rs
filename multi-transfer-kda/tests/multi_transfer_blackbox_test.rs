@@ -38,7 +38,7 @@ const TOKEN_ID: &[u8] = b"TOKEN";
 const USER_ETHEREUM_ADDRESS: &[u8] = b"0x0102030405060708091011121314151617181920";
 
 const GAS_LIMIT: u64 = 100_000_000;
-const ERROR: u64 = 4;
+const ERROR: u64 = 57;
 
 const MULTI_TRANSFER_CODE_PATH: KleverscPath = KleverscPath::new("output/multi-transfer-kda.kleversc.json");
 const KDA_SAFE_CODE_PATH: KleverscPath = KleverscPath::new("../kda-safe/output/kda-safe.kleversc.json");
@@ -100,9 +100,9 @@ impl MultiTransferTestState {
             .kda_balance(TokenIdentifier::from(WRAPPED_TOKEN_ID), 1001u64)
             .kda_balance(TokenIdentifier::from(UNIVERSAL_TOKEN_IDENTIFIER), 1001u64)
             .account(USER1_ADDRESS)
-            .nonce(1)
+            .nonce(0)
             .account(USER2_ADDRESS)
-            .nonce(1);
+            .nonce(0);
 
         let roles = vec![
             "KDARoleMint".to_string(),
@@ -922,7 +922,7 @@ fn test_unwrap_token_create_transaction_should_fail() {
             0u64,
             &BigUint::from(1_000u64),
         )
-        .returns(ExpectError(ERROR, "Kda token unavailable"))
+        .returns(ExpectError(ERROR, "KDA token unavailable"))
         .run();
 }
 

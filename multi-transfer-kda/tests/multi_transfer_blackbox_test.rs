@@ -48,7 +48,6 @@ const PRICE_AGGREGATOR_CODE_PATH: KleverscPath =
     KleverscPath::new("../price-aggregator/price-aggregator.kleversc.json");
 
 const MULTI_TRANSFER_ADDRESS: TestSCAddress = TestSCAddress::new("multi-transfer");
-const BRIDGE_PROXY_ADDRESS: TestSCAddress = TestSCAddress::new("bridge-proxy");
 const KDA_SAFE_ADDRESS: TestSCAddress = TestSCAddress::new("kda-safe");
 const BRIDGED_TOKENS_WRAPPER_ADDRESS: TestSCAddress = TestSCAddress::new("bridged-tokens-wrapper");
 const PRICE_AGGREGATOR_ADDRESS: TestSCAddress = TestSCAddress::new("price-aggregator");
@@ -150,7 +149,7 @@ impl MultiTransferTestState {
             .upgrade(
                 ManagedAddress::zero(),
                 MULTI_TRANSFER_ADDRESS.to_address(),
-                BRIDGE_PROXY_ADDRESS.to_address(),
+                ManagedAddress::zero(),
                 KDA_SAFE_ETH_TX_GAS_LIMIT,
             )
             .code(KDA_SAFE_CODE_PATH)
@@ -280,14 +279,6 @@ impl MultiTransferTestState {
             .typed(bridged_tokens_wrapper_proxy::BridgedTokensWrapperProxy)
             .unpause_endpoint()
             .run();
-
-        self.world
-            .tx()
-            .from(OWNER_ADDRESS)
-            .to(BRIDGE_PROXY_ADDRESS)
-            .typed(bridged_tokens_wrapper_proxy::BridgedTokensWrapperProxy)
-            .unpause_endpoint()
-            .run();
     }
 
     fn config_bridged_tokens_wrapper(&mut self) {
@@ -310,26 +301,8 @@ impl MultiTransferTestState {
             .run();
         
         self.world.set_kda_balance(
-            BRIDGE_PROXY_ADDRESS,
-            b"UNIV-abc123",
-            BigUint::from(10_000_000u64),
-        );
-
-        self.world.set_kda_balance(
-            BRIDGE_PROXY_ADDRESS,
-            b"WRAPPED-123456",
-            BigUint::from(10_000_000u64),
-        );
-
-        self.world.set_kda_balance(
             BRIDGED_TOKENS_WRAPPER_ADDRESS,
-            b"WRAPPED-123456",
-            BigUint::from(10_000_000u64),
-        );
-
-        self.world.set_kda_balance(
-            BRIDGE_PROXY_ADDRESS,
-            b"BRIDGE-123456",
+            WRAPPED_TOKEN_ID,
             BigUint::from(10_000_000u64),
         );
 
@@ -688,7 +661,7 @@ fn batch_transfer_both_failed_test() {
         from: EthAddress {
             raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
         },
-        to: ManagedAddress::from(BRIDGE_PROXY_ADDRESS.eval_to_array()),
+        to: ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(BRIDGE_TOKEN_ID),
         amount: token_amount.clone(),
         tx_nonce: 1u64,
@@ -699,7 +672,7 @@ fn batch_transfer_both_failed_test() {
         from: EthAddress {
             raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
         },
-        to: ManagedAddress::from(BRIDGE_PROXY_ADDRESS.eval_to_array()),
+        to: ManagedAddress::from(USER2_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(BRIDGE_TOKEN_ID),
         amount: token_amount.clone(),
         tx_nonce: 2u64,
@@ -760,10 +733,16 @@ fn test_unwrap_token_create_transaction_paused() {
 
     state.config_bridged_tokens_wrapper();
 
+    state.world.set_kda_balance(
+        USER1_ADDRESS,
+        UNIVERSAL_TOKEN_IDENTIFIER,
+        BigUint::from(10u64),
+    );
+
     state
         .world
         .tx()
-        .from(BRIDGE_PROXY_ADDRESS)
+        .from(USER1_ADDRESS)
         .to(BRIDGED_TOKENS_WRAPPER_ADDRESS)
         .typed(bridged_tokens_wrapper_proxy::BridgedTokensWrapperProxy)
         .unwrap_token_create_transaction(
@@ -941,10 +920,15 @@ fn test_unwrap_token_create_transaction_amount_zero() {
 
     state.config_multi_transfer();
     state.config_bridged_tokens_wrapper();
+
+    state
+        .world
+        .set_kda_balance(USER1_ADDRESS, UNIVERSAL_TOKEN_IDENTIFIER, BigUint::from(5_000u64));
+
     state
         .world
         .tx()
-        .from(BRIDGE_PROXY_ADDRESS)
+        .from(USER1_ADDRESS)
         .to(BRIDGED_TOKENS_WRAPPER_ADDRESS)
         .typed(bridged_tokens_wrapper_proxy::BridgedTokensWrapperProxy)
         .unwrap_token_create_transaction(

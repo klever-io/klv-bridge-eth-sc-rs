@@ -30,10 +30,10 @@ use eth_address::*;
 use token_module::ProxyTrait as _;
 use transaction::{CallData, EthTransaction};
 
-const UNIVERSAL_TOKEN_IDENTIFIER: TestTokenIdentifier = TestTokenIdentifier::new("UNIV-abc123");
-const BRIDGE_TOKEN_ID: TestTokenIdentifier = TestTokenIdentifier::new("BRIDGE-123456");
-const WRAPPED_TOKEN_ID: TestTokenIdentifier = TestTokenIdentifier::new("WRAPPED-123456");
-const TOKEN_ID: TestTokenIdentifier = TestTokenIdentifier::new("TOKEN");
+const UNIVERSAL_TOKEN_IDENTIFIER: &[u8] = b"UNIV-abc123";
+const BRIDGE_TOKEN_ID: &[u8] = b"BRIDGE-123456";
+const WRAPPED_TOKEN_ID: &[u8] = b"WRAPPED-123456";
+const TOKEN_ID: &[u8] = b"TOKEN";
 
 const USER_ETHEREUM_ADDRESS: &[u8] = b"0x0102030405060708091011121314151617181920";
 
@@ -94,11 +94,11 @@ impl MultiTransferTestState {
 
         world
             .account(OWNER_ADDRESS)
-            .nonce(1)
-            .kda_balance(BRIDGE_TOKEN_ID, 1001u64)
-            .kda_balance(TOKEN_ID, MAX_AMOUNT)
-            .kda_balance(WRAPPED_TOKEN_ID, 1001u64)
-            .kda_balance(UNIVERSAL_TOKEN_IDENTIFIER, 1001u64)
+            .nonce(0)
+            .kda_balance(TokenIdentifier::from(BRIDGE_TOKEN_ID), 1001u64)
+            .kda_balance(TokenIdentifier::from(TOKEN_ID), MAX_AMOUNT)
+            .kda_balance(TokenIdentifier::from(WRAPPED_TOKEN_ID), 1001u64)
+            .kda_balance(TokenIdentifier::from(UNIVERSAL_TOKEN_IDENTIFIER), 1001u64)
             .account(USER1_ADDRESS)
             .nonce(1)
             .account(USER2_ADDRESS)
@@ -107,6 +107,14 @@ impl MultiTransferTestState {
         let roles = vec![
             "KDARoleMint".to_string(),
         ];
+
+        world
+            .account(KDA_SAFE_ADDRESS)
+            .kda_roles(TokenIdentifier::from(BRIDGE_TOKEN_ID), roles.clone())
+            .kda_roles(TokenIdentifier::from(UNIVERSAL_TOKEN_IDENTIFIER), roles.clone())
+            .kda_roles(TokenIdentifier::from(WRAPPED_TOKEN_ID), roles.clone())
+            .code(KDA_SAFE_CODE_PATH)
+            .owner(OWNER_ADDRESS);
 
         let kda_safe_address = AddressValue::from(KDA_SAFE_ADDRESS);
 
@@ -117,13 +125,19 @@ impl MultiTransferTestState {
             true,
         );
 
-        world
-            .account(KDA_SAFE_ADDRESS)
-            .kda_roles(BRIDGE_TOKEN_ID, roles.clone())
-            .kda_roles(UNIVERSAL_TOKEN_IDENTIFIER, roles.clone())
-            .kda_roles(WRAPPED_TOKEN_ID, roles.clone())
-            .code(KDA_SAFE_CODE_PATH)
-            .owner(OWNER_ADDRESS);
+        world.set_kda_can_burn(
+            managed_address!(&kda_safe_address.to_address()),
+            WRAPPED_TOKEN_ID,
+            0,
+            true,
+        );
+
+        world.set_kda_can_burn(
+            managed_address!(&kda_safe_address.to_address()),
+            BRIDGE_TOKEN_ID,
+            0,
+            true,
+        );
 
         Self { world }
     }
@@ -312,7 +326,7 @@ impl MultiTransferTestState {
 
         self.world.set_kda_local_roles(
             BRIDGED_TOKENS_WRAPPER_ADDRESS,
-            b"UNIV-abc123",
+            UNIVERSAL_TOKEN_IDENTIFIER,
             roles,
         );
 
@@ -405,7 +419,7 @@ impl MultiTransferTestState {
 
     fn check_balances_on_safe(
         &mut self,
-        token_id: TestTokenIdentifier,
+        token_id: &[u8],
         total_supply: BigUint<StaticApi>,
         total_minted: BigUint<StaticApi>,
         total_burned: BigUint<StaticApi>,
@@ -500,7 +514,7 @@ fn basic_transfer_test() {
     state
         .world
         .check_account(USER1_ADDRESS)
-        .kda_balance(BRIDGE_TOKEN_ID, token_amount);
+        .kda_balance(TokenIdentifier::from(BRIDGE_TOKEN_ID), token_amount);
 }
 
 #[test]
@@ -562,12 +576,12 @@ fn batch_transfer_both_executed_test() {
     state
         .world
         .check_account(USER1_ADDRESS)
-        .kda_balance(WRAPPED_TOKEN_ID, token_amount.clone());
+        .kda_balance(TokenIdentifier::from(WRAPPED_TOKEN_ID), token_amount.clone());
 
     state
         .world
         .check_account(USER2_ADDRESS)
-        .kda_balance(BRIDGE_TOKEN_ID, token_amount);
+        .kda_balance(TokenIdentifier::from(BRIDGE_TOKEN_ID), token_amount);
 }
 
 #[test]
@@ -629,12 +643,12 @@ fn batch_two_transfers_same_token_test() {
     state
         .world
         .check_account(USER1_ADDRESS)
-        .kda_balance(BRIDGE_TOKEN_ID, token_amount.clone());
+        .kda_balance(TokenIdentifier::from(BRIDGE_TOKEN_ID), token_amount.clone());
 
     state
         .world
         .check_account(USER2_ADDRESS)
-        .kda_balance(BRIDGE_TOKEN_ID, token_amount);
+        .kda_balance(TokenIdentifier::from(BRIDGE_TOKEN_ID), token_amount);
 }
 
 #[test]
@@ -791,7 +805,7 @@ fn test_unwrap_token_create_transaction_insufficient_liquidity() {
 
     state
         .world
-        .set_kda_balance(USER1_ADDRESS, b"UNIV-abc123", BigUint::from(5_000u64));
+        .set_kda_balance(USER1_ADDRESS, UNIVERSAL_TOKEN_IDENTIFIER, BigUint::from(5_000u64));
 
     state
         .world
@@ -834,7 +848,7 @@ fn test_unwrap_token_create_transaction_should_work() {
 
     state
         .world
-        .set_kda_balance(USER1_ADDRESS, b"UNIV-abc123", BigUint::from(5_000u64));
+        .set_kda_balance(USER1_ADDRESS, UNIVERSAL_TOKEN_IDENTIFIER, BigUint::from(5_000u64));
 
     state.check_balances_on_safe(
         WRAPPED_TOKEN_ID,
@@ -894,7 +908,7 @@ fn test_unwrap_token_create_transaction_should_fail() {
 
     state
         .world
-        .set_kda_balance(USER1_ADDRESS, b"TOKEN", BigUint::from(5_000u64));
+        .set_kda_balance(USER1_ADDRESS, TOKEN_ID, BigUint::from(5_000u64));
 
     state
         .world

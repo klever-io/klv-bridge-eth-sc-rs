@@ -10,9 +10,8 @@ mod storage;
 mod user_role;
 mod util;
 
-pub mod bridge_proxy_contract_proxy;
-pub mod esdt_safe_proxy;
-pub mod multi_transfer_esdt_proxy;
+pub mod kda_safe_proxy;
+pub mod multi_transfer_kda_proxy;
 pub mod multisig_proxy;
 
 use action::Action;
@@ -22,11 +21,11 @@ use transaction::TxBatchSplitInFields;
 use transaction::*;
 use user_role::UserRole;
 
-use multiversx_sc::imports::*;
+use klever_sc::imports::*;
 
 /// Multi-signature smart contract implementation.
 /// Acts like a wallet that needs multiple signers for any action performed.
-#[multiversx_sc::contract]
+#[klever_sc::contract]
 pub trait Multisig:
     multisig_general::MultisigGeneralModule
     + events::EventsModule
@@ -34,7 +33,7 @@ pub trait Multisig:
     + storage::StorageModule
     + util::UtilModule
     + queries::QueriesModule
-    + multiversx_sc_modules::pause::PauseModule
+    + klever_sc_modules::pause::PauseModule
 {
     /// EsdtSafe and MultiTransferEsdt are expected to be deployed and configured separately,
     /// and then having their ownership changed to this Multisig SC.
@@ -158,7 +157,7 @@ pub trait Multisig:
         let esdt_safe_addr = self.esdt_safe_address().get();
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .distribute_fees(args)
             .sync_call();
     }
@@ -198,7 +197,7 @@ pub trait Multisig:
         }
 
         self.amount_staked(&caller).set(&remaining_stake);
-        self.tx().to(ToCaller).egld(&amount).transfer();
+        self.tx().to(ToCaller).klv(&amount).transfer();
     }
 
     // ESDT Safe SC calls
@@ -218,7 +217,7 @@ pub trait Multisig:
         let call_result: OptionalValue<TxBatchSplitInFields<Self::Api>> = self
             .tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .get_current_tx_batch()
             .returns(ReturnsResult)
             .sync_call();
@@ -309,7 +308,7 @@ pub trait Multisig:
         let multi_transfer_esdt_addr = self.multi_transfer_esdt_address().get();
         self.tx()
             .to(multi_transfer_esdt_addr)
-            .typed(multi_transfer_esdt_proxy::MultiTransferEsdtProxy)
+            .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
             .move_refund_batch_to_safe()
             .sync_call();
 
@@ -320,12 +319,12 @@ pub trait Multisig:
     #[payable("*")]
     #[endpoint(initSupplyFromChildContract)]
     fn init_supply_from_child_contract(&self, token_id: TokenIdentifier, amount: BigUint) {
-        let (payment_token, payment_amount) = self.call_value().single_fungible_esdt();
+        let (payment_token, payment_amount) = self.call_value().single_fungible_kda();
         let esdt_safe_addr = self.esdt_safe_address().get();
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .init_supply(token_id, amount)
             .payment((payment_token, 0, payment_amount))
             .sync_call();
@@ -337,7 +336,7 @@ pub trait Multisig:
         let multi_transfer_esdt_addr = self.multi_transfer_esdt_address().get();
         self.tx()
             .to(multi_transfer_esdt_addr)
-            .typed(multi_transfer_esdt_proxy::MultiTransferEsdtProxy)
+            .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
             .add_unprocessed_refund_tx_to_batch(tx_id)
             .sync_call();
 
@@ -352,7 +351,7 @@ pub trait Multisig:
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .withdraw_refund_fees_for_ethereum(token_id, multisig_owner)
             .sync_call();
     }
@@ -365,7 +364,7 @@ pub trait Multisig:
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .withdraw_transaction_fees(token_id, multisig_owner)
             .sync_call();
     }
@@ -375,7 +374,7 @@ pub trait Multisig:
     fn withdraw_slashed_amount(&self) {
         let slashed_tokens_amount_mapper = self.slashed_tokens_amount();
         let slashed_amount = slashed_tokens_amount_mapper.get();
-        self.tx().to(ToCaller).egld(&slashed_amount).transfer();
+        self.tx().to(ToCaller).klv(&slashed_amount).transfer();
         slashed_tokens_amount_mapper.clear();
     }
 
@@ -429,7 +428,7 @@ pub trait Multisig:
                 let esdt_safe_addr = self.esdt_safe_address().get();
                 self.tx()
                     .to(esdt_safe_addr)
-                    .typed(esdt_safe_proxy::EsdtSafeProxy)
+                    .typed(kda_safe_proxy::KDASafeProxy)
                     .set_transaction_batch_status(
                         esdt_safe_batch_id,
                         MultiValueEncoded::from(tx_batch_status),
@@ -463,8 +462,8 @@ pub trait Multisig:
 
                 self.tx()
                     .to(multi_transfer_esdt_addr)
-                    .typed(multi_transfer_esdt_proxy::MultiTransferEsdtProxy)
-                    .batch_transfer_esdt_token(eth_batch_id, transfers_multi)
+                    .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
+                    .batch_transfer_kda_token(eth_batch_id, transfers_multi)
                     .sync_call();
             }
         }

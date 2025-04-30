@@ -1,4 +1,4 @@
-use multiversx_sc::imports::*;
+use klever_sc::imports::*;
 
 use eth_address::EthAddress;
 use transaction::transaction_status::TransactionStatus;
@@ -8,7 +8,7 @@ use crate::user_role::UserRole;
 
 pub type EthBatchHash<M> = ManagedByteArray<M, 32>; // keccak256(ManagedVec<EthTransaction<Self::Api>)
 
-#[multiversx_sc::module]
+#[klever_sc::module]
 pub trait StorageModule {
     /// Minimum number of signatures needed to perform any action.
     #[view(getQuorum)]

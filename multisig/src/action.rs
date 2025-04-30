@@ -1,9 +1,9 @@
-use multiversx_sc::api::ManagedTypeApi;
-use multiversx_sc::types::ManagedVec;
+use klever_sc::api::ManagedTypeApi;
+use klever_sc::types::ManagedVec;
 use transaction::transaction_status::TransactionStatus;
 use transaction::EthTransaction;
 
-use multiversx_sc::derive_imports::*;
+use klever_sc::derive_imports::*;
 
 #[type_abi]
 #[derive(NestedEncode, NestedDecode, TopEncode, TopDecode)]

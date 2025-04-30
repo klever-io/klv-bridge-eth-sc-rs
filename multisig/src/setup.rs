@@ -1,16 +1,16 @@
-use multiversx_sc::imports::*;
+use klever_sc::imports::*;
 
 use eth_address::EthAddress;
 
-use crate::{bridge_proxy_contract_proxy, esdt_safe_proxy, multi_transfer_esdt_proxy};
+use crate::{kda_safe_proxy, multi_transfer_kda_proxy};
 
-#[multiversx_sc::module]
+#[klever_sc::module]
 pub trait SetupModule:
     crate::multisig_general::MultisigGeneralModule
     + crate::storage::StorageModule
     + crate::util::UtilModule
     + crate::events::EventsModule
-    + multiversx_sc_modules::pause::PauseModule
+    + klever_sc_modules::pause::PauseModule
 {
     #[only_owner]
     #[endpoint(upgradeChildContractFromSource)]
@@ -138,7 +138,7 @@ pub trait SetupModule:
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .pause_endpoint()
             .sync_call();
 
@@ -152,7 +152,7 @@ pub trait SetupModule:
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .unpause_endpoint()
             .sync_call();
         self.unpause_bridge_proxy_event();
@@ -163,13 +163,13 @@ pub trait SetupModule:
     #[endpoint(initSupplyEsdtSafe)]
     fn init_supply_esdt_safe(&self, token_id: TokenIdentifier, amount: BigUint) {
         let esdt_safe_addr = self.esdt_safe_address().get();
-        let (payment_token, payment_amount) = self.call_value().single_fungible_esdt();
+        let (payment_token, payment_amount) = self.call_value().single_fungible_kda();
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .init_supply(token_id, amount)
-            .single_esdt(&payment_token, 0, &payment_amount) // enforce only single FT transfer
+            .single_kda(&payment_token, 0, &payment_amount) // enforce only single FT transfer
             .sync_call();
     }
 
@@ -185,37 +185,9 @@ pub trait SetupModule:
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .init_supply_mint_burn(token_id, mint_amount, burn_amount)
             .sync_call();
-    }
-
-    #[only_owner]
-    #[endpoint(pauseProxy)]
-    fn pause_proxy(&self) {
-        let proxy_addr = self.proxy_address().get();
-
-        self.tx()
-            .to(proxy_addr)
-            .typed(bridge_proxy_contract_proxy::BridgeProxyContractProxy)
-            .pause_endpoint()
-            .sync_call();
-
-        self.pause_bridge_proxy_event();
-    }
-
-    #[only_owner]
-    #[endpoint(unpauseProxy)]
-    fn unpause_proxy(&self) {
-        let proxy_addr = self.proxy_address().get();
-
-        self.tx()
-            .to(proxy_addr)
-            .typed(bridge_proxy_contract_proxy::BridgeProxyContractProxy)
-            .unpause_endpoint()
-            .sync_call();
-
-        self.unpause_bridge_proxy_event();
     }
 
     #[only_owner]
@@ -225,7 +197,7 @@ pub trait SetupModule:
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .set_fee_estimator_contract_address(new_address)
             .sync_call();
     }
@@ -243,7 +215,7 @@ pub trait SetupModule:
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .set_eth_tx_gas_limit(new_gas_limit)
             .sync_call();
     }
@@ -257,7 +229,7 @@ pub trait SetupModule:
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .set_default_price_per_gas_unit(token_id, new_value)
             .sync_call();
     }
@@ -270,7 +242,7 @@ pub trait SetupModule:
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .set_token_ticker(token_id, new_ticker)
             .sync_call();
     }
@@ -292,7 +264,7 @@ pub trait SetupModule:
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .add_token_to_whitelist(
                 token_id,
                 ticker,
@@ -313,7 +285,7 @@ pub trait SetupModule:
         let esdt_safe_addr = self.esdt_safe_address().get();
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .set_multi_transfer_contract_address(OptionalValue::Some(multi_transfer_esdt_address))
             .sync_call();
     }
@@ -325,8 +297,8 @@ pub trait SetupModule:
         let multi_transfer_esdt_addr = self.multi_transfer_esdt_address().get();
         self.tx()
             .to(multi_transfer_esdt_addr)
-            .typed(multi_transfer_esdt_proxy::MultiTransferEsdtProxy)
-            .set_esdt_safe_contract_address(OptionalValue::Some(esdt_safe_address))
+            .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
+            .set_kda_safe_contract_address(OptionalValue::Some(esdt_safe_address))
             .sync_call();
     }
 
@@ -336,7 +308,7 @@ pub trait SetupModule:
         let esdt_safe_addr = self.esdt_safe_address().get();
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .remove_token_from_whitelist(token_id)
             .sync_call();
     }
@@ -350,7 +322,7 @@ pub trait SetupModule:
         let esdt_safe_addr = self.esdt_safe_address().get();
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .set_max_tx_batch_size(new_max_tx_batch_size)
             .sync_call();
     }
@@ -365,7 +337,7 @@ pub trait SetupModule:
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .set_max_tx_batch_block_duration(new_max_tx_batch_block_duration)
             .sync_call();
     }
@@ -383,7 +355,7 @@ pub trait SetupModule:
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .set_max_bridged_amount(token_id, max_amount)
             .sync_call();
     }
@@ -399,7 +371,7 @@ pub trait SetupModule:
         let multi_transfer_esdt_addr = self.multi_transfer_esdt_address().get();
         self.tx()
             .to(multi_transfer_esdt_addr)
-            .typed(multi_transfer_esdt_proxy::MultiTransferEsdtProxy)
+            .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
             .set_max_bridged_amount(token_id, max_amount)
             .sync_call();
     }
@@ -413,7 +385,7 @@ pub trait SetupModule:
 
         self.tx()
             .to(multi_transfer_esdt_addr)
-            .typed(multi_transfer_esdt_proxy::MultiTransferEsdtProxy)
+            .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
             .set_max_tx_batch_size(new_max_tx_batch_size)
             .sync_call();
     }
@@ -430,7 +402,7 @@ pub trait SetupModule:
 
         self.tx()
             .to(multi_transfer_esdt_addr)
-            .typed(multi_transfer_esdt_proxy::MultiTransferEsdtProxy)
+            .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
             .set_max_tx_batch_block_duration(new_max_tx_batch_block_duration)
             .sync_call();
     }
@@ -452,7 +424,7 @@ pub trait SetupModule:
 
         self.tx()
             .to(multi_transfer_esdt_addr)
-            .typed(multi_transfer_esdt_proxy::MultiTransferEsdtProxy)
+            .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
             .set_wrapping_contract_address(opt_wrapping_contract_address)
             .sync_call();
     }

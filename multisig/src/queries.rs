@@ -1,10 +1,10 @@
-use multiversx_sc::imports::*;
+use klever_sc::imports::*;
 
-use crate::{action::Action, esdt_safe_proxy, multi_transfer_esdt_proxy, user_role::UserRole};
+use crate::{action::Action, kda_safe_proxy, multi_transfer_kda_proxy, user_role::UserRole};
 use transaction::{transaction_status::TransactionStatus, EthTxAsMultiValue, TxBatchSplitInFields};
 
 /// Note: Additional queries can be found in the Storage module
-#[multiversx_sc::module]
+#[klever_sc::module]
 pub trait QueriesModule: crate::storage::StorageModule + crate::util::UtilModule {
     /// Returns the current EsdtSafe batch.
     ///
@@ -18,7 +18,7 @@ pub trait QueriesModule: crate::storage::StorageModule + crate::util::UtilModule
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .get_current_tx_batch()
             .returns(ReturnsResult)
             .sync_call()
@@ -36,7 +36,7 @@ pub trait QueriesModule: crate::storage::StorageModule + crate::util::UtilModule
 
         self.tx()
             .to(esdt_safe_addr)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .get_batch(batch_id)
             .returns(ReturnsResult)
             .sync_call()
@@ -49,7 +49,7 @@ pub trait QueriesModule: crate::storage::StorageModule + crate::util::UtilModule
         let multi_transfer_addr = self.multi_transfer_esdt_address().get();
         self.tx()
             .to(multi_transfer_addr)
-            .typed(multi_transfer_esdt_proxy::MultiTransferEsdtProxy)
+            .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
             .get_first_batch_any_status()
             .returns(ReturnsResult)
             .sync_call()

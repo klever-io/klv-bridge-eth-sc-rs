@@ -35,12 +35,12 @@ pub trait Multisig:
     + queries::QueriesModule
     + klever_sc_modules::pause::PauseModule
 {
-    /// EsdtSafe and MultiTransferEsdt are expected to be deployed and configured separately,
+    /// KdaSafe and MultiTransferKda are expected to be deployed and configured separately,
     /// and then having their ownership changed to this Multisig SC.
     #[init]
     fn init(
         &self,
-        esdt_safe_sc_address: ManagedAddress,
+        kda_safe_sc_address: ManagedAddress,
         multi_transfer_sc_address: ManagedAddress,
         proxy_sc_address: ManagedAddress,
         required_stake: BigUint,
@@ -71,17 +71,17 @@ pub trait Multisig:
         self.slash_amount().set(&slash_amount);
 
         require!(
-            self.blockchain().is_smart_contract(&esdt_safe_sc_address),
-            "Esdt Safe address is not a Smart Contract address"
+            self.blockchain().is_smart_contract(&kda_safe_sc_address),
+            "Kda Safe address is not a Smart Contract address"
         );
-        self.esdt_safe_address().set(&esdt_safe_sc_address);
+        self.kda_safe_address().set(&kda_safe_sc_address);
 
         require!(
             self.blockchain()
                 .is_smart_contract(&multi_transfer_sc_address),
             "Multi Transfer address is not a Smart Contract address"
         );
-        self.multi_transfer_esdt_address()
+        self.multi_transfer_kda_address()
             .set(&multi_transfer_sc_address);
 
         require!(
@@ -96,22 +96,22 @@ pub trait Multisig:
     #[upgrade]
     fn upgrade(
         &self,
-        esdt_safe_sc_address: ManagedAddress,
+        kda_safe_sc_address: ManagedAddress,
         multi_transfer_sc_address: ManagedAddress,
         proxy_sc_address: ManagedAddress,
     ) {
         require!(
-            self.blockchain().is_smart_contract(&esdt_safe_sc_address),
-            "Esdt Safe address is not a Smart Contract address"
+            self.blockchain().is_smart_contract(&kda_safe_sc_address),
+            "Kda Safe address is not a Smart Contract address"
         );
-        self.esdt_safe_address().set(&esdt_safe_sc_address);
+        self.kda_safe_address().set(&kda_safe_sc_address);
 
         require!(
             self.blockchain()
                 .is_smart_contract(&multi_transfer_sc_address),
             "Multi Transfer address is not a Smart Contract address"
         );
-        self.multi_transfer_esdt_address()
+        self.multi_transfer_kda_address()
             .set(&multi_transfer_sc_address);
 
         require!(
@@ -154,17 +154,17 @@ pub trait Multisig:
             total_percentage == PERCENTAGE_TOTAL as u64,
             INVALID_PERCENTAGE_SUM_OVER_ERR_MSG
         );
-        let esdt_safe_addr = self.esdt_safe_address().get();
+        let kda_safe_addr = self.kda_safe_address().get();
         self.tx()
-            .to(esdt_safe_addr)
+            .to(kda_safe_addr)
             .typed(kda_safe_proxy::KDASafeProxy)
             .distribute_fees(args)
             .sync_call();
     }
 
-    /// Board members have to stake a certain amount of EGLD
+    /// Board members have to stake a certain amount of KLV
     /// before being allowed to sign actions
-    #[payable("EGLD")]
+    #[payable("KLV")]
     #[endpoint]
     fn stake(&self, #[payment] payment: BigUint) {
         let caller = self.blockchain().get_caller();
@@ -200,23 +200,23 @@ pub trait Multisig:
         self.tx().to(ToCaller).klv(&amount).transfer();
     }
 
-    // ESDT Safe SC calls
+    // KDA Safe SC calls
 
     /// After a batch is processed on the Ethereum side,
-    /// the EsdtSafe expects a list of statuses of said transactions (success or failure).
+    /// the KdaSafe expects a list of statuses of said transactions (success or failure).
     ///
     /// This endpoint proposes an action to set the statuses to a certain list of values.
-    /// Nothing is changed in the EsdtSafe contract until the action is signed and executed.
-    #[endpoint(proposeEsdtSafeSetCurrentTransactionBatchStatus)]
-    fn propose_esdt_safe_set_current_transaction_batch_status(
+    /// Nothing is changed in the KdaSafe contract until the action is signed and executed.
+    #[endpoint(proposeKdaSafeSetCurrentTransactionBatchStatus)]
+    fn propose_kda_safe_set_current_transaction_batch_status(
         &self,
-        esdt_safe_batch_id: u64,
+        kda_safe_batch_id: u64,
         tx_batch_status: MultiValueEncoded<TransactionStatus>,
     ) -> usize {
-        let esdt_safe_addr = self.esdt_safe_address().get();
+        let kda_safe_addr = self.kda_safe_address().get();
         let call_result: OptionalValue<TxBatchSplitInFields<Self::Api>> = self
             .tx()
-            .to(esdt_safe_addr)
+            .to(kda_safe_addr)
             .typed(kda_safe_proxy::KDASafeProxy)
             .get_current_tx_batch()
             .returns(ReturnsResult)
@@ -229,7 +229,7 @@ pub trait Multisig:
         let statuses_vec = tx_batch_status.to_vec();
 
         require!(
-            self.action_id_for_set_current_transaction_batch_status(esdt_safe_batch_id)
+            self.action_id_for_set_current_transaction_batch_status(kda_safe_batch_id)
                 .get(&statuses_vec)
                 .is_none(),
             "Action already proposed"
@@ -242,28 +242,28 @@ pub trait Multisig:
             "Number of statuses provided must be equal to number of transactions in current batch"
         );
         require!(
-            esdt_safe_batch_id == current_batch_id,
-            "Current EsdtSafe tx batch does not have the provided ID"
+            kda_safe_batch_id == current_batch_id,
+            "Current KdaSafe tx batch does not have the provided ID"
         );
 
         let action_id = self.propose_action(Action::SetCurrentTransactionBatchStatus {
-            esdt_safe_batch_id,
+            kda_safe_batch_id,
             tx_batch_status: statuses_vec.clone(),
         });
 
-        self.action_id_for_set_current_transaction_batch_status(esdt_safe_batch_id)
+        self.action_id_for_set_current_transaction_batch_status(kda_safe_batch_id)
             .insert(statuses_vec, action_id);
 
         action_id
     }
 
-    // Multi-transfer ESDT SC calls
+    // Multi-transfer KDA SC calls
 
-    /// Proposes a batch of Ethereum -> MultiversX transfers.
+    /// Proposes a batch of Ethereum -> Klever Blockchain transfers.
     /// Transactions have to be separated by fields, in the following order:
     /// Sender Address, Destination Address, Token ID, Amount, Tx Nonce
-    #[endpoint(proposeMultiTransferEsdtBatch)]
-    fn propose_multi_transfer_esdt_batch(
+    #[endpoint(proposeMultiTransferKdaBatch)]
+    fn propose_multi_transfer_kda_batch(
         &self,
         eth_batch_id: u64,
         transfers: MultiValueEncoded<EthTxAsMultiValue<Self::Api>>,
@@ -285,7 +285,7 @@ pub trait Multisig:
             "This batch was already proposed"
         );
 
-        let action_id = self.propose_action(Action::BatchTransferEsdtToken {
+        let action_id = self.propose_action(Action::BatchTransferKdaToken {
             eth_batch_id,
             transfers: transfers_as_eth_tx,
         });
@@ -296,18 +296,18 @@ pub trait Multisig:
         action_id
     }
 
-    /// Failed Ethereum -> MultiversX transactions are saved in the MultiTransfer SC
-    /// as "refund transactions", and stored in batches, using the same mechanism as EsdtSafe.
+    /// Failed Ethereum -> Klever Blockchain transactions are saved in the MultiTransfer SC
+    /// as "refund transactions", and stored in batches, using the same mechanism as KdaSafe.
     ///
-    /// This function moves the first refund batch into the EsdtSafe SC,
-    /// converting the transactions into MultiversX -> Ethereum transactions
-    /// and adding them into EsdtSafe batches
+    /// This function moves the first refund batch into the KdaSafe SC,
+    /// converting the transactions into Klever Blockchain -> Ethereum transactions
+    /// and adding them into KdaSafe batches
     #[only_owner]
     #[endpoint(moveRefundBatchToSafeFromChildContract)]
     fn move_refund_batch_to_safe_from_child_contract(&self) {
-        let multi_transfer_esdt_addr = self.multi_transfer_esdt_address().get();
+        let multi_transfer_kda_addr = self.multi_transfer_kda_address().get();
         self.tx()
-            .to(multi_transfer_esdt_addr)
+            .to(multi_transfer_kda_addr)
             .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
             .move_refund_batch_to_safe()
             .sync_call();
@@ -320,10 +320,10 @@ pub trait Multisig:
     #[endpoint(initSupplyFromChildContract)]
     fn init_supply_from_child_contract(&self, token_id: TokenIdentifier, amount: BigUint) {
         let (payment_token, payment_amount) = self.call_value().single_fungible_kda();
-        let esdt_safe_addr = self.esdt_safe_address().get();
+        let kda_safe_addr = self.kda_safe_address().get();
 
         self.tx()
-            .to(esdt_safe_addr)
+            .to(kda_safe_addr)
             .typed(kda_safe_proxy::KDASafeProxy)
             .init_supply(token_id, amount)
             .payment((payment_token, 0, payment_amount))
@@ -333,9 +333,9 @@ pub trait Multisig:
     #[only_owner]
     #[endpoint(addUnprocessedRefundTxToBatch)]
     fn add_unprocessed_refund_tx_to_batch(&self, tx_id: u64) {
-        let multi_transfer_esdt_addr = self.multi_transfer_esdt_address().get();
+        let multi_transfer_kda_addr = self.multi_transfer_kda_address().get();
         self.tx()
-            .to(multi_transfer_esdt_addr)
+            .to(multi_transfer_kda_addr)
             .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
             .add_unprocessed_refund_tx_to_batch(tx_id)
             .sync_call();
@@ -346,11 +346,11 @@ pub trait Multisig:
     #[only_owner]
     #[endpoint(withdrawRefundFeesForEthereum)]
     fn withdraw_refund_fees_for_ethereum(&self, token_id: TokenIdentifier) {
-        let esdt_safe_addr = self.esdt_safe_address().get();
+        let kda_safe_addr = self.kda_safe_address().get();
         let multisig_owner = self.blockchain().get_owner_address();
 
         self.tx()
-            .to(esdt_safe_addr)
+            .to(kda_safe_addr)
             .typed(kda_safe_proxy::KDASafeProxy)
             .withdraw_refund_fees_for_ethereum(token_id, multisig_owner)
             .sync_call();
@@ -359,11 +359,11 @@ pub trait Multisig:
     #[only_owner]
     #[endpoint(withdrawTransactionFees)]
     fn withdraw_transaction_fees(&self, token_id: TokenIdentifier) {
-        let esdt_safe_addr = self.esdt_safe_address().get();
+        let kda_safe_addr = self.kda_safe_address().get();
         let multisig_owner = self.blockchain().get_owner_address();
 
         self.tx()
-            .to(esdt_safe_addr)
+            .to(kda_safe_addr)
             .typed(kda_safe_proxy::KDASafeProxy)
             .withdraw_transaction_fees(token_id, multisig_owner)
             .sync_call();
@@ -410,11 +410,11 @@ pub trait Multisig:
         match action {
             Action::Nothing => {}
             Action::SetCurrentTransactionBatchStatus {
-                esdt_safe_batch_id,
+                kda_safe_batch_id,
                 tx_batch_status,
             } => {
                 let mut action_ids_mapper =
-                    self.action_id_for_set_current_transaction_batch_status(esdt_safe_batch_id);
+                    self.action_id_for_set_current_transaction_batch_status(kda_safe_batch_id);
 
                 // if there's only one proposed action,
                 // the action was already cleared at the beginning of this function
@@ -425,17 +425,17 @@ pub trait Multisig:
                 }
 
                 action_ids_mapper.clear();
-                let esdt_safe_addr = self.esdt_safe_address().get();
+                let kda_safe_addr = self.kda_safe_address().get();
                 self.tx()
-                    .to(esdt_safe_addr)
+                    .to(kda_safe_addr)
                     .typed(kda_safe_proxy::KDASafeProxy)
                     .set_transaction_batch_status(
-                        esdt_safe_batch_id,
+                        kda_safe_batch_id,
                         MultiValueEncoded::from(tx_batch_status),
                     )
                     .sync_call();
             }
-            Action::BatchTransferEsdtToken {
+            Action::BatchTransferKdaToken {
                 eth_batch_id,
                 transfers,
             } => {
@@ -456,12 +456,12 @@ pub trait Multisig:
                 let last_tx = transfers.get(last_tx_index);
                 self.last_executed_eth_tx_id().set(last_tx.tx_nonce);
 
-                let multi_transfer_esdt_addr = self.multi_transfer_esdt_address().get();
+                let multi_transfer_kda_addr = self.multi_transfer_kda_address().get();
                 let transfers_multi: MultiValueEncoded<Self::Api, EthTransaction<Self::Api>> =
                     transfers.into();
 
                 self.tx()
-                    .to(multi_transfer_esdt_addr)
+                    .to(multi_transfer_kda_addr)
                     .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
                     .batch_transfer_kda_token(eth_batch_id, transfers_multi)
                     .sync_call();

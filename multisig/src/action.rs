@@ -10,10 +10,10 @@ use klever_sc::derive_imports::*;
 pub enum Action<M: ManagedTypeApi> {
     Nothing,
     SetCurrentTransactionBatchStatus {
-        esdt_safe_batch_id: u64,
+        kda_safe_batch_id: u64,
         tx_batch_status: ManagedVec<M, TransactionStatus>,
     },
-    BatchTransferEsdtToken {
+    BatchTransferKdaToken {
         eth_batch_id: u64,
         transfers: ManagedVec<M, EthTransaction<M>>,
     },

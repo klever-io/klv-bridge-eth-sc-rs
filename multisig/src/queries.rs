@@ -6,7 +6,7 @@ use transaction::{transaction_status::TransactionStatus, EthTxAsMultiValue, TxBa
 /// Note: Additional queries can be found in the Storage module
 #[klever_sc::module]
 pub trait QueriesModule: crate::storage::StorageModule + crate::util::UtilModule {
-    /// Returns the current EsdtSafe batch.
+    /// Returns the current KdaSafe batch.
     ///
     /// First result is the batch ID, then pairs of 6 results, representing transactions
     /// split by fields:
@@ -14,17 +14,17 @@ pub trait QueriesModule: crate::storage::StorageModule + crate::util::UtilModule
     /// Block Nonce, Tx Nonce, Sender Address, Receiver Address, Token ID, Amount
     #[view(getCurrentTxBatch)]
     fn get_current_tx_batch(&self) -> OptionalValue<TxBatchSplitInFields<Self::Api>> {
-        let esdt_safe_addr = self.esdt_safe_address().get();
+        let kda_safe_addr = self.kda_safe_address().get();
 
         self.tx()
-            .to(esdt_safe_addr)
+            .to(kda_safe_addr)
             .typed(kda_safe_proxy::KDASafeProxy)
             .get_current_tx_batch()
             .returns(ReturnsResult)
             .sync_call()
     }
 
-    /// Returns the EsdtSafe batch that has the provided batch_id.
+    /// Returns the KdaSafe batch that has the provided batch_id.
     ///
     /// First result is the batch ID, then pairs of 6 results, representing transactions
     /// split by fields:
@@ -32,21 +32,21 @@ pub trait QueriesModule: crate::storage::StorageModule + crate::util::UtilModule
     /// Block Nonce, Tx Nonce, Sender Address, Receiver Address, Token ID, Amount
     #[view(getBatch)]
     fn get_batch(&self, batch_id: u64) -> OptionalValue<TxBatchSplitInFields<Self::Api>> {
-        let esdt_safe_addr = self.esdt_safe_address().get();
+        let kda_safe_addr = self.kda_safe_address().get();
 
         self.tx()
-            .to(esdt_safe_addr)
+            .to(kda_safe_addr)
             .typed(kda_safe_proxy::KDASafeProxy)
             .get_batch(batch_id)
             .returns(ReturnsResult)
             .sync_call()
     }
 
-    /// Returns a batch of failed Ethereum -> MultiversX transactions.
+    /// Returns a batch of failed Ethereum -> Klever Blockchain transactions.
     /// The result format is the same as getCurrentTxBatch
     #[view(getCurrentRefundBatch)]
     fn get_current_refund_batch(&self) -> OptionalValue<TxBatchSplitInFields<Self::Api>> {
-        let multi_transfer_addr = self.multi_transfer_esdt_address().get();
+        let multi_transfer_addr = self.multi_transfer_kda_address().get();
         self.tx()
             .to(multi_transfer_addr)
             .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
@@ -66,7 +66,7 @@ pub trait QueriesModule: crate::storage::StorageModule + crate::util::UtilModule
         }
     }
 
-    /// Used for Ethereum -> MultiversX batches.
+    /// Used for Ethereum -> Klever Blockchain batches.
     /// If the mapping was made, it means that the transfer action was proposed in the past.
     /// To check if it was executed as well, use the wasActionExecuted view
     #[view(wasTransferActionProposed)]
@@ -80,7 +80,7 @@ pub trait QueriesModule: crate::storage::StorageModule + crate::util::UtilModule
         self.is_valid_action_id(action_id)
     }
 
-    /// Used for Ethereum -> MultiversX batches.
+    /// Used for Ethereum -> Klever Blockchain batches.
     /// If `wasActionExecuted` returns true, then this can be used to get the action ID.
     /// Will return 0 if the transfers were not proposed
     #[view(getActionIdForTransferBatch)]
@@ -97,17 +97,17 @@ pub trait QueriesModule: crate::storage::StorageModule + crate::util::UtilModule
             .unwrap_or(0)
     }
 
-    /// Used for MultiversX -> Ethereum batches.
+    /// Used for Klever Blockchain -> Ethereum batches.
     /// Returns "true" if an action was already proposed for the given batch,
     /// with these exact transaction statuses, in this exact order
     #[view(wasSetCurrentTransactionBatchStatusActionProposed)]
     fn was_set_current_transaction_batch_status_action_proposed(
         &self,
-        esdt_safe_batch_id: u64,
+        kda_safe_batch_id: u64,
         expected_tx_batch_status: MultiValueEncoded<TransactionStatus>,
     ) -> bool {
         self.is_valid_action_id(self.get_action_id_for_set_current_transaction_batch_status(
-            esdt_safe_batch_id,
+            kda_safe_batch_id,
             expected_tx_batch_status,
         ))
     }
@@ -118,10 +118,10 @@ pub trait QueriesModule: crate::storage::StorageModule + crate::util::UtilModule
     #[view(getActionIdForSetCurrentTransactionBatchStatus)]
     fn get_action_id_for_set_current_transaction_batch_status(
         &self,
-        esdt_safe_batch_id: u64,
+        kda_safe_batch_id: u64,
         expected_tx_batch_status: MultiValueEncoded<TransactionStatus>,
     ) -> usize {
-        self.action_id_for_set_current_transaction_batch_status(esdt_safe_batch_id)
+        self.action_id_for_set_current_transaction_batch_status(kda_safe_batch_id)
             .get(&expected_tx_batch_status.to_vec())
             .unwrap_or(0)
     }

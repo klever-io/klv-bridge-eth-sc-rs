@@ -225,15 +225,13 @@
                         "str:BRIDGE-123456": {
                             "balance": "1,000,000",
                             "roles": [
-                                "KDARoleMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:WRAPPED-123456": {
                             "balance": "1,000,000",
                             "roles": [
-                                "KDARoleMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         }
                     },

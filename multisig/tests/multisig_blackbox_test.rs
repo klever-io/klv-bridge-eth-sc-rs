@@ -43,8 +43,6 @@ const GAS_LIMIT: u64 = 100_000_000;
 const MULTISIG_CODE_PATH: KleverscPath = KleverscPath::new("output/multisig.kleversc.json");
 const MULTI_TRANSFER_CODE_PATH: KleverscPath =
     KleverscPath::new("../multi-transfer-kda/output/multi-transfer-kda.kleversc.json");
-const BRIDGE_PROXY_CODE_PATH: KleverscPath =
-    KleverscPath::new("../bridge-proxy/output/bridge-proxy.kleversc.json");
 const KDA_SAFE_CODE_PATH: KleverscPath = KleverscPath::new("../kda-safe/output/kda-safe.kleversc.json");
 const BRIDGED_TOKENS_WRAPPER_CODE_PATH: KleverscPath =
     KleverscPath::new("../bridged-tokens-wrapper/output/bridged-tokens-wrapper.kleversc.json");
@@ -53,7 +51,6 @@ const PRICE_AGGREGATOR_CODE_PATH: KleverscPath =
 
 const MULTISIG_ADDRESS: TestSCAddress = TestSCAddress::new("multisig");
 const MULTI_TRANSFER_ADDRESS: TestSCAddress = TestSCAddress::new("multi-transfer");
-const BRIDGE_PROXY_ADDRESS: TestSCAddress = TestSCAddress::new("bridge-proxy");
 const KDA_SAFE_ADDRESS: TestSCAddress = TestSCAddress::new("kda-safe");
 const BRIDGED_TOKENS_WRAPPER_ADDRESS: TestSCAddress = TestSCAddress::new("bridged-tokens-wrapper");
 const PRICE_AGGREGATOR_ADDRESS: TestSCAddress = TestSCAddress::new("price-aggregator");
@@ -155,7 +152,7 @@ impl MultiTransferTestState {
             .init(
                 KDA_SAFE_ADDRESS.to_address(),
                 MULTI_TRANSFER_ADDRESS.to_address(),
-                BRIDGE_PROXY_ADDRESS.to_address(),
+                ManagedAddress::zero(),
                 1_000u64,
                 500u64,
                 2usize,
@@ -202,7 +199,7 @@ impl MultiTransferTestState {
             .upgrade(
                 ManagedAddress::zero(),
                 MULTI_TRANSFER_ADDRESS.to_address(),
-                BRIDGE_PROXY_ADDRESS.to_address(),
+                ManagedAddress::zero(),
                 KDA_SAFE_ETH_TX_GAS_LIMIT,
             )
             .code(KDA_SAFE_CODE_PATH)
@@ -346,7 +343,7 @@ fn config_test() {
 }
 
 #[test]
-fn ethereum_to_multiversx_call_data_empty_test() {
+fn ethereum_to_klever_call_data_empty_test() {
     let mut state = MultiTransferTestState::new();
     let token_amount = BigUint::from(76_000_000_000u64);
 
@@ -405,7 +402,7 @@ fn ethereum_to_multiversx_call_data_empty_test() {
 }
 
 #[test]
-fn ethereum_to_multiversx_relayer_call_data_several_tx_test() {
+fn ethereum_to_klever_relayer_call_data_several_tx_test() {
     let mut state = MultiTransferTestState::new();
     let token_amount = BigUint::from(5_000u64);
 
@@ -418,7 +415,7 @@ fn ethereum_to_multiversx_relayer_call_data_several_tx_test() {
     state.config_multisig();
 
     let addr =
-        Address::from_slice(b"erd1dyw7aysn0nwmuahvxnh2e0pm0kgjvs2gmfdxjgz3x0pet2nkvt8s7tkyrj");
+        Address::from_slice(b"klv12e0kqcvqsrayj8j0c4dqjyvnv4ep253m5anx4rfj4jeq34lxsg8s84ec9j");
     let eth_tx = EthTxAsMultiValue::<StaticApi>::from((
         EthAddress {
             raw_addr: ManagedByteArray::new_from_bytes(b"5d959e98ea73c35778ff"),
@@ -509,16 +506,16 @@ fn ethereum_to_multiversx_relayer_call_data_several_tx_test() {
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
         .perform_action_endpoint(1usize)
-        .returns(ExpectError(4, "Invalid token or amount"))
+        .returns(ExpectError(57, "Invalid token or amount"))
         .run();
 
     state.world.write_scenario_trace(
-        "scenarios/ethereum_to_multiversx_relayer_call_data_several_tx_test.scen.json",
+        "scenarios/ethereum_to_klever_relayer_call_data_several_tx_test.scen.json",
     );
 }
 
 #[test]
-fn ethereum_to_multiversx_relayer_query_test() {
+fn ethereum_to_klever_relayer_query_test() {
     let mut state = MultiTransferTestState::new();
     let token_amount = BigUint::from(76_000_000_000u64);
     state.world.start_trace();
@@ -600,11 +597,11 @@ fn ethereum_to_multiversx_relayer_query_test() {
 
     state
         .world
-        .write_scenario_trace("scenarios/ethereum_to_multiversx_relayer_query_test.scen.json");
+        .write_scenario_trace("scenarios/ethereum_to_klever_relayer_query_test.scen.json");
 }
 
 #[test]
-fn ethereum_to_multiversx_relayer_query2_test() {
+fn ethereum_to_klever_relayer_query2_test() {
     let mut state = MultiTransferTestState::new();
     let token_amount = BigUint::from(5_000u64);
     state.world.start_trace();
@@ -616,7 +613,7 @@ fn ethereum_to_multiversx_relayer_query2_test() {
     state.config_multisig();
 
     let addr =
-        Address::from_slice(b"erd1dyw7aysn0nwmuahvxnh2e0pm0kgjvs2gmfdxjgz3x0pet2nkvt8s7tkyrj");
+        Address::from_slice(b"klv12e0kqcvqsrayj8j0c4dqjyvnv4ep253m5anx4rfj4jeq34lxsg8s84ec9j");
 
     const ADDR: [u8; 32] = hex!("691dee92137cddbe76ec34eeacbc3b7d91264148da5a69205133c395aa7662cf");
 
@@ -682,16 +679,16 @@ fn ethereum_to_multiversx_relayer_query2_test() {
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
         .perform_action_endpoint(1usize)
-        .returns(ExpectError(4, "Invalid token or amount"))
+        .returns(ExpectError(57, "Invalid token or amount"))
         .run();
 
     state
         .world
-        .write_scenario_trace("scenarios/ethereum_to_multiversx_relayer_query2_test.scen.json");
+        .write_scenario_trace("scenarios/ethereum_to_klever_relayer_query2_test.scen.json");
 }
 
 #[test]
-fn ethereum_to_multiversx_tx_batch_ok_test() {
+fn ethereum_to_klever_tx_batch_ok_test() {
     let mut state = MultiTransferTestState::new();
     let token_amount = BigUint::from(76_000_000_000u64);
     state.world.start_trace();
@@ -777,12 +774,12 @@ fn ethereum_to_multiversx_tx_batch_ok_test() {
         .kda_balance(TokenIdentifier::from(ETH_TOKEN_ID), token_amount.clone());
 
     state.world.write_scenario_trace(
-        "scenarios/ethereum_to_multiversx_tx_batch_ok_call_data_encoded.scen.json",
+        "scenarios/ethereum_to_klever_tx_batch_ok_call_data_encoded.scen.json",
     );
 }
 
 #[test]
-fn ethereum_to_multiversx_tx_batch_rejected_test() {
+fn ethereum_to_klever_tx_batch_rejected_test() {
     let mut state = MultiTransferTestState::new();
     let over_the_limit_token_amount = BigUint::from(101_000_000_000u64);
 
@@ -808,7 +805,7 @@ fn ethereum_to_multiversx_tx_batch_rejected_test() {
         EthAddress {
             raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
         },
-        ManagedAddress::from(BRIDGE_PROXY_ADDRESS.eval_to_array()),
+        ManagedAddress::from(KDA_SAFE_ADDRESS.eval_to_array()),
         TokenIdentifier::from(WKLV_TOKEN_ID),
         over_the_limit_token_amount.clone(),
         1u64,
@@ -819,7 +816,7 @@ fn ethereum_to_multiversx_tx_batch_rejected_test() {
         EthAddress {
             raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
         },
-        ManagedAddress::from(BRIDGE_PROXY_ADDRESS.eval_to_array()),
+        ManagedAddress::from(KDA_SAFE_ADDRESS.eval_to_array()),
         TokenIdentifier::from(ETH_TOKEN_ID),
         over_the_limit_token_amount.clone(),
         2u64,

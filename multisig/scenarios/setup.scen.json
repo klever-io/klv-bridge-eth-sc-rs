@@ -3,66 +3,75 @@
     "steps": [
         {
             "step": "externalSteps",
-            "path": "../../price-aggregator/scenarios/oracle_gwei_in_eth_and_egld_submit.scen.json"
+            "path": "../../price-aggregator/scenarios/oracle_gwei_in_eth_and_kda_submit.scen.json"
         },
         {
             "step": "setState",
             "comment": "simulate child contracts deploy + setting local roles + change ownership. Changing ownership will be done after the multisig deploy in the real setup, but this is way less verbose in mandos.",
             "accounts": {
-                "sc:bridge_proxy": {
-                    "code": "file:../../bridge-proxy/output/bridge-proxy.wasm",
-                    "nonce": "0",
-                    "balance": "0",
-                    "storage": {
-                        "str:multiTransferAddress": "sc:multi_transfer"
-                    }
-                },
                 "sc:multi_transfer": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
-                        "str:WEGLD-123456": {
-                            "balance": "0",
+                    "kda": {
+                        "str:WKLV-123456": {
+                            "instances": [
+                                {
+                                    "balance": "0",
+                                    "canBurn": true
+                                }
+                            ],
                             "roles": [
-                                "ESDTRoleLocalMint"
+                                "KDARoleMint"
                             ]
                         },
                         "str:ETH-123456": {
-                            "balance": "0",
+                            "instances": [
+                                {
+                                    "balance": "0",
+                                    "canBurn": true
+                                }
+                            ],
                             "roles": [
-                                "ESDTRoleLocalMint"
+                                "KDARoleMint"
                             ]
                         }
                     },
                     "storage": {
-                        "str:esdtSafeContractAddress": "sc:esdt_safe",
-                        "str:bridgeProxyContractAddress": "sc:bridge_proxy",
+                        "str:kdaSafeContractAddress": "sc:kda_safe",
                         "str:maxTxBatchSize": "10",
                         "str:maxTxBatchBlockDuration": "3,600",
-                        "str:maxBridgedAmount|nested:str:WEGLD-123456": "100,000,000,000",
+                        "str:maxBridgedAmount|nested:str:WKLV-123456": "100,000,000,000",
                         "str:maxBridgedAmount|nested:str:ETH-123456": "100,000,000,000",
                         "str:firstBatchId": "1",
                         "str:lastBatchId": "1"
                     },
                     "owner": "sc:multisig",
-                    "code": "file:../../multi-transfer-esdt/output/multi-transfer-esdt.wasm"
+                    "code": "file:../../multi-transfer-kda/output/multi-transfer-kda.wasm"
                 },
-                "sc:esdt_safe": {
+                "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
-                        "str:WEGLD-123456": {
-                            "balance": "0",
+                    "kda": {
+                        "str:WKLV-123456": {
+                            "instances": [
+                                {
+                                    "balance": "0",
+                                    "canBurn": true
+                                }
+                            ],
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         },
                         "str:ETH-123456": {
-                            "balance": "0",
+                            "instances": [
+                                {
+                                    "balance": "0",
+                                    "canBurn": true
+                                }
+                            ],
                             "roles": [
-                                "ESDTRoleLocalMint",
-                                "ESDTRoleLocalBurn"
+                                "KDARoleMint"
                             ]
                         }
                     },
@@ -76,18 +85,18 @@
                         "str:firstBatchId": "1",
                         "str:lastBatchId": "1",
                         "str:tokenTicker|nested:str:GWEI": "str:GWEI",
-                        "str:tokenTicker|nested:str:WEGLD-123456": "str:WEGLD",
+                        "str:tokenTicker|nested:str:WKLV-123456": "str:WKLV",
                         "str:tokenTicker|nested:str:ETH-123456": "str:ETH",
-                        "str:tokenWhitelist.index|nested:str:WEGLD-123456": "1",
-                        "str:tokenWhitelist.item|u32:1": "str:WEGLD-123456",
+                        "str:tokenWhitelist.index|nested:str:WKLV-123456": "1",
+                        "str:tokenWhitelist.item|u32:1": "str:WKLV-123456",
                         "str:tokenWhitelist.index|nested:str:ETH-123456": "2",
                         "str:tokenWhitelist.item|u32:2": "str:ETH-123456",
                         "str:tokenWhitelist.len": "2",
-                        "str:mintBalances|nested:str:WEGLD-123456": "500,000,000,000",
+                        "str:mintBalances|nested:str:WKLV-123456": "500,000,000,000",
                         "str:mintBalances|nested:str:ETH-123456": "500,000,000,000"
                     },
                     "owner": "sc:multisig",
-                    "code": "file:../../esdt-safe/output/esdt-safe.wasm"
+                    "code": "file:../../kda-safe/output/kda-safe.wasm"
                 }
             }
         },
@@ -112,22 +121,22 @@
                 "address:user": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
-                        "str:WEGLD-123456": "100,000,000,000",
+                    "kda": {
+                        "str:WKLV-123456": "100,000,000,000",
                         "str:ETH-123456": "200,000,000,000"
                     },
                     "storage": {}
                 },
-                "sc:egld_esdt_swap": {
+                "sc:klv_kda_swap": {
                     "nonce": "0",
                     "balance": "0",
-                    "code": "sc:egld_esdt_swap"
+                    "code": "sc:klv_kda_swap"
                 }
             },
             "newAddresses": [
                 {
                     "creatorAddress": "address:owner",
-                    "creatorNonce": "0",
+                    "creatorNonce": "1",
                     "newAddress": "sc:multisig"
                 }
             ]
@@ -140,7 +149,7 @@
                 "contractCode": "file:../output/multisig.wasm",
                 "value": "0",
                 "arguments": [
-                    "sc:esdt_safe",
+                    "sc:kda_safe",
                     "sc:multi_transfer",
                     "sc:bridge_proxy",
                     "1000",
@@ -166,8 +175,8 @@
                     "nonce": "*",
                     "balance": "0",
                     "storage": {
-                        "str:esdtSafeAddress": "sc:esdt_safe",
-                        "str:multiTransferEsdtAddress": "sc:multi_transfer",
+                        "str:kdaSafeAddress": "sc:kda_safe",
+                        "str:multiTransferKdaAddress": "sc:multi_transfer",
                         "str:proxyAddress": "sc:bridge_proxy",
                         "str:num_board_members": "2",
                         "str:quorum": "2",
@@ -290,12 +299,12 @@
             "step": "scQuery",
             "txId": "get-all-known-tokens",
             "tx": {
-                "to": "sc:esdt_safe",
+                "to": "sc:kda_safe",
                 "function": "getAllKnownTokens"
             },
             "expect": {
                 "out": [
-                    "str:WEGLD-123456",
+                    "str:WKLV-123456",
                     "str:ETH-123456"
                 ]
             }
@@ -324,12 +333,12 @@
             "txId": "add-token-1",
             "tx": {
                 "from": "sc:multisig",
-                "to": "sc:esdt_safe",
+                "to": "sc:kda_safe",
                 "value": "0",
                 "function": "addTokenToWhitelist",
                 "arguments": [
-                    "str:WEGLD-123456",
-                    "str:WEGLD",
+                    "str:WKLV-123456",
+                    "str:WKLV",
                     "true",
                     "false",
                     "0",
@@ -352,7 +361,7 @@
             "txId": "add-token-1",
             "tx": {
                 "from": "sc:multisig",
-                "to": "sc:esdt_safe",
+                "to": "sc:kda_safe",
                 "value": "0",
                 "function": "addTokenToWhitelist",
                 "arguments": [

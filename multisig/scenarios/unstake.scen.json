@@ -20,7 +20,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:can't unstake, must keep minimum amount as insurance",
                 "out": [],
                 "gas": "*",
@@ -119,7 +119,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:can't unstake more than amount staked",
                 "out": [],
                 "gas": "*",
@@ -177,7 +177,7 @@
                 "from": "address:relayer2",
                 "to": "sc:multisig",
                 "value": "0",
-                "function": "proposeMultiTransferEsdtBatch",
+                "function": "proposeMultiTransferKdaBatch",
                 "arguments": [
                     "1"
                 ],
@@ -185,7 +185,7 @@
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:only board members can propose",
                 "out": [],
                 "gas": "*",

@@ -207,6 +207,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "multi-transfer-kda"
+version = "0.0.0"
+dependencies = [
+ "bridged-tokens-wrapper",
+ "eth-address",
+ "kda-safe",
+ "klever-sc",
+ "klever-sc-modules",
+ "max-bridged-amount-module",
+ "token-module",
+ "transaction",
+ "tx-batch-module",
+]
+
+[[package]]
 name = "multisig"
 version = "0.0.0"
 dependencies = [
@@ -218,6 +233,7 @@ dependencies = [
  "klever-sc-modules",
  "klv-price-aggregator-sc",
  "max-bridged-amount-module",
+ "multi-transfer-kda",
  "token-module",
  "transaction",
  "tx-batch-module",

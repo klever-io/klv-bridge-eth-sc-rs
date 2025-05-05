@@ -10,9 +10,9 @@
             "txId": "batch-transfer-both-executed",
             "tx": {
                 "from": "address:owner",
-                "to": "sc:multi_transfer_esdt",
+                "to": "sc:multi_transfer_kda",
                 "value": "0",
-                "function": "batchTransferEsdtToken",
+                "function": "batchTransferKdaToken",
                 "arguments": [
                     "1",
                     {
@@ -49,7 +49,7 @@
                 "address:user1": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:BRIDGE-123456": "100,200"
                     },
                     "storage": {}
@@ -57,7 +57,7 @@
                 "address:user2": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": {
+                    "kda": {
                         "str:WRAPPED-123456": "500"
                     },
                     "storage": {}

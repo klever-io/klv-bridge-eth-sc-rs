@@ -1,5 +1,5 @@
 [package]
-name = "multi-transfer-esdt"
+name = "multi-transfer-kda"
 version = "0.0.0"
 authors = ["you"]
 edition = "2018"
@@ -23,20 +23,20 @@ path = "../common/max-bridged-amount-module"
 [dependencies.bridged-tokens-wrapper]
 path = "../bridged-tokens-wrapper"
 
-[dependencies.bridge-proxy]
-path = "../bridge-proxy"
-
-[dependencies.esdt-safe]
-path = "../esdt-safe"
+[dependencies.kda-safe]
+path = "../kda-safe"
 
 [dependencies.token-module]
 path = "../common/token-module"
 
-[dependencies.multiversx-sc]
-version = "=0.52.3"
+[dependencies.klever-sc]
+version = "0.44.0"
+path="../../klever-vm-sdk-rs-internal/framework/base"
 
-[dependencies.multiversx-sc-modules]
-version = "=0.52.3"
+[dev-dependencies.klever-sc-scenario]
+version = "0.44.0"
+path="../../klever-vm-sdk-rs-internal/framework/scenario"
 
-[dev-dependencies.multiversx-sc-scenario]
-version = "=0.52.3"
+[dependencies.klever-sc-modules]
+version = "0.44.0"
+path="../../klever-vm-sdk-rs-internal/contracts/modules"

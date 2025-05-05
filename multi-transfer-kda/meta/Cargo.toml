@@ -1,0 +1,16 @@
+[package]
+name = "multi-transfer-kda-meta"
+version = "0.0.0"
+authors = ["you"]
+edition = "2018"
+publish = false
+
+[dev-dependencies]
+
+[dependencies.multi-transfer-kda]
+path = ".."
+
+[dependencies.klever-sc-meta]
+version = "0.44.0"
+path = "../../../klever-vm-sdk-rs-internal/framework/meta"
+default-features = false

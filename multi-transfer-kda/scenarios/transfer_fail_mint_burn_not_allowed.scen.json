@@ -10,7 +10,7 @@
             "txId": "remove-token",
             "tx": {
                 "from": "address:owner",
-                "to": "sc:esdt-safe",
+                "to": "sc:kda-safe",
                 "value": "0",
                 "function": "removeTokenFromWhitelist",
                 "arguments": [

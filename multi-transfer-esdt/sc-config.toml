@@ -1,4 +1,0 @@
-[settings]
-
-[[proxy]]
-path = "../multisig/src/multi_transfer_esdt_proxy.rs"

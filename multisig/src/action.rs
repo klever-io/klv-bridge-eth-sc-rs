@@ -1,19 +1,19 @@
-use multiversx_sc::api::ManagedTypeApi;
-use multiversx_sc::types::ManagedVec;
+use klever_sc::api::ManagedTypeApi;
+use klever_sc::types::ManagedVec;
 use transaction::transaction_status::TransactionStatus;
 use transaction::EthTransaction;
 
-use multiversx_sc::derive_imports::*;
+use klever_sc::derive_imports::*;
 
 #[type_abi]
 #[derive(NestedEncode, NestedDecode, TopEncode, TopDecode)]
 pub enum Action<M: ManagedTypeApi> {
     Nothing,
     SetCurrentTransactionBatchStatus {
-        esdt_safe_batch_id: u64,
+        kda_safe_batch_id: u64,
         tx_batch_status: ManagedVec<M, TransactionStatus>,
     },
-    BatchTransferEsdtToken {
+    BatchTransferKdaToken {
         eth_batch_id: u64,
         transfers: ManagedVec<M, EthTransaction<M>>,
     },

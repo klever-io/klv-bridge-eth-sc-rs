@@ -1,6 +1,6 @@
 use eth_address::EthAddress;
 
-#[multiversx_sc::module]
+#[klever_sc::module]
 pub trait EventsModule {
     #[event("addMapping")]
     fn add_mapping_event(

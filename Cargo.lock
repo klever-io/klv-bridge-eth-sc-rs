@@ -217,6 +217,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "bridge-proxy"
+version = "0.0.0"
+dependencies = [
+ "bridged-tokens-wrapper",
+ "crowdfunding-kda",
+ "eth-address",
+ "kda-safe",
+ "klever-sc",
+ "klever-sc-scenario",
+ "num-bigint",
+ "token-module",
+ "transaction",
+ "tx-batch-module",
+]
+
+[[package]]
+name = "bridge-proxy-meta"
+version = "0.0.0"
+dependencies = [
+ "bridge-proxy",
+ "klever-sc-meta",
+]
+
+[[package]]
 name = "bridged-tokens-wrapper"
 version = "0.0.0"
 dependencies = [
@@ -418,6 +442,13 @@ name = "crossbeam-utils"
 version = "0.8.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d0a5c400df2834b80a4c3327b3aad3a4c4cd4de0629063962b03235697506a28"
+
+[[package]]
+name = "crowdfunding-kda"
+version = "0.0.0"
+dependencies = [
+ "klever-sc",
+]
 
 [[package]]
 name = "crypto-common"
@@ -1401,6 +1432,33 @@ version = "0.0.0"
 dependencies = [
  "klever-sc-meta",
  "multi-transfer-kda",
+]
+
+[[package]]
+name = "multisig"
+version = "0.0.0"
+dependencies = [
+ "bridged-tokens-wrapper",
+ "eth-address",
+ "fee-estimator-module",
+ "kda-safe",
+ "klever-sc",
+ "klever-sc-modules",
+ "klever-sc-scenario",
+ "klv-price-aggregator-sc",
+ "max-bridged-amount-module",
+ "multi-transfer-kda",
+ "token-module",
+ "transaction",
+ "tx-batch-module",
+]
+
+[[package]]
+name = "multisig-meta"
+version = "0.0.0"
+dependencies = [
+ "klever-sc-meta",
+ "multisig",
 ]
 
 [[package]]

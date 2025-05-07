@@ -14,7 +14,7 @@
                 "value": "0",
                 "function": "changeFeeEstimatorContractAddress",
                 "arguments": [
-                    "sc:egld_esdt_swap"
+                    "sc:klv_kda_swap"
                 ],
                 "gasLimit": "55,000,000",
                 "gasPrice": "0"
@@ -30,12 +30,12 @@
         {
             "step": "checkState",
             "accounts": {
-                "sc:esdt_safe": {
+                "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": "*",
+                    "kda": "*",
                     "storage": {
-                        "str:feeEstimatorContractAddress": "sc:egld_esdt_swap",
+                        "str:feeEstimatorContractAddress": "sc:klv_kda_swap",
                         "+": ""
                     },
                     "code": "*"
@@ -69,10 +69,10 @@
         {
             "step": "checkState",
             "accounts": {
-                "sc:esdt_safe": {
+                "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": "*",
+                    "kda": "*",
                     "storage": {
                         "str:defaultPricePerGasUnit|nested:str:ETH-123456": "100",
                         "+": ""
@@ -108,10 +108,10 @@
         {
             "step": "checkState",
             "accounts": {
-                "sc:esdt_safe": {
+                "sc:kda_safe": {
                     "nonce": "0",
                     "balance": "0",
-                    "esdt": "*",
+                    "kda": "*",
                     "storage": {
                         "str:tokenTicker|nested:str:ETH-123456": "str:WETH",
                         "+": ""
@@ -154,7 +154,7 @@
                 "function": "addMapping",
                 "arguments": [
                     "0x0102030405060708091011121314151617181999",
-                    "str:WEGLD-123456"
+                    "str:WKLV-123456"
                 ],
                 "gasLimit": "50,000,000",
                 "gasPrice": "0"
@@ -177,13 +177,13 @@
                 "function": "addMapping",
                 "arguments": [
                     "0x0000030405060708091011121314151617181999",
-                    "str:WEGLD-123456"
+                    "str:WKLV-123456"
                 ],
                 "gasLimit": "50,000,000",
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Mapping already exists for token ID",
                 "out": [],
                 "gas": "*",
@@ -202,7 +202,7 @@
             },
             "expect": {
                 "out": [
-                    "str:WEGLD-123456"
+                    "str:WKLV-123456"
                 ]
             }
         },
@@ -213,7 +213,7 @@
                 "to": "sc:multisig",
                 "function": "getErc20AddressForTokenId",
                 "arguments": [
-                    "str:WEGLD-123456"
+                    "str:WKLV-123456"
                 ]
             },
             "expect": {
@@ -232,13 +232,13 @@
                 "function": "clearMapping",
                 "arguments": [
                     "0x0102030405060708091011121314151617181920",
-                    "str:WEGLD-123456"
+                    "str:WKLV-123456"
                 ],
                 "gasLimit": "50,000,000",
                 "gasPrice": "0"
             },
             "expect": {
-                "status": "4",
+                "status": "57",
                 "message": "str:Invalid mapping",
                 "out": [],
                 "gas": "*",

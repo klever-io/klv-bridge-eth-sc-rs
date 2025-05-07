@@ -1,7 +1,7 @@
 [package]
 name = "multisig"
 version = "0.0.0"
-authors = ["Andrei Marinica <andrei.marinica@elrond.com>, Dorin Iancu <dorin.iancu@elrond.com>"]
+authors = ["Andrei Marinica <andrei.marinica@elrond.com>, Dorin Iancu <dorin.iancu@elrond.com>", "Klever <contact@klever.com>"]
 edition = "2018"
 publish = false
 
@@ -26,26 +26,26 @@ path = "../common/tx-batch-module"
 [dependencies.max-bridged-amount-module]
 path = "../common/max-bridged-amount-module"
 
-[dependencies.esdt-safe]
-path = "../esdt-safe"
+[dependencies.kda-safe]
+path = "../kda-safe"
 
-[dependencies.multi-transfer-esdt]
-path = "../multi-transfer-esdt"
+[dependencies.multi-transfer-kda]
+path = "../multi-transfer-kda"
 
 [dependencies.bridged-tokens-wrapper]
 path = "../bridged-tokens-wrapper"
 
-[dependencies.bridge-proxy]
-path = "../bridge-proxy"
+[dependencies.klever-sc]
+version = "0.44.0"
+path="../../klever-vm-sdk-rs-internal/framework/base"
 
-[dependencies.multiversx-sc]
-version = "=0.52.3"
+[dependencies.klv-price-aggregator-sc]
+path = "../price-aggregator/"
 
-[dependencies.multiversx-price-aggregator-sc]
-version = "=0.52.0"
+[dev-dependencies.klever-sc-scenario]
+version = "0.44.0"
+path="../../klever-vm-sdk-rs-internal/framework/scenario"
 
-[dependencies.multiversx-sc-modules]
-version = "=0.52.3"
-
-[dev-dependencies.multiversx-sc-scenario]
-version = "=0.52.3"
+[dependencies.klever-sc-modules]
+version = "0.44.0"
+path="../../klever-vm-sdk-rs-internal/contracts/modules"

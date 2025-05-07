@@ -1,11 +1,11 @@
-use multiversx_sc::imports::*;
+use klever_sc::imports::*;
 
 use crate::action::Action;
 use crate::user_role::UserRole;
 
-#[multiversx_sc::module]
+#[klever_sc::module]
 pub trait MultisigGeneralModule:
-    crate::util::UtilModule + crate::storage::StorageModule + multiversx_sc_modules::pause::PauseModule
+    crate::util::UtilModule + crate::storage::StorageModule + klever_sc_modules::pause::PauseModule
 {
     /// Used by board members to sign actions.
     #[endpoint]

@@ -2,15 +2,14 @@
 
 use std::ops::Add;
 
-use bridge_proxy::{bridge_proxy_contract_proxy, config::ProxyTrait as _, ProxyTrait as _};
-use esdt_safe::{EsdtSafe, ProxyTrait as _};
-use multi_transfer_esdt::{bridged_tokens_wrapper_proxy, multi_transfer_proxy, ProxyTrait as _};
+use kda_safe::{KDASafe, ProxyTrait as _};
+use multi_transfer_kda::{bridged_tokens_wrapper_proxy, multi_transfer_proxy, ProxyTrait as _};
 
 use multisig::{
-    __endpoints_5__::multi_transfer_esdt_address, esdt_safe_proxy, multi_transfer_esdt_proxy,
+    __endpoints_5__::multi_transfer_kda_address, kda_safe_proxy, multi_transfer_kda_proxy,
     multisig_proxy,
 };
-use multiversx_sc::{
+use klever_sc::{
     api::{HandleConstraints, ManagedTypeApi},
     codec::{
         multi_types::{MultiValueVec, OptionalValue},
@@ -25,41 +24,34 @@ use multiversx_sc::{
         ReturnsResult, TestAddress, TestSCAddress, TestTokenIdentifier, TokenIdentifier,
     },
 };
-use multiversx_sc_modules::pause::ProxyTrait;
-use multiversx_sc_scenario::{
-    api::{StaticApi, VMHooksApi, VMHooksApiBackend},
-    imports::MxscPath,
-    scenario_format::interpret_trait::{InterpretableFrom, InterpreterContext},
-    scenario_model::*,
-    ContractInfo, DebugApi, ExpectError, ExpectValue, ScenarioTxRun, ScenarioWorld,
+use klever_sc_modules::pause::ProxyTrait;
+use klever_sc_scenario::{
+    api::{StaticApi, VMHooksApi, VMHooksApiBackend}, imports::KleverscPath, managed_address, scenario_format::interpret_trait::{InterpretableFrom, InterpreterContext}, scenario_model::*, ContractInfo, DebugApi, ExpectError, ExpectValue, ScenarioTxRun, ScenarioWorld
 };
 
 use eth_address::*;
 use token_module::ProxyTrait as _;
 use transaction::{CallData, EthTransaction, EthTxAsMultiValue, TxBatchSplitInFields};
 
-const WEGLD_TOKEN_ID: TestTokenIdentifier = TestTokenIdentifier::new("WEGLD-123456");
-const ETH_TOKEN_ID: TestTokenIdentifier = TestTokenIdentifier::new("ETH-123456");
+const WKLV_TOKEN_ID: &[u8] = b"WKLV-123456";
+const ETH_TOKEN_ID: &[u8] = b"ETH-123456";
 
 const USER_ETHEREUM_ADDRESS: &[u8] = b"0x0102030405060708091011121314151617181920";
 
 const GAS_LIMIT: u64 = 100_000_000;
 
-const MULTISIG_CODE_PATH: MxscPath = MxscPath::new("output/multisig.mxsc.json");
-const MULTI_TRANSFER_CODE_PATH: MxscPath =
-    MxscPath::new("../multi-transfer-esdt/output/multi-transfer-esdt.mxsc.json");
-const BRIDGE_PROXY_CODE_PATH: MxscPath =
-    MxscPath::new("../bridge-proxy/output/bridge-proxy.mxsc.json");
-const ESDT_SAFE_CODE_PATH: MxscPath = MxscPath::new("../esdt-safe/output/esdt-safe.mxsc.json");
-const BRIDGED_TOKENS_WRAPPER_CODE_PATH: MxscPath =
-    MxscPath::new("../bridged-tokens-wrapper/output/bridged-tokens-wrapper.mxsc.json");
-const PRICE_AGGREGATOR_CODE_PATH: MxscPath =
-    MxscPath::new("../price-aggregator/price-aggregator.mxsc.json");
+const MULTISIG_CODE_PATH: KleverscPath = KleverscPath::new("output/multisig.kleversc.json");
+const MULTI_TRANSFER_CODE_PATH: KleverscPath =
+    KleverscPath::new("../multi-transfer-kda/output/multi-transfer-kda.kleversc.json");
+const KDA_SAFE_CODE_PATH: KleverscPath = KleverscPath::new("../kda-safe/output/kda-safe.kleversc.json");
+const BRIDGED_TOKENS_WRAPPER_CODE_PATH: KleverscPath =
+    KleverscPath::new("../bridged-tokens-wrapper/output/bridged-tokens-wrapper.kleversc.json");
+const PRICE_AGGREGATOR_CODE_PATH: KleverscPath =
+    KleverscPath::new("../price-aggregator/price-aggregator.kleversc.json");
 
 const MULTISIG_ADDRESS: TestSCAddress = TestSCAddress::new("multisig");
 const MULTI_TRANSFER_ADDRESS: TestSCAddress = TestSCAddress::new("multi-transfer");
-const BRIDGE_PROXY_ADDRESS: TestSCAddress = TestSCAddress::new("bridge-proxy");
-const ESDT_SAFE_ADDRESS: TestSCAddress = TestSCAddress::new("esdt-safe");
+const KDA_SAFE_ADDRESS: TestSCAddress = TestSCAddress::new("kda-safe");
 const BRIDGED_TOKENS_WRAPPER_ADDRESS: TestSCAddress = TestSCAddress::new("bridged-tokens-wrapper");
 const PRICE_AGGREGATOR_ADDRESS: TestSCAddress = TestSCAddress::new("price-aggregator");
 
@@ -72,7 +64,7 @@ const RELAYER2_ADDRESS: TestAddress = TestAddress::new("relayer2");
 
 const RANDOM_SC_ADDRESS: TestSCAddress = TestSCAddress::new("random-sc");
 
-const ESDT_SAFE_ETH_TX_GAS_LIMIT: u64 = 150_000;
+const KDA_SAFE_ETH_TX_GAS_LIMIT: u64 = 150_000;
 
 const BALANCE: &str = "2,000,000";
 
@@ -82,10 +74,9 @@ fn world() -> ScenarioWorld {
     blockchain.register_contract(MULTISIG_CODE_PATH, multisig::ContractBuilder);
     blockchain.register_contract(
         MULTI_TRANSFER_CODE_PATH,
-        multi_transfer_esdt::ContractBuilder,
+        multi_transfer_kda::ContractBuilder,
     );
-    blockchain.register_contract(BRIDGE_PROXY_CODE_PATH, bridge_proxy::ContractBuilder);
-    blockchain.register_contract(ESDT_SAFE_CODE_PATH, esdt_safe::ContractBuilder);
+    blockchain.register_contract(KDA_SAFE_CODE_PATH, kda_safe::ContractBuilder);
     blockchain.register_contract(
         BRIDGED_TOKENS_WRAPPER_CODE_PATH,
         bridged_tokens_wrapper::ContractBuilder,
@@ -94,9 +85,8 @@ fn world() -> ScenarioWorld {
     blockchain
 }
 
-type MultiTransferContract = ContractInfo<multi_transfer_esdt::Proxy<StaticApi>>;
-type BridgeProxyContract = ContractInfo<bridge_proxy::Proxy<StaticApi>>;
-type EsdtSafeContract = ContractInfo<esdt_safe::Proxy<StaticApi>>;
+type MultiTransferContract = ContractInfo<multi_transfer_kda::Proxy<StaticApi>>;
+type KdaSafeContract = ContractInfo<kda_safe::Proxy<StaticApi>>;
 type BridgedTokensWrapperContract = ContractInfo<bridged_tokens_wrapper::Proxy<StaticApi>>;
 
 struct MultiTransferTestState {
@@ -110,8 +100,8 @@ impl MultiTransferTestState {
         world
             .account(OWNER_ADDRESS)
             .nonce(1)
-            .esdt_balance(WEGLD_TOKEN_ID, 1001u64)
-            .esdt_balance(ETH_TOKEN_ID, 1001u64)
+            .kda_balance(TokenIdentifier::from(WKLV_TOKEN_ID), 1001u64)
+            .kda_balance(TokenIdentifier::from(ETH_TOKEN_ID), 1001u64)
             .account(USER1_ADDRESS)
             .nonce(1)
             .account(RELAYER1_ADDRESS)
@@ -122,15 +112,30 @@ impl MultiTransferTestState {
             .balance(1_000u64);
 
         let roles = vec![
-            "ESDTRoleLocalMint".to_string(),
-            "ESDTRoleLocalBurn".to_string(),
+            "KDARoleMint".to_string(),
         ];
         world
-            .account(ESDT_SAFE_ADDRESS)
-            .esdt_roles(WEGLD_TOKEN_ID, roles.clone())
-            .esdt_roles(ETH_TOKEN_ID, roles)
-            .code(ESDT_SAFE_CODE_PATH)
+            .account(KDA_SAFE_ADDRESS)
+            .kda_roles(TokenIdentifier::from(WKLV_TOKEN_ID), roles.clone())
+            .kda_roles(TokenIdentifier::from(ETH_TOKEN_ID), roles)
+            .code(KDA_SAFE_CODE_PATH)
             .owner(OWNER_ADDRESS);
+
+        let bridged_tokens_address = AddressValue::from(BRIDGED_TOKENS_WRAPPER_ADDRESS);
+
+        world.set_kda_can_burn(
+            managed_address!(&bridged_tokens_address.to_address()),
+            WKLV_TOKEN_ID,
+            0,
+            true,
+        );
+
+        world.set_kda_can_burn(
+            managed_address!(&bridged_tokens_address.to_address()),
+            ETH_TOKEN_ID,
+            0,
+            true,
+        );
 
         Self { world }
     }
@@ -145,9 +150,9 @@ impl MultiTransferTestState {
             .from(OWNER_ADDRESS)
             .typed(multisig_proxy::MultisigProxy)
             .init(
-                ESDT_SAFE_ADDRESS,
-                MULTI_TRANSFER_ADDRESS,
-                BRIDGE_PROXY_ADDRESS,
+                KDA_SAFE_ADDRESS.to_address(),
+                MULTI_TRANSFER_ADDRESS.to_address(),
+                ManagedAddress::zero(),
                 1_000u64,
                 500u64,
                 2usize,
@@ -163,7 +168,7 @@ impl MultiTransferTestState {
         self.world
             .tx()
             .from(MULTISIG_ADDRESS)
-            .typed(multi_transfer_esdt_proxy::MultiTransferEsdtProxy)
+            .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
             .init()
             .code(MULTI_TRANSFER_CODE_PATH)
             .new_address(MULTI_TRANSFER_ADDRESS)
@@ -185,32 +190,19 @@ impl MultiTransferTestState {
         self
     }
 
-    fn bridge_proxy_deploy(&mut self) -> &mut Self {
-        self.world
-            .tx()
-            .from(OWNER_ADDRESS)
-            .typed(bridge_proxy_contract_proxy::BridgeProxyContractProxy)
-            .init(OptionalValue::Some(MULTI_TRANSFER_ADDRESS.to_address()))
-            .code(BRIDGE_PROXY_CODE_PATH)
-            .new_address(BRIDGE_PROXY_ADDRESS)
-            .run();
-
-        self
-    }
-
     fn safe_deploy(&mut self, price_aggregator_contract_address: Address) -> &mut Self {
         self.world
             .tx()
             .from(OWNER_ADDRESS)
-            .to(ESDT_SAFE_ADDRESS)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .to(KDA_SAFE_ADDRESS)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .upgrade(
                 ManagedAddress::zero(),
                 MULTI_TRANSFER_ADDRESS.to_address(),
-                BRIDGE_PROXY_ADDRESS.to_address(),
-                ESDT_SAFE_ETH_TX_GAS_LIMIT,
+                ManagedAddress::zero(),
+                KDA_SAFE_ETH_TX_GAS_LIMIT,
             )
-            .code(ESDT_SAFE_CODE_PATH)
+            .code(KDA_SAFE_CODE_PATH)
             .run();
 
         self
@@ -221,7 +213,7 @@ impl MultiTransferTestState {
             .tx()
             .from(MULTISIG_ADDRESS)
             .to(MULTI_TRANSFER_ADDRESS)
-            .typed(multi_transfer_proxy::MultiTransferEsdtProxy)
+            .typed(multi_transfer_proxy::MultiTransferKdaProxy)
             .set_wrapping_contract_address(OptionalValue::Some(
                 BRIDGED_TOKENS_WRAPPER_ADDRESS.to_address(),
             ))
@@ -231,25 +223,15 @@ impl MultiTransferTestState {
             .tx()
             .from(MULTISIG_ADDRESS)
             .to(MULTI_TRANSFER_ADDRESS)
-            .typed(multi_transfer_proxy::MultiTransferEsdtProxy)
-            .set_bridge_proxy_contract_address(OptionalValue::Some(
-                BRIDGE_PROXY_ADDRESS.to_address(),
-            ))
-            .run();
-
-        self.world
-            .tx()
-            .from(MULTISIG_ADDRESS)
-            .to(MULTI_TRANSFER_ADDRESS)
-            .typed(multi_transfer_proxy::MultiTransferEsdtProxy)
-            .set_esdt_safe_contract_address(OptionalValue::Some(ESDT_SAFE_ADDRESS.to_address()))
+            .typed(multi_transfer_proxy::MultiTransferKdaProxy)
+            .set_kda_safe_contract_address(OptionalValue::Some(KDA_SAFE_ADDRESS.to_address()))
             .run();
 
         self.world
             .tx()
             .from(OWNER_ADDRESS)
-            .to(ESDT_SAFE_ADDRESS)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .to(KDA_SAFE_ADDRESS)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .set_multi_transfer_contract_address(OptionalValue::Some(
                 MULTI_TRANSFER_ADDRESS.to_address(),
             ))
@@ -258,34 +240,34 @@ impl MultiTransferTestState {
         self.world
             .tx()
             .from(OWNER_ADDRESS)
-            .to(ESDT_SAFE_ADDRESS)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .to(KDA_SAFE_ADDRESS)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .add_token_to_whitelist(
-                TokenIdentifier::from_esdt_bytes("WEGLD-123456"),
-                "WEGLD",
+                TokenIdentifier::from_kda_bytes("WKLV-123456"),
+                "WKLV",
                 true,
                 false,
                 BigUint::zero(),
                 BigUint::zero(),
                 BigUint::zero(),
-                OptionalValue::Some(BigUint::from(ESDT_SAFE_ETH_TX_GAS_LIMIT)),
+                OptionalValue::Some(BigUint::from(KDA_SAFE_ETH_TX_GAS_LIMIT)),
             )
             .run();
 
         self.world
             .tx()
             .from(OWNER_ADDRESS)
-            .to(ESDT_SAFE_ADDRESS)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .to(KDA_SAFE_ADDRESS)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .add_token_to_whitelist(
-                TokenIdentifier::from_esdt_bytes("ETH-123456"),
+                TokenIdentifier::from_kda_bytes("ETH-123456"),
                 "ETH",
                 true,
                 false,
                 BigUint::zero(),
                 BigUint::zero(),
                 BigUint::zero(),
-                OptionalValue::Some(BigUint::from(ESDT_SAFE_ETH_TX_GAS_LIMIT)),
+                OptionalValue::Some(BigUint::from(KDA_SAFE_ETH_TX_GAS_LIMIT)),
             )
             .run();
 
@@ -308,16 +290,8 @@ impl MultiTransferTestState {
         self.world
             .tx()
             .from(OWNER_ADDRESS)
-            .to(BRIDGE_PROXY_ADDRESS)
-            .typed(multisig_proxy::MultisigProxy)
-            .unpause_endpoint()
-            .run();
-
-        self.world
-            .tx()
-            .from(OWNER_ADDRESS)
-            .to(ESDT_SAFE_ADDRESS)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .to(KDA_SAFE_ADDRESS)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .unpause_endpoint()
             .run();
 
@@ -327,7 +301,7 @@ impl MultiTransferTestState {
             .to(MULTISIG_ADDRESS)
             .typed(multisig_proxy::MultisigProxy)
             .stake()
-            .egld(1_000)
+            .klv(1_000)
             .run();
 
         self.world
@@ -336,7 +310,7 @@ impl MultiTransferTestState {
             .to(MULTISIG_ADDRESS)
             .typed(multisig_proxy::MultisigProxy)
             .stake()
-            .egld(1_000)
+            .klv(1_000)
             .run();
 
         let staked_relayers = self
@@ -350,10 +324,10 @@ impl MultiTransferTestState {
 
         assert!(staked_relayers
             .to_vec()
-            .contains(&RELAYER1_ADDRESS.to_managed_address()));
+            .contains(&ManagedAddress::from(RELAYER1_ADDRESS.eval_to_array())));
         assert!(staked_relayers
             .to_vec()
-            .contains(&RELAYER2_ADDRESS.to_managed_address()));
+            .contains(&ManagedAddress::from(RELAYER2_ADDRESS.eval_to_array())));
     }
 }
 
@@ -364,20 +338,18 @@ fn config_test() {
     state.multisig_deploy();
     state.safe_deploy(Address::zero());
     state.multi_transfer_deploy();
-    state.bridge_proxy_deploy();
     state.bridged_tokens_wrapper_deploy();
     state.config_multisig();
 }
 
 #[test]
-fn ethereum_to_multiversx_call_data_empty_test() {
+fn ethereum_to_klever_call_data_empty_test() {
     let mut state = MultiTransferTestState::new();
     let token_amount = BigUint::from(76_000_000_000u64);
 
     state.multisig_deploy();
     state.safe_deploy(Address::zero());
     state.multi_transfer_deploy();
-    state.bridge_proxy_deploy();
     state.bridged_tokens_wrapper_deploy();
     state.config_multisig();
 
@@ -386,7 +358,7 @@ fn ethereum_to_multiversx_call_data_empty_test() {
             raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
         },
         ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
-        TokenIdentifier::from(WEGLD_TOKEN_ID),
+        TokenIdentifier::from(WKLV_TOKEN_ID),
         token_amount.clone(),
         1u64,
         ManagedOption::none(),
@@ -402,7 +374,7 @@ fn ethereum_to_multiversx_call_data_empty_test() {
         .from(RELAYER1_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .propose_multi_transfer_esdt_batch(1u32, transfers)
+        .propose_multi_transfer_kda_batch(1u32, transfers)
         .run();
 
     state
@@ -426,11 +398,11 @@ fn ethereum_to_multiversx_call_data_empty_test() {
     state
         .world
         .check_account(USER1_ADDRESS)
-        .esdt_balance(WEGLD_TOKEN_ID, token_amount.clone());
+        .kda_balance(TokenIdentifier::from(WKLV_TOKEN_ID), token_amount.clone());
 }
 
 #[test]
-fn ethereum_to_multiversx_relayer_call_data_several_tx_test() {
+fn ethereum_to_klever_relayer_call_data_several_tx_test() {
     let mut state = MultiTransferTestState::new();
     let token_amount = BigUint::from(5_000u64);
 
@@ -439,12 +411,11 @@ fn ethereum_to_multiversx_relayer_call_data_several_tx_test() {
     state.multisig_deploy();
     state.safe_deploy(Address::zero());
     state.multi_transfer_deploy();
-    state.bridge_proxy_deploy();
     state.bridged_tokens_wrapper_deploy();
     state.config_multisig();
 
     let addr =
-        Address::from_slice(b"erd1dyw7aysn0nwmuahvxnh2e0pm0kgjvs2gmfdxjgz3x0pet2nkvt8s7tkyrj");
+        Address::from_slice(b"klv12e0kqcvqsrayj8j0c4dqjyvnv4ep253m5anx4rfj4jeq34lxsg8s84ec9j");
     let eth_tx = EthTxAsMultiValue::<StaticApi>::from((
         EthAddress {
             raw_addr: ManagedByteArray::new_from_bytes(b"5d959e98ea73c35778ff"),
@@ -516,7 +487,7 @@ fn ethereum_to_multiversx_relayer_call_data_several_tx_test() {
         .from(RELAYER1_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .propose_multi_transfer_esdt_batch(1u32, transfers)
+        .propose_multi_transfer_kda_batch(1u32, transfers)
         .run();
 
     state
@@ -535,16 +506,16 @@ fn ethereum_to_multiversx_relayer_call_data_several_tx_test() {
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
         .perform_action_endpoint(1usize)
-        .returns(ExpectError(4, "Invalid token or amount"))
+        .returns(ExpectError(57, "Invalid token or amount"))
         .run();
 
     state.world.write_scenario_trace(
-        "scenarios/ethereum_to_multiversx_relayer_call_data_several_tx_test.scen.json",
+        "scenarios/ethereum_to_klever_relayer_call_data_several_tx_test.scen.json",
     );
 }
 
 #[test]
-fn ethereum_to_multiversx_relayer_query_test() {
+fn ethereum_to_klever_relayer_query_test() {
     let mut state = MultiTransferTestState::new();
     let token_amount = BigUint::from(76_000_000_000u64);
     state.world.start_trace();
@@ -552,7 +523,6 @@ fn ethereum_to_multiversx_relayer_query_test() {
     state.multisig_deploy();
     state.safe_deploy(Address::zero());
     state.multi_transfer_deploy();
-    state.bridge_proxy_deploy();
     state.bridged_tokens_wrapper_deploy();
     state.config_multisig();
 
@@ -561,7 +531,7 @@ fn ethereum_to_multiversx_relayer_query_test() {
             raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
         },
         ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
-        TokenIdentifier::from(WEGLD_TOKEN_ID),
+        TokenIdentifier::from(WKLV_TOKEN_ID),
         token_amount.clone(),
         1u64,
         ManagedOption::none(),
@@ -577,7 +547,7 @@ fn ethereum_to_multiversx_relayer_query_test() {
         .from(RELAYER1_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .propose_multi_transfer_esdt_batch(1u32, transfers.clone())
+        .propose_multi_transfer_kda_batch(1u32, transfers.clone())
         .run();
 
     let was_transfer = state
@@ -623,15 +593,15 @@ fn ethereum_to_multiversx_relayer_query_test() {
     state
         .world
         .check_account(USER1_ADDRESS)
-        .esdt_balance(WEGLD_TOKEN_ID, token_amount.clone());
+        .kda_balance(TokenIdentifier::from(WKLV_TOKEN_ID), token_amount.clone());
 
     state
         .world
-        .write_scenario_trace("scenarios/ethereum_to_multiversx_relayer_query_test.scen.json");
+        .write_scenario_trace("scenarios/ethereum_to_klever_relayer_query_test.scen.json");
 }
 
 #[test]
-fn ethereum_to_multiversx_relayer_query2_test() {
+fn ethereum_to_klever_relayer_query2_test() {
     let mut state = MultiTransferTestState::new();
     let token_amount = BigUint::from(5_000u64);
     state.world.start_trace();
@@ -639,12 +609,11 @@ fn ethereum_to_multiversx_relayer_query2_test() {
     state.multisig_deploy();
     state.safe_deploy(Address::zero());
     state.multi_transfer_deploy();
-    state.bridge_proxy_deploy();
     state.bridged_tokens_wrapper_deploy();
     state.config_multisig();
 
     let addr =
-        Address::from_slice(b"erd1dyw7aysn0nwmuahvxnh2e0pm0kgjvs2gmfdxjgz3x0pet2nkvt8s7tkyrj");
+        Address::from_slice(b"klv12e0kqcvqsrayj8j0c4dqjyvnv4ep253m5anx4rfj4jeq34lxsg8s84ec9j");
 
     const ADDR: [u8; 32] = hex!("691dee92137cddbe76ec34eeacbc3b7d91264148da5a69205133c395aa7662cf");
 
@@ -669,7 +638,7 @@ fn ethereum_to_multiversx_relayer_query2_test() {
         .from(RELAYER1_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .propose_multi_transfer_esdt_batch(1u32, transfers.clone())
+        .propose_multi_transfer_kda_batch(1u32, transfers.clone())
         .run();
 
     let was_transfer = state
@@ -710,16 +679,16 @@ fn ethereum_to_multiversx_relayer_query2_test() {
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
         .perform_action_endpoint(1usize)
-        .returns(ExpectError(4, "Invalid token or amount"))
+        .returns(ExpectError(57, "Invalid token or amount"))
         .run();
 
     state
         .world
-        .write_scenario_trace("scenarios/ethereum_to_multiversx_relayer_query2_test.scen.json");
+        .write_scenario_trace("scenarios/ethereum_to_klever_relayer_query2_test.scen.json");
 }
 
 #[test]
-fn ethereum_to_multiversx_tx_batch_ok_test() {
+fn ethereum_to_klever_tx_batch_ok_test() {
     let mut state = MultiTransferTestState::new();
     let token_amount = BigUint::from(76_000_000_000u64);
     state.world.start_trace();
@@ -727,7 +696,6 @@ fn ethereum_to_multiversx_tx_batch_ok_test() {
     state.multisig_deploy();
     state.safe_deploy(Address::zero());
     state.multi_transfer_deploy();
-    state.bridge_proxy_deploy();
     state.bridged_tokens_wrapper_deploy();
     state.config_multisig();
 
@@ -750,7 +718,7 @@ fn ethereum_to_multiversx_tx_batch_ok_test() {
             raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
         },
         ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
-        TokenIdentifier::from(WEGLD_TOKEN_ID),
+        TokenIdentifier::from(WKLV_TOKEN_ID),
         token_amount.clone(),
         1u64,
         ManagedOption::some(call_data.clone()),
@@ -778,7 +746,7 @@ fn ethereum_to_multiversx_tx_batch_ok_test() {
         .from(RELAYER1_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .propose_multi_transfer_esdt_batch(1u32, transfers)
+        .propose_multi_transfer_kda_batch(1u32, transfers)
         .run();
 
     state
@@ -802,23 +770,22 @@ fn ethereum_to_multiversx_tx_batch_ok_test() {
     state
         .world
         .check_account(USER1_ADDRESS)
-        .esdt_balance(WEGLD_TOKEN_ID, token_amount.clone())
-        .esdt_balance(ETH_TOKEN_ID, token_amount.clone());
+        .kda_balance(TokenIdentifier::from(WKLV_TOKEN_ID), token_amount.clone())
+        .kda_balance(TokenIdentifier::from(ETH_TOKEN_ID), token_amount.clone());
 
     state.world.write_scenario_trace(
-        "scenarios/ethereum_to_multiversx_tx_batch_ok_call_data_encoded.scen.json",
+        "scenarios/ethereum_to_klever_tx_batch_ok_call_data_encoded.scen.json",
     );
 }
 
 #[test]
-fn ethereum_to_multiversx_tx_batch_rejected_test() {
+fn ethereum_to_klever_tx_batch_rejected_test() {
     let mut state = MultiTransferTestState::new();
     let over_the_limit_token_amount = BigUint::from(101_000_000_000u64);
 
     state.multisig_deploy();
     state.safe_deploy(Address::zero());
     state.multi_transfer_deploy();
-    state.bridge_proxy_deploy();
     state.bridged_tokens_wrapper_deploy();
     state.config_multisig();
 
@@ -838,8 +805,8 @@ fn ethereum_to_multiversx_tx_batch_rejected_test() {
         EthAddress {
             raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
         },
-        ManagedAddress::from(BRIDGE_PROXY_ADDRESS.eval_to_array()),
-        TokenIdentifier::from(WEGLD_TOKEN_ID),
+        ManagedAddress::from(KDA_SAFE_ADDRESS.eval_to_array()),
+        TokenIdentifier::from(WKLV_TOKEN_ID),
         over_the_limit_token_amount.clone(),
         1u64,
         ManagedOption::some(call_data.clone()),
@@ -849,7 +816,7 @@ fn ethereum_to_multiversx_tx_batch_rejected_test() {
         EthAddress {
             raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
         },
-        ManagedAddress::from(BRIDGE_PROXY_ADDRESS.eval_to_array()),
+        ManagedAddress::from(KDA_SAFE_ADDRESS.eval_to_array()),
         TokenIdentifier::from(ETH_TOKEN_ID),
         over_the_limit_token_amount.clone(),
         2u64,
@@ -867,7 +834,7 @@ fn ethereum_to_multiversx_tx_batch_rejected_test() {
         .from(RELAYER1_ADDRESS)
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
-        .propose_multi_transfer_esdt_batch(1u32, transfers)
+        .propose_multi_transfer_kda_batch(1u32, transfers)
         .run();
 
     state

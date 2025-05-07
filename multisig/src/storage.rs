@@ -1,4 +1,4 @@
-use multiversx_sc::imports::*;
+use klever_sc::imports::*;
 
 use eth_address::EthAddress;
 use transaction::transaction_status::TransactionStatus;
@@ -8,7 +8,7 @@ use crate::user_role::UserRole;
 
 pub type EthBatchHash<M> = ManagedByteArray<M, 32>; // keccak256(ManagedVec<EthTransaction<Self::Api>)
 
-#[multiversx_sc::module]
+#[klever_sc::module]
 pub trait StorageModule {
     /// Minimum number of signatures needed to perform any action.
     #[view(getQuorum)]
@@ -70,10 +70,10 @@ pub trait StorageModule {
     #[storage_mapper("actionIdForSetCurrentTransactionBatchStatus")]
     fn action_id_for_set_current_transaction_batch_status(
         &self,
-        esdt_safe_batch_id: u64,
+        kda_safe_batch_id: u64,
     ) -> MapMapper<ManagedVec<TransactionStatus>, usize>;
 
-    /// Mapping between ERC20 Ethereum address and MultiversX ESDT Token Identifiers
+    /// Mapping between ERC20 Ethereum address and Klever Blockchain KDA Token Identifiers
 
     #[view(getErc20AddressForTokenId)]
     #[storage_mapper("erc20AddressForTokenId")]
@@ -91,13 +91,13 @@ pub trait StorageModule {
 
     // SC addresses
 
-    #[view(getEsdtSafeAddress)]
-    #[storage_mapper("esdtSafeAddress")]
-    fn esdt_safe_address(&self) -> SingleValueMapper<ManagedAddress>;
+    #[view(getKdaSafeAddress)]
+    #[storage_mapper("kdaSafeAddress")]
+    fn kda_safe_address(&self) -> SingleValueMapper<ManagedAddress>;
 
-    #[view(getMultiTransferEsdtAddress)]
-    #[storage_mapper("multiTransferEsdtAddress")]
-    fn multi_transfer_esdt_address(&self) -> SingleValueMapper<ManagedAddress>;
+    #[view(getMultiTransferKdaAddress)]
+    #[storage_mapper("multiTransferKdaAddress")]
+    fn multi_transfer_kda_address(&self) -> SingleValueMapper<ManagedAddress>;
 
     #[view(getProxyAddress)]
     #[storage_mapper("proxyAddress")]

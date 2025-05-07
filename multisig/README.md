@@ -27,20 +27,20 @@ The required guidelines are:
 
 * **No libraries.** Extending the last guideline, our contract has no upstream dependencies other than itself. This minimizes the chance of us misunderstanding or misusing some piece of library code. It also forces us to stay simple and eases auditing and eventually formal verification.
 
-* **Minimal internal state.** Complex applications can be built inside MultiversX smart contracts. Storing minimal internal state allows our contract’s code to be simpler, and to be written in a more functional style, which is easier to test and reason about.
+* **Minimal internal state.** Complex applications can be built inside Klever Blockchain smart contracts. Storing minimal internal state allows our contract’s code to be simpler, and to be written in a more functional style, which is easier to test and reason about.
 
 * **Uses cold-storage.** The proposer which creates an action or spends from the contract has no special rights or access to the MSC. Authorization is handled by directly signing messages by the board members’ wallets that can be hardware wallets (Trezor; Ledger, etc.) or software wallets.
 
 * **Complete end-to-end testing.** The contract itself is exhaustively unit tested, audited and formally verified.
 
 ## Roles
-* **Deployer** - This is the address that deploys the MSC. By default, this address is also the owner of the SC, but the owner can be changed later if required, as this is by default supported by the MultiversX protocol itself. This is the address that initially set up the configuration of the SC: board members, quorum, etc. It is important to mention that at deployment a very important configuration parameter is the option to allow the SC to be upgradeable or not. It is recommended for most use cases the SC to be non-upgradeable. Leaving the SC upgradable will give the owner of the SC the possibility to upgrade the SC and bypass the board, defeating the purpose of a MSC. If keeping the SC upgradeable is desired, a possible approach would be to make the owner another MSC, and both SCs could maintain the same board, so an upgrade action would need the approval of the board.
+* **Deployer** - This is the address that deploys the MSC. By default, this address is also the owner of the SC, but the owner can be changed later if required, as this is by default supported by the Klever Blockchain protocol itself. This is the address that initially set up the configuration of the SC: board members, quorum, etc. It is important to mention that at deployment a very important configuration parameter is the option to allow the SC to be upgradeable or not. It is recommended for most use cases the SC to be non-upgradeable. Leaving the SC upgradable will give the owner of the SC the possibility to upgrade the SC and bypass the board, defeating the purpose of a MSC. If keeping the SC upgradeable is desired, a possible approach would be to make the owner another MSC, and both SCs could maintain the same board, so an upgrade action would need the approval of the board.
 
 * **Owner** - The deployer is initially the owner of the MSC, but if desired can be changed later by the current owner to a different owner. If the SC is upgradeable, the owner can also upgrade the SC.
 
 * **Board and quorum** - Multiple addresses need to be previously registered in the MSC, forming its board. A board member needs to be specifically registered as a board member, meaning for example that the owner or deployer of the MSC is not automatically a board member as well. Board members can vote on every action that the MSC performs. Signing a proposed action means the board members agree. Customarily, not all board members will need to sign every action; the MSC will configure how many signatures will be necessary for an action to be performed, the quorum. For instance, such a contract could have 5 board members, but a quorum of 3 would be enough to perform any action (M-of-N or in this case 3-of-5).
 
-* **Proposer** - The proposer is an address whitelisted in the MSC that can propose any action. An action can be any transaction; for example: send 10 eGLD to the treasury, mint more ESDT, etc. All board members are proposers by default but non-board members can be added as well to the list of whitelisted proposers. The proposers can only propose actions that then need to be approved and signed by the board members. The board member that proposes an action doesn’t need to sign it anymore; it is considered signed.
+* **Proposer** - The proposer is an address whitelisted in the MSC that can propose any action. An action can be any transaction; for example: send 10 KLV to the treasury, mint more KDA, etc. All board members are proposers by default but non-board members can be added as well to the list of whitelisted proposers. The proposers can only propose actions that then need to be approved and signed by the board members. The board member that proposes an action doesn’t need to sign it anymore; it is considered signed.
 
 ## Functionality
 The MSC should be able to perform most tasks that a regular account is able to perform. It should also be as general as possible. This means that it should operate with a generic concept of “Action”, that the board needs to sign before being performed. Actions can interact with the MSC itself (let's call them **internal actions**) or with external addresses or other SC (**external actions**).
@@ -55,7 +55,7 @@ The types of internal actions should be the following:
 * Add a proposer.
 * Remove a proposer.
 * Change multisig contract owner (might be relevant for upgrading the MSC).
-* Pay functions - by default we recommend the MSC to not be set up as a payable SC and any deposit or send transaction of eGLD or ESDT towards the MSC will need to call the desired pay function (if a transaction is not a call to these 2 functions then it is rejected immediately and the value is sent back to original sender): Deposit and/or Send. By making the MSC not a payable MSC we reduce the risk of users sending into the MSC funds that then are locked in the MSC or need to be manually send back to the user (in case of a mistake). By making the MSC not a payable MSC it also means that any deposit or send transaction needs to explicitly call the deposit or send function of the MSC.
+* Pay functions - by default we recommend the MSC to not be set up as a payable SC and any deposit or send transaction of KLV or KDA towards the MSC will need to call the desired pay function (if a transaction is not a call to these 2 functions then it is rejected immediately and the value is sent back to original sender): Deposit and/or Send. By making the MSC not a payable MSC we reduce the risk of users sending into the MSC funds that then are locked in the MSC or need to be manually send back to the user (in case of a mistake). By making the MSC not a payable MSC it also means that any deposit or send transaction needs to explicitly call the deposit or send function of the MSC.
 
 Any external and internal action will follow these steps and process:
 
@@ -63,7 +63,7 @@ Any external and internal action will follow these steps and process:
 * **View action:** the board members need to see the action proposed before they approve it.
 * **Sign action:** board members are allowed to sign. We might add an expiration date until board members can sign (until block x…).
 * **Un-sign action:** board members are allowed to un-sign, i.e. to remove their signature from an action. Actions with 0 signatures are cleared from storage. This is to allow mistakes to be cleared.
-* **Perform action (by id/hash)** - can be activated by proposers or board members. It is successful only if enough signatures are present from the board members. Whoever calls “perform action” needs to provide any eGLD required by the target, as well as to pay for gas. If there is a move balance kind of action, who calls the action pays the gas and the amount to be moved is taken from MSC balance. But the gas is always taken from the balance of the one who creates the "perform action" transaction.
+* **Perform action (by id/hash)** - can be activated by proposers or board members. It is successful only if enough signatures are present from the board members. Whoever calls “perform action” needs to provide any KLV required by the target, as well as to pay for gas. If there is a move balance kind of action, who calls the action pays the gas and the amount to be moved is taken from MSC balance. But the gas is always taken from the balance of the one who creates the "perform action" transaction.
 
 Also, the following view functions will be available:
 * **Count pending Actions:** returns the number of existing Actions.
@@ -79,4 +79,4 @@ MSC is a deployable SC written in Rust and compiled in WASM.
 
 ## Conclusion
 
-Multisig accounts are a critical safety feature for all users of the MultiversX ecosystem. Decentralised applications will rely heavily upon multisig security.
+Multisig accounts are a critical safety feature for all users of the Klever Blockchain ecosystem. Decentralised applications will rely heavily upon multisig security.

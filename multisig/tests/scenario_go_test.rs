@@ -1,4 +1,4 @@
-use multiversx_sc_scenario::*;
+use klever_sc_scenario::*;
 
 fn world() -> ScenarioWorld {
     ScenarioWorld::vm_go()
@@ -9,26 +9,26 @@ fn change_token_config_go() {
 }
 
 #[test]
-fn create_multiversx_to_ethereum_tx_batch_go() {
-    world().run("scenarios/create_multiversx_to_ethereum_tx_batch.scen.json");
+fn create_klever_to_ethereum_tx_batch_go() {
+    world().run("scenarios/create_klever_to_ethereum_tx_batch.scen.json");
 }
 
 #[test]
 #[ignore] //Ignore for now
-fn ethereum_to_multiversx_tx_batch_ok_go() {
-    world().run("scenarios/ethereum_to_multiversx_tx_batch_ok.scen.json");
+fn ethereum_to_klever_tx_batch_ok_go() {
+    world().run("scenarios/ethereum_to_klever_tx_batch_ok.scen.json");
 }
 
 #[test]
 #[ignore] //Ignore for now
-fn ethereum_to_multiversx_tx_batch_rejected_go() {
-    world().run("scenarios/ethereum_to_multiversx_tx_batch_rejected.scen.json");
+fn ethereum_to_klever_tx_batch_rejected_go() {
+    world().run("scenarios/ethereum_to_klever_tx_batch_rejected.scen.json");
 }
 
 #[test]
 #[ignore] //Ignore for now
-fn execute_multiversx_to_ethereum_tx_batch_go() {
-    world().run("scenarios/execute_multiversx_to_ethereum_tx_batch.scen.json");
+fn execute_klever_to_ethereum_tx_batch_go() {
+    world().run("scenarios/execute_klever_to_ethereum_tx_batch.scen.json");
 }
 
 #[test]
@@ -37,8 +37,8 @@ fn get_empty_batch_go() {
 }
 
 #[test]
-fn reject_multiversx_to_ethereum_tx_batch_go() {
-    world().run("scenarios/reject_multiversx_to_ethereum_tx_batch.scen.json");
+fn reject_klever_to_ethereum_tx_batch_go() {
+    world().run("scenarios/reject_klever_to_ethereum_tx_batch.scen.json");
 }
 
 #[test]

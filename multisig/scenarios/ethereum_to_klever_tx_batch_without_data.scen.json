@@ -1,5 +1,5 @@
 {
-    "name": "create ethereum to MultiversX tx batch",
+    "name": "create ethereum to Klever Blockchain tx batch",
     "steps": [
         {
             "step": "externalSteps",
@@ -12,13 +12,13 @@
                 "from": "address:relayer1",
                 "to": "sc:multisig",
                 "value": "0",
-                "function": "proposeMultiTransferEsdtBatch",
+                "function": "proposeMultiTransferKdaBatch",
                 "arguments": [
                     "1",
                     {
                         "1-from": "0x0102030405060708091011121314151617181920",
                         "2-to": "address:user",
-                        "3-token_id": "nested:str:WEGLD-123456",
+                        "3-token_id": "nested:str:WKLV-123456",
                         "4-amount": "biguint:76,000,000,000",
                         "5-tx_nonce": "u64:1"
                     },
@@ -54,7 +54,7 @@
                     {
                         "1-from": "0x0102030405060708091011121314151617181920",
                         "2-to": "address:user",
-                        "3-token_id": "nested:str:WEGLD-123456",
+                        "3-token_id": "nested:str:WKLV-123456",
                         "4-amount": "biguint:76,000,000,000",
                         "5-tx_nonce": "u64:1"
                     },

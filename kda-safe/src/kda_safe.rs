@@ -73,15 +73,12 @@ pub trait KDASafe:
         &self,
         fee_estimator_contract_address: ManagedAddress,
         multi_transfer_contract_address: ManagedAddress,
-        bridge_proxy_contract_address: ManagedAddress,
         eth_tx_gas_limit: BigUint,
     ) {
         self.fee_estimator_contract_address()
             .set(&fee_estimator_contract_address);
         self.multi_transfer_contract_address()
             .set(&multi_transfer_contract_address);
-        self.bridge_proxy_contract_address()
-            .set(&bridge_proxy_contract_address);
 
         self.eth_tx_gas_limit().set(&eth_tx_gas_limit);
 
@@ -291,14 +288,10 @@ pub trait KDASafe:
 
         // This addr is used for the refund, if the transaction fails
         // This is passed by the BridgeTokenWrapper contract
-        let mut is_refund_tx = false;
         let caller = self.blockchain().get_caller();
         let refund_info = match opt_refund_info {
             OptionalValue::Some(refund_info) => {
-                if caller == self.bridge_proxy_contract_address().get() {
-                    is_refund_tx = true;
-                    refund_info
-                } else if caller == self.bridged_tokens_wrapper_address().get() {
+                if caller == self.bridged_tokens_wrapper_address().get() {
                     refund_info
                 } else {
                     sc_panic!("Cannot specify a refund address from this caller");
@@ -323,7 +316,7 @@ pub trait KDASafe:
             to: to.as_managed_buffer().clone(),
             token_identifier: payment_token.clone(),
             amount: actual_bridged_amount.clone(),
-            is_refund_tx,
+            is_refund_tx: false,
         };
 
         let batch_id = self.add_to_batch(tx.clone());
@@ -347,27 +340,17 @@ pub trait KDASafe:
                 *total += &actual_bridged_amount;
             });
         }
-        if !is_refund_tx {
-            self.create_transaction_event(
-                batch_id,
-                tx_nonce,
-                payment_token,
-                actual_bridged_amount,
-                required_fee,
-                refund_info.address.as_managed_buffer().clone(),
-                tx.to,
-            );
-        } else {
-            self.create_refund_transaction_event(
-                batch_id,
-                tx_nonce,
-                payment_token,
-                actual_bridged_amount,
-                required_fee,
-                refund_info.initial_batch_id,
-                refund_info.initial_nonce,
-            );
-        }
+       
+        self.create_transaction_event(
+            batch_id,
+            tx_nonce,
+            payment_token,
+            actual_bridged_amount,
+            required_fee,
+            refund_info.address.as_managed_buffer().clone(),
+            tx.to,
+        );
+       
     }
 
     /// Claim funds for failed MultiversX -> Ethereum transactions.
@@ -408,22 +391,6 @@ pub trait KDASafe:
                 self.bridged_tokens_wrapper_address().set(&sc_addr);
             }
             OptionalValue::None => self.bridged_tokens_wrapper_address().clear(),
-        }
-    }
-
-    #[only_owner]
-    #[endpoint(setBridgeProxyContractAddress)]
-    fn set_bridge_proxy_contract_address(&self, opt_new_address: OptionalValue<ManagedAddress>) {
-        match opt_new_address {
-            OptionalValue::Some(sc_addr) => {
-                require!(
-                    self.blockchain().is_smart_contract(&sc_addr),
-                    "Invalid bridge proxy contract address"
-                );
-
-                self.bridge_proxy_contract_address().set(&sc_addr);
-            }
-            OptionalValue::None => self.bridge_proxy_contract_address().clear(),
         }
     }
 
@@ -646,8 +613,4 @@ pub trait KDASafe:
     #[view(getBridgedTokensWrapperAddress)]
     #[storage_mapper("bridgedTokensWrapperAddress")]
     fn bridged_tokens_wrapper_address(&self) -> SingleValueMapper<ManagedAddress>;
-
-    #[view(getBridgeProxyContractAddress)]
-    #[storage_mapper("bridgeProxyContractAddress")]
-    fn bridge_proxy_contract_address(&self) -> SingleValueMapper<ManagedAddress>;
 }

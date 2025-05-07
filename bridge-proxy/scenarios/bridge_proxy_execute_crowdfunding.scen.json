@@ -15,9 +15,9 @@
             "id": "",
             "tx": {
                 "from": "address:owner",
-                "contractCode": "mxsc:output/bridge-proxy.mxsc.json",
+                "contractCode": "kleversc:../output/bridge-proxy.kleversc.json",
                 "arguments": [
-                    "0x000000000000000005006d756c74692d7472616e736665725f5f5f5f5f5f5f5f"
+                    "0x000000000000000000006d756c74692d7472616e736665725f5f5f5f5f5f5f5f"
                 ],
                 "gasLimit": "5,000,000"
             },
@@ -41,11 +41,11 @@
             "id": "",
             "tx": {
                 "from": "address:owner",
-                "contractCode": "mxsc:tests/test-contract/crowdfunding-esdt.mxsc.json",
+                "contractCode": "kleversc:../tests/test-contract/crowdfunding-kda.kleversc.json",
                 "arguments": [
                     "0x07d0",
                     "0x093a80",
-                    "0x4252494447452d313233343536"
+                    "0x4252494447452d31323334"
                 ],
                 "gasLimit": "5,000,000"
             },
@@ -92,7 +92,7 @@
                 "to": "sc:bridge-proxy",
                 "function": "setBridgedTokensWrapperAddress",
                 "arguments": [
-                    "0x00000000000000000500627269646765642d746f6b656e732d77726170706572"
+                    "0x00000000000000000000627269646765642d746f6b656e732d77726170706572"
                 ],
                 "gasLimit": "5,000,000"
             },
@@ -109,9 +109,9 @@
                 "to": "sc:bridged-tokens-wrapper",
                 "function": "whitelistToken",
                 "arguments": [
-                    "0x4252494447452d313233343536",
+                    "0x4252494447452d31323334",
                     "0x12",
-                    "0x574252494447452d313233343536"
+                    "0x574252494447452d31323334"
                 ],
                 "gasLimit": "5,000,000"
             },
@@ -128,7 +128,7 @@
                 "to": "sc:bridged-tokens-wrapper",
                 "function": "addWrappedToken",
                 "arguments": [
-                    "0x574252494447452d313233343536",
+                    "0x574252494447452d31323334",
                     "0x12"
                 ],
                 "gasLimit": "5,000,000"
@@ -144,9 +144,9 @@
             "tx": {
                 "from": "address:owner",
                 "to": "sc:bridged-tokens-wrapper",
-                "esdtValue": [
+                "kdaValue": [
                     {
-                        "tokenIdentifier": "0x4252494447452d313233343536",
+                        "tokenIdentifier": "0x4252494447452d31323334",
                         "value": "5000"
                     }
                 ],
@@ -165,15 +165,15 @@
             "tx": {
                 "from": "sc:multi-transfer",
                 "to": "sc:bridge-proxy",
-                "esdtValue": [
+                "kdaValue": [
                     {
-                        "tokenIdentifier": "0x4252494447452d313233343536",
+                        "tokenIdentifier": "0x4252494447452d31323334",
                         "value": "500"
                     }
                 ],
                 "function": "deposit",
                 "arguments": [
-                    "0x30313032303330343035303630373038303931300000000000000000050063726f7766756e64696e675f5f5f5f5f5f5f5f5f5f5f0000000d4252494447452d3132333435360000000201f4000000000000000101000000150000000466756e6400000000009896800100000000",
+                    "0x30313032303330343035303630373038303931300000000000000000000063726f7766756e64696e675f5f5f5f5f5f5f5f5f5f5f0000000b4252494447452d313233340000000201f4000000000000000101000000150000000466756e6400000000009896800100000000",
                     "0x01"
                 ],
                 "gasLimit": "5,000,000"
@@ -195,7 +195,7 @@
             },
             "expect": {
                 "out": [
-                    "0x30313032303330343035303630373038303931300000000000000000050063726f7766756e64696e675f5f5f5f5f5f5f5f5f5f5f0000000d4252494447452d3132333435360000000201f4000000000000000101000000150000000466756e6400000000009896800100000000"
+                    "0x30313032303330343035303630373038303931300000000000000000000063726f7766756e64696e675f5f5f5f5f5f5f5f5f5f5f0000000b4252494447452d313233340000000201f4000000000000000101000000150000000466756e6400000000009896800100000000"
                 ],
                 "status": "0"
             }

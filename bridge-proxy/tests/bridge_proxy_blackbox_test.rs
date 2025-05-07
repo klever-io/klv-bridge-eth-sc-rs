@@ -6,15 +6,15 @@ use std::ops::Add;
 use bridge_proxy::{bridge_proxy_contract_proxy, config::ProxyTrait as _};
 use bridge_proxy::{bridged_tokens_wrapper_proxy, ProxyTrait};
 
-use crowdfunding_esdt::crowdfunding_esdt_proxy;
-use multiversx_sc::codec::NestedEncode;
-use multiversx_sc::contract_base::ManagedSerializer;
-use multiversx_sc::sc_print;
-use multiversx_sc::types::{
-    EgldOrEsdtTokenIdentifier, EsdtTokenPayment, ManagedOption, ReturnsNewAddress, TestAddress,
+use crowdfunding_kda::crowdfunding_kda_proxy;
+use klever_sc::codec::NestedEncode;
+use klever_sc::contract_base::ManagedSerializer;
+use klever_sc::sc_print;
+use klever_sc::types::{
+    KdaTokenPayment, ManagedOption, ReturnsNewAddress, TestAddress,
     TestSCAddress, TestTokenIdentifier,
 };
-use multiversx_sc::{
+use klever_sc::{
     api::{HandleConstraints, ManagedTypeApi},
     codec::{
         multi_types::{MultiValueVec, OptionalValue},
@@ -26,21 +26,21 @@ use multiversx_sc::{
         ManagedByteArray, ManagedVec, TokenIdentifier,
     },
 };
-use multiversx_sc_scenario::imports::MxscPath;
-use multiversx_sc_scenario::{
+use klever_sc_scenario::imports::KleverscPath;
+use klever_sc_scenario::{
     api::StaticApi,
     rust_biguint,
     scenario_format::interpret_trait::{InterpretableFrom, InterpreterContext},
     scenario_model::*,
     ContractInfo, ScenarioWorld,
 };
-use multiversx_sc_scenario::{ExpectValue, ScenarioTxRun};
+use klever_sc_scenario::{managed_address, ExpectValue, ScenarioTxRun};
 
 use eth_address::*;
 use transaction::{CallData, EthTransaction};
 
-const BRIDGE_TOKEN_ID: TestTokenIdentifier = TestTokenIdentifier::new("BRIDGE-123456");
-const WBRIDGE_TOKEN_ID: TestTokenIdentifier = TestTokenIdentifier::new("WBRIDGE-123456");
+const BRIDGE_TOKEN_ID: &[u8] = b"BRIDGE-1234";
+const WBRIDGE_TOKEN_ID: &[u8] = b"WBRIDGE-1234";
 
 const GAS_LIMIT: u64 = 10_000_000;
 const CF_DEADLINE: u64 = 7 * 24 * 60 * 60; // 1 week in seconds
@@ -49,34 +49,34 @@ const OWNER_ADDRESS: TestAddress = TestAddress::new("owner");
 const BRIDGE_PROXY_ADDRESS: TestSCAddress = TestSCAddress::new("bridge-proxy");
 const CROWDFUNDING_ADDRESS: TestSCAddress = TestSCAddress::new("crowfunding");
 const MULTI_TRANSFER_ADDRESS: TestSCAddress = TestSCAddress::new("multi-transfer");
-const ESDT_SAFE_ADDRESS: TestSCAddress = TestSCAddress::new("esdt-safe");
+const KDA_SAFE_ADDRESS: TestSCAddress = TestSCAddress::new("kda-safe");
 const BRIDGED_TOKENS_WRAPPER_ADDRESS: TestSCAddress = TestSCAddress::new("bridged-tokens-wrapper");
 
-const BRIDGE_PROXY_PATH_EXPR: MxscPath = MxscPath::new("output/bridge-proxy.mxsc.json");
-const CROWDFUNDING_PATH_EXPR: MxscPath =
-    MxscPath::new("tests/test-contract/crowdfunding-esdt.mxsc.json");
+const BRIDGE_PROXY_PATH_EXPR: KleverscPath = KleverscPath::new("output/bridge-proxy.kleversc.json");
+const CROWDFUNDING_PATH_EXPR: KleverscPath =
+    KleverscPath::new("tests/test-contract/crowdfunding-kda.kleversc.json");
 const MULTI_TRANSFER_PATH_EXPR: &str =
-    "mxsc:../multi-transfer-esdt/output/multi-transfer-esdt.mxsc.json";
-const ESDT_SAFE_PATH_EXPR: &str = "mxsc:../esdt-safe/output/esdt-safe.mxsc.json";
-const BRIDGED_TOKENS_WRAPPER_CODE_PATH_EXPR: MxscPath =
-    MxscPath::new("../bridged-tokens-wrapper/output/bridged-tokens-wrapper.mxsc.json");
+    "kleversc:../multi-transfer-kda/output/multi-transfer-kda.kleversc.json";
+const KDA_SAFE_PATH_EXPR: &str = "kleversc:../kda-safe/output/kda-safe.kleversc.json";
+const BRIDGED_TOKENS_WRAPPER_CODE_PATH_EXPR: KleverscPath =
+    KleverscPath::new("../bridged-tokens-wrapper/output/bridged-tokens-wrapper.kleversc.json");
 
 fn world() -> ScenarioWorld {
     let mut blockchain = ScenarioWorld::new();
 
     blockchain.register_contract(BRIDGE_PROXY_PATH_EXPR, bridge_proxy::ContractBuilder);
-    blockchain.register_contract(CROWDFUNDING_PATH_EXPR, crowdfunding_esdt::ContractBuilder);
+    blockchain.register_contract(CROWDFUNDING_PATH_EXPR, crowdfunding_kda::ContractBuilder);
     blockchain.register_contract(
         BRIDGED_TOKENS_WRAPPER_CODE_PATH_EXPR,
         bridged_tokens_wrapper::ContractBuilder,
     );
-    blockchain.register_contract(ESDT_SAFE_PATH_EXPR, esdt_safe::ContractBuilder);
+    blockchain.register_contract(KDA_SAFE_PATH_EXPR, kda_safe::ContractBuilder);
 
     blockchain
 }
 
 type BridgeProxyContract = ContractInfo<bridge_proxy::Proxy<StaticApi>>;
-type CrowdfundingContract = ContractInfo<crowdfunding_esdt::Proxy<StaticApi>>;
+type CrowdfundingContract = ContractInfo<crowdfunding_kda::Proxy<StaticApi>>;
 type BridgedTokensWrapperContract = ContractInfo<bridged_tokens_wrapper::Proxy<StaticApi>>;
 
 struct BridgeProxyTestState {
@@ -87,31 +87,47 @@ impl BridgeProxyTestState {
     fn new() -> Self {
         let mut world = world();
         let multi_transfer_code = world.code_expression(MULTI_TRANSFER_PATH_EXPR);
-        let esdt_safe_code = world.code_expression(ESDT_SAFE_PATH_EXPR);
+        let kda_safe_code = world.code_expression(KDA_SAFE_PATH_EXPR);
 
         world
             .account(OWNER_ADDRESS)
             .nonce(1)
-            .esdt_balance(TokenIdentifier::from(BRIDGE_TOKEN_ID), 10_000u64)
+            .kda_balance(TokenIdentifier::from(BRIDGE_TOKEN_ID), 10_000u64)
             .account(MULTI_TRANSFER_ADDRESS)
-            .esdt_balance(TokenIdentifier::from(WBRIDGE_TOKEN_ID), 10_000u64)
-            .esdt_balance(TokenIdentifier::from(BRIDGE_TOKEN_ID), 10_000u64)
+            .kda_balance(TokenIdentifier::from(WBRIDGE_TOKEN_ID), 10_000u64)
+            .kda_balance(TokenIdentifier::from(BRIDGE_TOKEN_ID), 10_000u64)
             .code(multi_transfer_code)
-            .account(ESDT_SAFE_ADDRESS)
-            .code(esdt_safe_code);
+            .account(KDA_SAFE_ADDRESS)
+            .code(kda_safe_code);
 
         let roles = vec![
-            "ESDTRoleLocalMint".to_string(),
-            "ESDTRoleLocalBurn".to_string(),
+            "KDARoleMint".to_string(),
         ];
+
         world
             .account(BRIDGED_TOKENS_WRAPPER_ADDRESS)
-            .esdt_roles(WBRIDGE_TOKEN_ID, roles.clone())
-            .esdt_roles(BRIDGE_TOKEN_ID, roles)
-            .esdt_balance(TokenIdentifier::from(WBRIDGE_TOKEN_ID), 10_000u64)
-            .esdt_balance(TokenIdentifier::from(BRIDGE_TOKEN_ID), 10_000u64)
+            .kda_roles(TokenIdentifier::from(WBRIDGE_TOKEN_ID), roles.clone())
+            .kda_roles(TokenIdentifier::from(BRIDGE_TOKEN_ID), roles)
+            .kda_balance(TokenIdentifier::from(WBRIDGE_TOKEN_ID), 10_000u64)
+            .kda_balance(TokenIdentifier::from(BRIDGE_TOKEN_ID), 10_000u64)
             .code(BRIDGED_TOKENS_WRAPPER_CODE_PATH_EXPR)
             .owner(OWNER_ADDRESS);
+
+        let contract_address = &AddressValue::from(BRIDGED_TOKENS_WRAPPER_ADDRESS).to_address();
+
+        world.set_kda_can_burn(
+            managed_address!(contract_address),
+            WBRIDGE_TOKEN_ID,
+            0,
+            true,
+        );
+
+        world.set_kda_can_burn(
+            managed_address!(contract_address),
+            BRIDGE_TOKEN_ID,
+            0,
+            true,
+        );
 
         Self { world }
     }
@@ -121,7 +137,7 @@ impl BridgeProxyTestState {
             .tx()
             .from(OWNER_ADDRESS)
             .typed(bridge_proxy_contract_proxy::BridgeProxyContractProxy)
-            .init(OptionalValue::Some(MULTI_TRANSFER_ADDRESS))
+            .init(OptionalValue::Some(MULTI_TRANSFER_ADDRESS.eval_to_array()))
             .code(BRIDGE_PROXY_PATH_EXPR)
             .new_address(BRIDGE_PROXY_ADDRESS)
             .run();
@@ -146,11 +162,11 @@ impl BridgeProxyTestState {
         self.world
             .tx()
             .from(OWNER_ADDRESS)
-            .typed(crowdfunding_esdt_proxy::CrowdfundingProxy)
+            .typed(crowdfunding_kda_proxy::CrowdfundingProxy)
             .init(
                 2_000u32,
                 CF_DEADLINE,
-                EgldOrEsdtTokenIdentifier::esdt(BRIDGE_TOKEN_ID),
+                TokenIdentifier::klv(),
             )
             .code(CROWDFUNDING_PATH_EXPR)
             .new_address(CROWDFUNDING_ADDRESS)
@@ -181,7 +197,7 @@ impl BridgeProxyTestState {
             .to(BRIDGE_PROXY_ADDRESS)
             .typed(bridge_proxy_contract_proxy::BridgeProxyContractProxy)
             .set_bridged_tokens_wrapper_contract_address(OptionalValue::Some(
-                BRIDGED_TOKENS_WRAPPER_ADDRESS,
+                BRIDGED_TOKENS_WRAPPER_ADDRESS.eval_to_array(),
             ))
             .run();
 
@@ -207,7 +223,7 @@ impl BridgeProxyTestState {
             .to(BRIDGED_TOKENS_WRAPPER_ADDRESS)
             .typed(bridged_tokens_wrapper_proxy::BridgedTokensWrapperProxy)
             .deposit_liquidity()
-            .single_esdt(
+            .single_kda(
                 &TokenIdentifier::from(BRIDGE_TOKEN_ID),
                 0u64,
                 &BigUint::from(5_000u64),
@@ -265,8 +281,8 @@ fn bridge_proxy_execute_crowdfunding_test() {
         .to(BRIDGE_PROXY_ADDRESS)
         .typed(bridge_proxy_contract_proxy::BridgeProxyContractProxy)
         .deposit(&eth_tx, 1u64)
-        .egld_or_single_esdt(
-            &EgldOrEsdtTokenIdentifier::esdt(BRIDGE_TOKEN_ID),
+        .klv_or_single_kda(
+            &TokenIdentifier::from(BRIDGE_TOKEN_ID),
             0,
             &BigUint::from(500u64),
         )
@@ -292,7 +308,7 @@ fn bridge_proxy_execute_crowdfunding_test() {
     test.world
         .query()
         .to(CROWDFUNDING_ADDRESS)
-        .typed(crowdfunding_esdt_proxy::CrowdfundingProxy)
+        .typed(crowdfunding_kda_proxy::CrowdfundingProxy)
         .get_current_funds()
         .returns(ExpectValue(500u64))
         .run();
@@ -346,7 +362,7 @@ fn multiple_deposit_test() {
         .to(BRIDGE_PROXY_ADDRESS)
         .typed(bridge_proxy_contract_proxy::BridgeProxyContractProxy)
         .deposit(&eth_tx1, 1u64)
-        .single_esdt(
+        .single_kda(
             &TokenIdentifier::from(BRIDGE_TOKEN_ID),
             0u64,
             &BigUint::from(500u64),
@@ -359,7 +375,7 @@ fn multiple_deposit_test() {
         .to(BRIDGE_PROXY_ADDRESS)
         .typed(bridge_proxy_contract_proxy::BridgeProxyContractProxy)
         .deposit(&eth_tx2, 1u64)
-        .single_esdt(
+        .single_kda(
             &TokenIdentifier::from(BRIDGE_TOKEN_ID),
             0u64,
             &BigUint::from(500u64),
@@ -386,7 +402,7 @@ fn multiple_deposit_test() {
     test.world
         .query()
         .to(CROWDFUNDING_ADDRESS)
-        .typed(crowdfunding_esdt_proxy::CrowdfundingProxy)
+        .typed(crowdfunding_kda_proxy::CrowdfundingProxy)
         .get_current_funds()
         .returns(ExpectValue(500u64))
         .run();
@@ -403,7 +419,7 @@ fn multiple_deposit_test() {
     test.world
         .query()
         .to(CROWDFUNDING_ADDRESS)
-        .typed(crowdfunding_esdt_proxy::CrowdfundingProxy)
+        .typed(crowdfunding_kda_proxy::CrowdfundingProxy)
         .get_current_funds()
         .returns(ExpectValue(BigUint::from(1_000u32)))
         .run();
@@ -411,7 +427,7 @@ fn multiple_deposit_test() {
     test.world
         .query()
         .to(CROWDFUNDING_ADDRESS)
-        .typed(crowdfunding_esdt_proxy::CrowdfundingProxy)
+        .typed(crowdfunding_kda_proxy::CrowdfundingProxy)
         .get_current_funds()
         .returns(ExpectValue(1_000u64))
         .run();
@@ -466,7 +482,7 @@ fn test_highest_tx_id() {
             .to(BRIDGE_PROXY_ADDRESS)
             .typed(bridge_proxy_contract_proxy::BridgeProxyContractProxy)
             .deposit(tx, 1u64)
-            .single_esdt(
+            .single_kda(
                 &TokenIdentifier::from(BRIDGE_TOKEN_ID),
                 0u64,
                 &BigUint::from(5u64),

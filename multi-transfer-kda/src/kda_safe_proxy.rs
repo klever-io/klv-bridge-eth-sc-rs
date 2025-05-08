@@ -80,21 +80,18 @@ where
     pub fn upgrade<
         Arg0: ProxyArg<ManagedAddress<Env::Api>>,
         Arg1: ProxyArg<ManagedAddress<Env::Api>>,
-        Arg2: ProxyArg<ManagedAddress<Env::Api>>,
-        Arg3: ProxyArg<BigUint<Env::Api>>,
+        Arg2: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         fee_estimator_contract_address: Arg0,
         multi_transfer_contract_address: Arg1,
-        bridge_proxy_contract_address: Arg2,
-        eth_tx_gas_limit: Arg3,
+        eth_tx_gas_limit: Arg2,
     ) -> TxTypedUpgrade<Env, From, To, NotPayable, Gas, ()> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_upgrade()
             .argument(&fee_estimator_contract_address)
             .argument(&multi_transfer_contract_address)
-            .argument(&bridge_proxy_contract_address)
             .argument(&eth_tx_gas_limit)
             .original_result()
     }
@@ -194,19 +191,6 @@ where
             .payment(NotPayable)
             .raw_call("setBridgedTokensWrapperAddress")
             .argument(&opt_address)
-            .original_result()
-    }
-
-    pub fn set_bridge_proxy_contract_address<
-        Arg0: ProxyArg<OptionalValue<ManagedAddress<Env::Api>>>,
-    >(
-        self,
-        opt_new_address: Arg0,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
-        self.wrapped_tx
-            .payment(NotPayable)
-            .raw_call("setBridgeProxyContractAddress")
-            .argument(&opt_new_address)
             .original_result()
     }
 
@@ -314,15 +298,6 @@ where
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getBridgedTokensWrapperAddress")
-            .original_result()
-    }
-
-    pub fn bridge_proxy_contract_address(
-        self,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ManagedAddress<Env::Api>> {
-        self.wrapped_tx
-            .payment(NotPayable)
-            .raw_call("getBridgeProxyContractAddress")
             .original_result()
     }
 

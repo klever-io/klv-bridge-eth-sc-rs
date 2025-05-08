@@ -199,7 +199,6 @@ impl MultiTransferTestState {
             .upgrade(
                 ManagedAddress::zero(),
                 MULTI_TRANSFER_ADDRESS.to_address(),
-                ManagedAddress::zero(),
                 KDA_SAFE_ETH_TX_GAS_LIMIT,
             )
             .code(KDA_SAFE_CODE_PATH)

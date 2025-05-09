@@ -151,7 +151,6 @@
                 "arguments": [
                     "sc:kda_safe",
                     "sc:multi_transfer",
-                    "sc:bridge_proxy",
                     "1000",
                     "500",
                     "2",
@@ -177,7 +176,6 @@
                     "storage": {
                         "str:kdaSafeAddress": "sc:kda_safe",
                         "str:multiTransferKdaAddress": "sc:multi_transfer",
-                        "str:proxyAddress": "sc:bridge_proxy",
                         "str:num_board_members": "2",
                         "str:quorum": "2",
                         "str:requiredStakeAmount": "1000",

@@ -141,8 +141,6 @@ pub trait SetupModule:
             .typed(kda_safe_proxy::KDASafeProxy)
             .pause_endpoint()
             .sync_call();
-
-        self.pause_bridge_proxy_event();
     }
 
     #[only_owner]
@@ -155,7 +153,6 @@ pub trait SetupModule:
             .typed(kda_safe_proxy::KDASafeProxy)
             .unpause_endpoint()
             .sync_call();
-        self.unpause_bridge_proxy_event();
     }
 
     #[only_owner]

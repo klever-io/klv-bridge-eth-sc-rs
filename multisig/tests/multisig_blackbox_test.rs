@@ -152,7 +152,6 @@ impl MultiTransferTestState {
             .init(
                 KDA_SAFE_ADDRESS.to_address(),
                 MULTI_TRANSFER_ADDRESS.to_address(),
-                ManagedAddress::zero(),
                 1_000u64,
                 500u64,
                 2usize,

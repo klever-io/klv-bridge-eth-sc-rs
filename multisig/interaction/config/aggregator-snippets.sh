@@ -44,17 +44,17 @@ submitAggregatorBatch() {
 
     CURRENT_TIME=$(date +%s)
     operator sc invoke ${AGGREGATOR} submitBatch --key-file=${ORACLE_WALLET0} \
-    --args String:GWEI String:${CHAIN_SPECIFIC_TOKEN_TICKER} u64:${CURRENT_TIME} n:${FEE} u8:0 \
+    --args String:GWEI --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args u64:${CURRENT_TIME} --args n:${FEE} --args u8:0 \
     --await --sign --node ${PROXY}
 
     CURRENT_TIME=$(date +%s)
     operator sc invoke ${AGGREGATOR} submitBatch --key-file=${ORACLE_WALLET1} \
-    --args String:GWEI String:${CHAIN_SPECIFIC_TOKEN_TICKER} u64:${CURRENT_TIME} n:${FEE} u8:0 \
+    --args String:GWEI --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args u64:${CURRENT_TIME} --args n:${FEE} --args u8:0 \
     --await --sign --node ${PROXY}
 
     CURRENT_TIME=$(date +%s)
     operator sc invoke ${AGGREGATOR} submitBatch --key-file=${ORACLE_WALLET2} \
-    --args String:GWEI String:${CHAIN_SPECIFIC_TOKEN_TICKER} u64:${CURRENT_TIME} n:${FEE} u8:0 \
+    --args String:GWEI --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args u64:${CURRENT_TIME} --args n:${FEE} --args u8:0 \
     --await --sign --node ${PROXY}
 }
 
@@ -62,7 +62,7 @@ setPairDecimals() {
     CHECK_VARIABLES AGGREGATOR
 
     operator sc invoke ${AGGREGATOR} setPairDecimals --key-file=${ALICE} \
-    --args String:GWEI String:${CHAIN_SPECIFIC_TOKEN_TICKER} u8:0 \
+    --args String:GWEI --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args u8:0 \
     --await --sign --node ${PROXY}
 }
 
@@ -86,4 +86,7 @@ aggregator-upgrade() {
     operator sc upgrade ${AGGREGATOR} --key-file=${ALICE} \
     --wasm ${AGGREGATOR_WASM} \
     --await --sign --node ${PROXY}
+    
+    echo ""
+    echo "Price aggregator upgraded successfully at address: ${AGGREGATOR}"
 }

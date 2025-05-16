@@ -6,9 +6,9 @@ deployMultisig() {
     MIN_STAKE=$(echo "$RELAYER_REQUIRED_STAKE*10^18" | bc)
     
     SC_RESULT=$(eval operator sc create --key-file=${ALICE} --wasm ${MULTISIG_WASM} \
-    --args A:${SAFE} A:${MULTI_TRANSFER} \
-    n:${MIN_STAKE} n:${SLASH_AMOUNT} n:${QUORUM} \
-    A:${RELAYER_ADDR_0} A:${RELAYER_ADDR_1} A:${RELAYER_ADDR_2} A:${RELAYER_ADDR_3} \
+    --args A:${SAFE} --args A:${MULTI_TRANSFER} \
+    --args n:${MIN_STAKE} --args n:${SLASH_AMOUNT} --args n:${QUORUM} \
+    --args A:${RELAYER_ADDR_0} --args A:${RELAYER_ADDR_1} --args A:${RELAYER_ADDR_2} --args A:${RELAYER_ADDR_3} \
     --await --result-only --sign --node ${PROXY})
 
     check_result ${SC_RESULT}
@@ -41,7 +41,7 @@ clearMapping() {
     CHECK_VARIABLES ERC20_TOKEN CHAIN_SPECIFIC_TOKEN MULTISIG
 
     operator sc invoke ${MULTISIG} clearMapping --key-file=${ALICE} \
-    --args A:${ERC20_TOKEN} String:${CHAIN_SPECIFIC_TOKEN} \
+    --args A:${ERC20_TOKEN} --args String:${CHAIN_SPECIFIC_TOKEN} \
     --await --sign --node ${PROXY}
 }
 
@@ -49,7 +49,7 @@ addMapping() {
     CHECK_VARIABLES ERC20_TOKEN CHAIN_SPECIFIC_TOKEN MULTISIG
 
     operator sc invoke ${MULTISIG} addMapping --key-file=${ALICE} \
-    --args A:${ERC20_TOKEN} String:${CHAIN_SPECIFIC_TOKEN} \
+    --args A:${ERC20_TOKEN} --args String:${CHAIN_SPECIFIC_TOKEN} \
     --await --sign --node ${PROXY}
 }
 
@@ -61,8 +61,8 @@ addTokenToWhitelist() {
     BURN=$(echo "$BURN_BALANCE*10^$NR_DECIMALS_CHAIN_SPECIFIC" | bc)
 
     operator sc invoke ${MULTISIG} kdaSafeAddTokenToWhitelist --key-file=${ALICE} \
-    --args String:${CHAIN_SPECIFIC_TOKEN} String:${CHAIN_SPECIFIC_TOKEN_TICKER} A:${MINTBURN_WHITELIST} n:${NATIVE_TOKEN} \
-    n:${BALANCE} n:${MINT} n:${BURN} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args A:${MINTBURN_WHITELIST} --args n:${NATIVE_TOKEN} \
+    --args n:${BALANCE} --args n:${MINT} --args n:${BURN} \
     --await --sign --node ${PROXY}
 }
 
@@ -160,7 +160,7 @@ kdaSafeSetMaxBridgedAmountForToken() {
     MAX=$(echo "scale=0; $MAX_AMOUNT*10^$NR_DECIMALS_CHAIN_SPECIFIC/1" | bc)
     
     operator sc invoke ${MULTISIG} kdaSafeSetMaxBridgedAmountForToken --key-file=${ALICE} \
-    --args String:${CHAIN_SPECIFIC_TOKEN} n:${MAX} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} --args n:${MAX} \
     --await --sign --node ${PROXY}
 }
 
@@ -170,7 +170,7 @@ multiTransferKdaSetMaxBridgedAmountForToken() {
     MAX=$(echo "scale=0; $MAX_AMOUNT*10^$NR_DECIMALS_CHAIN_SPECIFIC/1" | bc)
     
     operator sc invoke ${MULTISIG} multiTransferKdaSetMaxBridgedAmountForToken --key-file=${ALICE} \
-    --args String:${CHAIN_SPECIFIC_TOKEN} n:${MAX} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} --args n:${MAX} \
     --await --sign --node ${PROXY}
 }
 
@@ -178,7 +178,7 @@ multiTransferKdaSetMaxBridgedAmountForTokenWithRAWValue() {
     CHECK_VARIABLES ETH_MAX_AMOUNT CHAIN_SPECIFIC_TOKEN MULTISIG
 
     operator sc invoke ${MULTISIG} multiTransferKdaSetMaxBridgedAmountForToken --key-file=${ALICE} \
-    --args String:${CHAIN_SPECIFIC_TOKEN} n:${ETH_MAX_AMOUNT} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} --args n:${ETH_MAX_AMOUNT} \
     --await --sign --node ${PROXY}
 }
 
@@ -213,7 +213,7 @@ initSupplyMintBurn() {
   BURN=$(echo ${BURN%.*}) # trim decimals, if existing
 
   operator sc invoke ${MULTISIG} initSupplyMintBurnKdaSafe --key-file=${ALICE} \
-  --args String:${CHAIN_SPECIFIC_TOKEN} n:${MINT} n:${BURN} \
+  --args String:${CHAIN_SPECIFIC_TOKEN} --args n:${MINT} --args n:${BURN} \
   --await --sign --node ${PROXY}
 }
 
@@ -238,7 +238,7 @@ syncValueWithEthereumDenom() {
   echo "Existing diff ${DIFF}, new diff will be ${NEW_DIFF}"
 
   operator sc invoke ${MULTISIG} initSupplyMintBurnKdaSafe --key-file=${ALICE} \
-    --args String:${TOKEN} n:${NEW_MINT} n:${EXISTING_BURN} \
+    --args String:${TOKEN} --args n:${NEW_MINT} --args n:${EXISTING_BURN} \
     --await --sign --node ${PROXY}
 }
 
@@ -254,7 +254,7 @@ upgradeMultisig() {
 
     CONTRACT_ADDRESS=$(jq '.logs.events[] | select(.identifier=="SCDeploy") | .address' <<< "${SC_RESULT}")
     CONTRACT_ADDRESS=$(echo ${CONTRACT_ADDRESS} | tr -d '"')
-
+    
     echo ""
     echo "Multisig contract upgraded successfully at address: ${CONTRACT_ADDRESS}"
 }

@@ -17,17 +17,21 @@ deploySafe() {
 
 setLocalRolesKdaSafe() {
     CHECK_VARIABLES CHAIN_SPECIFIC_TOKEN SAFE
-    ADD_ROLE_TRIGGER=6
+    
+    # Trigger 6: AddRole - Add a permission role to the asset
+    local TRIGGER_ADD_ROLE=6
 
-    operator kda trigger ${ADD_ROLE_TRIGGER} --kdaID=${CHAIN_SPECIFIC_TOKEN} --addRolesMint=${SAFE} --key-file=${ALICE} \
+    operator kda trigger ${TRIGGER_ADD_ROLE} --kdaID=${CHAIN_SPECIFIC_TOKEN} --addRolesMint=${SAFE} --key-file=${ALICE} \
     --await --sign --node ${PROXY}
 }
 
 unsetLocalRolesKdaSafe() {
     CHECK_VARIABLES CHAIN_SPECIFIC_TOKEN SAFE
-    REMOVE_ROLE_TRIGGER=7
+    
+    # Trigger 7: RemoveRole - Remove a permission role of the asset
+    local TRIGGER_REMOVE_ROLE=7
 
-    operator kda trigger ${REMOVE_ROLE_TRIGGER} --kdaID=${CHAIN_SPECIFIC_TOKEN} --key-file=${ALICE} \
+    operator kda trigger ${TRIGGER_REMOVE_ROLE} --kdaID=${CHAIN_SPECIFIC_TOKEN} --key-file=${ALICE} \
     --await --sign --node ${PROXY}
 }
 

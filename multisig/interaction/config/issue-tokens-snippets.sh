@@ -1,27 +1,26 @@
-ESDT_ISSUE_COST=50000000000000000
-
 issueUniversalToken() {
-    CHECK_VARIABLES ESDT_SYSTEM_SC_ADDRESS ESDT_ISSUE_COST UNIVERSAL_TOKEN_DISPLAY_NAME \
-    UNIVERSAL_TOKEN_TICKER NR_DECIMALS_UNIVERSAL
+    CHECK_VARIABLES UNIVERSAL_TOKEN_DISPLAY_NAME UNIVERSAL_TOKEN_TICKER NR_DECIMALS_UNIVERSAL
 
-    mxpy contract call ${ESDT_SYSTEM_SC_ADDRESS} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --value=${ESDT_ISSUE_COST} --function="issue" \
-    --arguments str:${UNIVERSAL_TOKEN_DISPLAY_NAME} str:${UNIVERSAL_TOKEN_TICKER} \
-    0 ${NR_DECIMALS_UNIVERSAL} str:canAddSpecialRoles str:true \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    # KDA Asset Type 0: Fungible token
+    local KDA_TYPE_FUNGIBLE=0
+
+    operator kda create ${KDA_TYPE_FUNGIBLE} --canMint=true --canBurn=true --canAddRoles=true --initialSupply=0 \
+    --name=${UNIVERSAL_TOKEN_DISPLAY_NAME} --ticker=${UNIVERSAL_TOKEN_TICKER} --precision=${NR_DECIMALS_UNIVERSAL} \
+    --key-file=${ALICE} --await --sign --node ${PROXY}
 }
 
 issueChainSpecificToken() {
-    CHECK_VARIABLES ESDT_SYSTEM_SC_ADDRESS ESDT_ISSUE_COST CHAIN_SPECIFIC_TOKEN_DISPLAY_NAME \
-    CHAIN_SPECIFIC_TOKEN_TICKER NR_DECIMALS_CHAIN_SPECIFIC UNIVERSAL_TOKENS_ALREADY_MINTED
+    CHECK_VARIABLES CHAIN_SPECIFIC_TOKEN_DISPLAY_NAME CHAIN_SPECIFIC_TOKEN_TICKER \
+    NR_DECIMALS_CHAIN_SPECIFIC UNIVERSAL_TOKENS_ALREADY_MINTED
     
     VALUE_TO_MINT=$(echo "scale=0; $UNIVERSAL_TOKENS_ALREADY_MINTED*10^$NR_DECIMALS_CHAIN_SPECIFIC/1" | bc)
 
-    mxpy contract call ${ESDT_SYSTEM_SC_ADDRESS} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --value=${ESDT_ISSUE_COST} --function="issue" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN_DISPLAY_NAME} str:${CHAIN_SPECIFIC_TOKEN_TICKER} \
-    ${VALUE_TO_MINT} ${NR_DECIMALS_CHAIN_SPECIFIC} str:canAddSpecialRoles str:true \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    # KDA Asset Type 0: Fungible token
+    local KDA_TYPE_FUNGIBLE=0
+
+    operator kda create ${KDA_TYPE_FUNGIBLE} --canMint=true --canBurn=true --canAddRoles=true --initialSupply=${VALUE_TO_MINT} \
+    --name=${CHAIN_SPECIFIC_TOKEN_DISPLAY_NAME} --ticker=${CHAIN_SPECIFIC_TOKEN_TICKER} --precision=${NR_DECIMALS_CHAIN_SPECIFIC} \
+    --key-file=${ALICE} --await --sign --node ${PROXY}
 }
 
 transferToSC() {
@@ -29,32 +28,38 @@ transferToSC() {
 
     VALUE_TO_MINT=$(echo "scale=0; $UNIVERSAL_TOKENS_ALREADY_MINTED*10^$NR_DECIMALS_CHAIN_SPECIFIC/1" | bc)
 
-    mxpy contract call ${BRIDGED_TOKENS_WRAPPER} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=5000000 --function="ESDTTransfer" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} ${VALUE_TO_MINT} str:depositLiquidity \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator transfer --sender=${ALICE_ADDRESS} --receiver=${BRIDGED_TOKENS_WRAPPER} --assets=${CHAIN_SPECIFIC_TOKEN}:${VALUE_TO_MINT} \
+    --payload=depositLiquidity --key-file=${ALICE} --await --sign --node ${PROXY}
 }
 
 setMintRole() {
-    mxpy contract call ${ESDT_SYSTEM_SC_ADDRESS} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="setSpecialRole" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} ${ALICE_ADDRESS} str:ESDTRoleLocalMint \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    CHECK_VARIABLES CHAIN_SPECIFIC_TOKEN ALICE_ADDRESS
+    
+    # Trigger 6: AddRole - Add a permission role to the asset
+    local TRIGGER_ADD_ROLE=6
+
+    operator kda trigger ${TRIGGER_ADD_ROLE} --kdaID=${CHAIN_SPECIFIC_TOKEN} --addRolesMint=${ALICE_ADDRESS} --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 unSetMintRole() {
-    mxpy contract call ${ESDT_SYSTEM_SC_ADDRESS} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="unSetSpecialRole" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} ${ALICE_ADDRESS} str:ESDTRoleLocalMint \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    CHECK_VARIABLES CHAIN_SPECIFIC_TOKEN
+    
+    # Trigger 7: RemoveRole - Remove a permission role of the asset
+    local TRIGGER_REMOVE_ROLE=7
+
+    operator kda trigger ${TRIGGER_REMOVE_ROLE} --kdaID=${CHAIN_SPECIFIC_TOKEN} --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 mint() {
-    CHECK_VARIABLES NR_DECIMALS_CHAIN_SPECIFIC ALICE_ADDRESS CHAIN_SPECIFIC_TOKEN
+    CHECK_VARIABLES NR_DECIMALS_CHAIN_SPECIFIC CHAIN_SPECIFIC_TOKEN ALICE_ADDRESS
     read -p "Amount to mint(without decimals): " AMOUNT_TO_MINT
     VALUE_TO_MINT=$(echo "scale=0; $AMOUNT_TO_MINT*10^$NR_DECIMALS_CHAIN_SPECIFIC/1" | bc)
-    mxpy contract call ${ALICE_ADDRESS} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=300000 --function="ESDTLocalMint" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} ${VALUE_TO_MINT} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    
+    # Trigger 0: Mint - Directly mint assets in the receiver
+    local TRIGGER_MINT=0
+    
+    operator kda trigger ${TRIGGER_MINT} --kdaID=${CHAIN_SPECIFIC_TOKEN} --receiver=${ALICE_ADDRESS} --amount=${VALUE_TO_MINT} --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }

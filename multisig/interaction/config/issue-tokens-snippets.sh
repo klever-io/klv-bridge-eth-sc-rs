@@ -28,8 +28,8 @@ transferToSC() {
 
     VALUE_TO_MINT=$(echo "scale=0; $UNIVERSAL_TOKENS_ALREADY_MINTED*10^$NR_DECIMALS_CHAIN_SPECIFIC/1" | bc)
 
-    operator transfer --sender=${ALICE_ADDRESS} --receiver=${BRIDGED_TOKENS_WRAPPER} --assets=${CHAIN_SPECIFIC_TOKEN}:${VALUE_TO_MINT} \
-    --payload=depositLiquidity --key-file=${ALICE} --await --sign --node ${PROXY}
+    operator sc invoke ${BRIDGED_TOKENS_WRAPPER} depositLiquidity --values ${CHAIN_SPECIFIC_TOKEN}=${VALUE_TO_MINT} \
+     --key-file=${ALICE} --await --sign --node ${PROXY}
 }
 
 setMintRole() {

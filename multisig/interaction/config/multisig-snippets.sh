@@ -3,12 +3,14 @@ deployMultisig() {
     RELAYER_ADDR_4 RELAYER_ADDR_5 RELAYER_ADDR_6 RELAYER_ADDR_7 RELAYER_ADDR_8 \
     RELAYER_ADDR_9 SAFE MULTI_TRANSFER RELAYER_REQUIRED_STAKE SLASH_AMOUNT QUORUM MULTISIG_WASM
 
-    MIN_STAKE=$(echo "$RELAYER_REQUIRED_STAKE*10^18" | bc)
+    MIN_STAKE=$(echo "$RELAYER_REQUIRED_STAKE*10^6" | bc)
     
     SC_RESULT=$(eval operator sc create --key-file=${ALICE} --wasm ${MULTISIG_WASM} \
     --args A:${SAFE} --args A:${MULTI_TRANSFER} \
     --args n:${MIN_STAKE} --args n:${SLASH_AMOUNT} --args n:${QUORUM} \
     --args A:${RELAYER_ADDR_0} --args A:${RELAYER_ADDR_1} --args A:${RELAYER_ADDR_2} --args A:${RELAYER_ADDR_3} \
+    --args A:${RELAYER_ADDR_4} --args A:${RELAYER_ADDR_5} --args A:${RELAYER_ADDR_6} --args A:${RELAYER_ADDR_7} \
+    --args A:${RELAYER_ADDR_8} --args A:${RELAYER_ADDR_9} \
     --await --result-only --sign --node ${PROXY})
 
     check_result ${SC_RESULT}
@@ -31,7 +33,7 @@ changeChildContractsOwnershipSafe() {
 
 changeChildContractsOwnershipMultiTransfer() {
     CHECK_VARIABLES MULTI_TRANSFER MULTISIG
-
+    
     operator sc invoke ${MULTI_TRANSFER} changeOwnerAddress --key-file=${ALICE} \
     --args A:${MULTISIG} \
     --await --sign --node ${PROXY}
@@ -41,7 +43,7 @@ clearMapping() {
     CHECK_VARIABLES ERC20_TOKEN CHAIN_SPECIFIC_TOKEN MULTISIG
 
     operator sc invoke ${MULTISIG} clearMapping --key-file=${ALICE} \
-    --args A:${ERC20_TOKEN} --args String:${CHAIN_SPECIFIC_TOKEN} \
+    --args hex:${ERC20_TOKEN} --args String:${CHAIN_SPECIFIC_TOKEN} \
     --await --sign --node ${PROXY}
 }
 
@@ -49,7 +51,7 @@ addMapping() {
     CHECK_VARIABLES ERC20_TOKEN CHAIN_SPECIFIC_TOKEN MULTISIG
 
     operator sc invoke ${MULTISIG} addMapping --key-file=${ALICE} \
-    --args A:${ERC20_TOKEN} --args String:${CHAIN_SPECIFIC_TOKEN} \
+    --args hex:${ERC20_TOKEN} --args String:${CHAIN_SPECIFIC_TOKEN} \
     --await --sign --node ${PROXY}
 }
 
@@ -61,7 +63,7 @@ addTokenToWhitelist() {
     BURN=$(echo "$BURN_BALANCE*10^$NR_DECIMALS_CHAIN_SPECIFIC" | bc)
 
     operator sc invoke ${MULTISIG} kdaSafeAddTokenToWhitelist --key-file=${ALICE} \
-    --args String:${CHAIN_SPECIFIC_TOKEN} --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args A:${MINTBURN_WHITELIST} --args n:${NATIVE_TOKEN} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args bool:${MINTBURN_WHITELIST} --args bool:${NATIVE_TOKEN} \
     --args n:${BALANCE} --args n:${MINT} --args n:${BURN} \
     --await --sign --node ${PROXY}
 }
@@ -248,7 +250,7 @@ upgradeMultisig() {
     SC_RESULT=$(eval operator sc upgrade ${MULTISIG} --key-file=${ALICE} \
     --wasm ${MULTISIG_WASM} \
     --args A:${SAFE} A:${MULTI_TRANSFER} \
-    --await --result-only --sign --node ${PROXY} \
+    --await --result-only --sign --node ${PROXY})
 
     check_result ${SC_RESULT}
 

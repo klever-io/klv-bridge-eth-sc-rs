@@ -1,71 +1,66 @@
 deployFaucet() {
     CHECK_VARIABLES FAUCET_WASM ALICE
 
-    mxpy contract deploy --bytecode=${FAUCET_WASM} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=20000000 \
-    --send --outfile=deploy-faucet-testnet.interaction.json --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    SC_RESULT=$(eval operator sc create --key-file=${ALICE} --wasm ${FAUCET_WASM} \
+    --await --result-only --sign --node ${PROXY})
 
-    TRANSACTION=$(mxpy data parse --file="./deploy-faucet-testnet.interaction.json" --expression="data['emittedTransactionHash']")
-    ADDRESS=$(mxpy data parse --file="./deploy-faucet-testnet.interaction.json" --expression="data['contractAddress']")
+    check_result ${SC_RESULT}
 
-    mxpy data store --key=address-testnet-faucet --value=${ADDRESS}
-    mxpy data store --key=deployTransaction-testnet --value=${TRANSACTION}
+    CONTRACT_ADDRESS=$(jq '.logs.events[] | select(.identifier=="SCDeploy") | .address' <<< "${SC_RESULT}")
+    CONTRACT_ADDRESS=$(echo ${CONTRACT_ADDRESS} | tr -d '"')
 
     echo ""
-    echo "Faucet: ${ADDRESS}"
-    update-config FAUCET ${ADDRESS}
+    echo "Faucet contract address: ${CONTRACT_ADDRESS}"
+    update-config FAUCET ${CONTRACT_ADDRESS}
 }
 
 setMintRoleForUniversalToken() {
-  CHECK_VARIABLES ALICE ALICE_ADDRESS
+    CHECK_VARIABLES UNIVERSAL_TOKEN ALICE_ADDRESS
+    
+    # Trigger 6: AddRole - Add a permission role to the asset
+    local TRIGGER_ADD_ROLE=6
 
-  mxpy contract call ${ESDT_SYSTEM_SC_ADDRESS} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="setSpecialRole" \
-    --arguments str:${UNIVERSAL_TOKEN} ${ALICE_ADDRESS} str:ESDTRoleLocalMint \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator kda trigger ${TRIGGER_ADD_ROLE} --kdaID=${UNIVERSAL_TOKEN} --addRolesMint=${ALICE_ADDRESS} --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 mintAndDeposit() {
-  CHECK_VARIABLES ALICE ALICE_ADDRESS FAUCET
+    CHECK_VARIABLES FAUCET UNIVERSAL_TOKEN
 
-  read -p "Amount to mint (without decimals): " AMOUNT_TO_MINT
-  VALUE_TO_MINT=$(echo "scale=0; $AMOUNT_TO_MINT*10^$NR_DECIMALS_UNIVERSAL/1" | bc)
-  mxpy contract call ${ALICE_ADDRESS} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=300000 --function="ESDTLocalMint" \
-    --arguments str:${UNIVERSAL_TOKEN} ${VALUE_TO_MINT} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
-
-  sleep 6
-
-  mxpy contract call ${FAUCET} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=5000000 --function="ESDTTransfer" \
-    --arguments str:${UNIVERSAL_TOKEN} ${VALUE_TO_MINT} str:deposit 100 \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    VALUE_TO_MINT=1000000000000000000
+    
+    # Trigger 0: Mint - Directly mint assets in the receiver
+    local TRIGGER_MINT=0
+    
+    operator kda trigger ${TRIGGER_MINT} --kdaID=${UNIVERSAL_TOKEN} --receiver=${ALICE_ADDRESS} --amount=${VALUE_TO_MINT} --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
+    
+    operator sc invoke ${FAUCET} deposit --values ${UNIVERSAL_TOKEN}=${VALUE_TO_MINT} \
+     --key-file=${ALICE} --await --sign --node ${PROXY}
 }
 
 unSetMintRoleForUniversalToken() {
-    CHECK_VARIABLES ALICE ALICE_ADDRESS ESDT_SYSTEM_SC_ADDRESS
+    CHECK_VARIABLES UNIVERSAL_TOKEN
+    
+    # Trigger 7: RemoveRole - Remove a permission role of the asset
+    local TRIGGER_REMOVE_ROLE=7
 
-    mxpy contract call ${ESDT_SYSTEM_SC_ADDRESS} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="unSetSpecialRole" \
-    --arguments str:${UNIVERSAL_TOKEN} ${ALICE_ADDRESS} str:ESDTRoleLocalMint \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator kda trigger ${TRIGGER_REMOVE_ROLE} --kdaID=${UNIVERSAL_TOKEN} --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 deployTestCaller() {
     CHECK_VARIABLES TEST_CALLER_WASM ALICE
 
-    mxpy contract deploy --bytecode=${TEST_CALLER_WASM} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=20000000 \
-    --send --outfile=deploy-test-caller.interaction.json --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    SC_RESULT=$(eval operator sc create --key-file=${ALICE} --wasm ${TEST_CALLER_WASM} \
+    --await --result-only --sign --node ${PROXY})
 
-    TRANSACTION=$(mxpy data parse --file="./deploy-test-caller.interaction.json" --expression="data['emittedTransactionHash']")
-    ADDRESS=$(mxpy data parse --file="./deploy-test-caller.interaction.json" --expression="data['contractAddress']")
+    check_result ${SC_RESULT}
 
-    mxpy data store --key=address-test-caller --value=${ADDRESS}
-    mxpy data store --key=deployTransaction-testnet --value=${TRANSACTION}
+    CONTRACT_ADDRESS=$(jq '.logs.events[] | select(.identifier=="SCDeploy") | .address' <<< "${SC_RESULT}")
+    CONTRACT_ADDRESS=$(echo ${CONTRACT_ADDRESS} | tr -d '"')
 
     echo ""
-    echo "Test caller: ${ADDRESS}"
-    update-config TEST_CALLER ${ADDRESS}
+    echo "Test caller contract address: ${CONTRACT_ADDRESS}"
+    update-config TEST_CALLER ${CONTRACT_ADDRESS}
 }

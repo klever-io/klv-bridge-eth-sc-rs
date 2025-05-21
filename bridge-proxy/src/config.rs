@@ -1,8 +1,8 @@
-use multiversx_sc::imports::*;
+use klever_sc::imports::*;
 
 use transaction::EthTransaction;
 
-#[multiversx_sc::module]
+#[klever_sc::module]
 pub trait ConfigModule {
     #[only_owner]
     #[endpoint(setMultiTransferAddress)]
@@ -41,17 +41,17 @@ pub trait ConfigModule {
     }
 
     #[only_owner]
-    #[endpoint(setEsdtSafeAddress)]
-    fn set_esdt_safe_contract_address(&self, opt_address: OptionalValue<ManagedAddress>) {
+    #[endpoint(setKdaSafeAddress)]
+    fn set_kda_safe_contract_address(&self, opt_address: OptionalValue<ManagedAddress>) {
         match opt_address {
             OptionalValue::Some(sc_addr) => {
                 require!(
                     self.blockchain().is_smart_contract(&sc_addr),
                     "Invalid bridged tokens wrapper address"
                 );
-                self.esdt_safe_contract_address().set(&sc_addr);
+                self.kda_safe_contract_address().set(&sc_addr);
             }
-            OptionalValue::None => self.esdt_safe_contract_address().clear(),
+            OptionalValue::None => self.kda_safe_contract_address().clear(),
         }
     }
 
@@ -63,15 +63,15 @@ pub trait ConfigModule {
     #[storage_mapper("bridgedTokensWrapperAddress")]
     fn bridged_tokens_wrapper_address(&self) -> SingleValueMapper<ManagedAddress>;
 
-    #[view(getEsdtSafeContractAddress)]
-    #[storage_mapper("esdtSafeContractAddress")]
-    fn esdt_safe_contract_address(&self) -> SingleValueMapper<ManagedAddress>;
+    #[view(getKdaSafeContractAddress)]
+    #[storage_mapper("kdaSafeContractAddress")]
+    fn kda_safe_contract_address(&self) -> SingleValueMapper<ManagedAddress>;
 
     #[storage_mapper("pending_transactions")]
     fn pending_transactions(&self) -> MapMapper<usize, EthTransaction<Self::Api>>;
 
     #[storage_mapper("payments")]
-    fn payments(&self, tx_id: usize) -> SingleValueMapper<EsdtTokenPayment<Self::Api>>;
+    fn payments(&self, tx_id: usize) -> SingleValueMapper<KdaTokenPayment<Self::Api>>;
 
     #[storage_mapper("batch_id")]
     fn batch_id(&self, tx_id: usize) -> SingleValueMapper<u64>;

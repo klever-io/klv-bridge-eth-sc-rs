@@ -5,8 +5,8 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           51
-// Total number of exported functions:  53
+// Endpoints:                           49
+// Total number of exported functions:  51
 
 #![no_std]
 
@@ -23,7 +23,6 @@ klever_sc_wasm_adapter::endpoints! {
         createTransaction => create_transaction
         claimRefund => claim_refund
         setBridgedTokensWrapperAddress => set_bridged_tokens_wrapper_contract_address
-        setBridgeProxyContractAddress => set_bridge_proxy_contract_address
         withdrawRefundFeesForEthereum => withdraw_refund_fees_for_ethereum
         withdrawTransactionFees => withdraw_transaction_fees
         computeTotalAmmountsFromIndex => compute_total_amounts_from_index
@@ -32,7 +31,6 @@ klever_sc_wasm_adapter::endpoints! {
         getRefundFeesForEthereum => get_refund_fees_for_ethereum
         getTransactionFees => get_transaction_fees
         getBridgedTokensWrapperAddress => bridged_tokens_wrapper_address
-        getBridgeProxyContractAddress => bridge_proxy_contract_address
         setFeeEstimatorContractAddress => set_fee_estimator_contract_address
         setEthTxGasLimit => set_eth_tx_gas_limit
         setDefaultPricePerGasUnit => set_default_price_per_gas_unit

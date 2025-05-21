@@ -1,10 +1,10 @@
 #![no_std]
-use multiversx_sc::imports::*;
+use klever_sc::imports::*;
 
 pub mod bridge_proxy_contract_proxy;
 pub mod bridged_tokens_wrapper_proxy;
 pub mod config;
-pub mod esdt_safe_proxy;
+pub mod kda_safe_proxy;
 
 use transaction::{CallData, EthTransaction};
 const MIN_GAS_LIMIT_FOR_SC_CALL: u64 = 10_000_000;
@@ -12,10 +12,10 @@ const MAX_GAS_LIMIT_FOR_SC_CALL: u64 = 249999999;
 const DEFAULT_GAS_LIMIT_FOR_REFUND_CALLBACK: u64 = 20_000_000; // 20 million
 const DELAY_BEFORE_OWNER_CAN_CANCEL_TRANSACTION: u64 = 300;
 
-#[multiversx_sc::contract]
+#[klever_sc::contract]
 pub trait BridgeProxyContract:
     config::ConfigModule
-    + multiversx_sc_modules::pause::PauseModule
+    + klever_sc_modules::pause::PauseModule
 {
     #[init]
     fn init(&self, opt_multi_transfer_address: OptionalValue<ManagedAddress>) {
@@ -33,7 +33,7 @@ pub trait BridgeProxyContract:
     fn deposit(&self, eth_tx: EthTransaction<Self::Api>, batch_id: u64) {
         self.require_not_paused();
         let caller = self.blockchain().get_caller();
-        let payment = self.call_value().single_esdt();
+        let payment = self.call_value().single_kda();
         require!(
             caller == self.multi_transfer_address().get(),
             "Only MultiTransfer can do deposits"
@@ -90,7 +90,7 @@ pub trait BridgeProxyContract:
             .gas(call_data.gas_limit)
             .callback(self.callbacks().execution_callback(tx_id))
             .with_extra_gas_for_callback(DEFAULT_GAS_LIMIT_FOR_REFUND_CALLBACK)
-            .with_esdt_transfer(payment);
+            .with_kda_transfer(payment);
 
         let tx_call = if call_data.args.is_some() {
             let args = unsafe { call_data.args.unwrap_no_check() };
@@ -129,22 +129,22 @@ pub trait BridgeProxyContract:
 
     fn refund_transaction(&self, tx_id: usize) {
         let tx = self.get_pending_transaction_by_id(tx_id);
-        let esdt_safe_contract_address = self.esdt_safe_contract_address().get();
+        let kda_safe_contract_address = self.kda_safe_contract_address().get();
 
         let unwrapped_token = self.unwrap_token(&tx.token_id, tx_id);
         let batch_id = self.batch_id(tx_id).get();
         self.tx()
-            .to(esdt_safe_contract_address)
-            .typed(esdt_safe_proxy::EsdtSafeProxy)
+            .to(kda_safe_contract_address)
+            .typed(kda_safe_proxy::KDASafeProxy)
             .create_transaction(
                 tx.from,
-                OptionalValue::Some(esdt_safe_proxy::RefundInfo {
+                OptionalValue::Some(kda_safe_proxy::RefundInfo {
                     address: tx.to,
                     initial_batch_id: batch_id,
                     initial_nonce: tx.tx_nonce,
                 }),
             )
-            .single_esdt(
+            .single_kda(
                 &unwrapped_token.token_identifier,
                 unwrapped_token.token_nonce,
                 &unwrapped_token.amount,
@@ -152,7 +152,7 @@ pub trait BridgeProxyContract:
             .sync_call();
     }
 
-    fn unwrap_token(&self, requested_token: &TokenIdentifier, tx_id: usize) -> EsdtTokenPayment {
+    fn unwrap_token(&self, requested_token: &TokenIdentifier, tx_id: usize) -> KdaTokenPayment {
         let payment = self.payments(tx_id).get();
         let bridged_tokens_wrapper_address = self.bridged_tokens_wrapper_address().get();
 
@@ -165,7 +165,7 @@ pub trait BridgeProxyContract:
             .to(&bridged_tokens_wrapper_address)
             .typed(bridged_tokens_wrapper_proxy::BridgedTokensWrapperProxy)
             .unwrap_token(requested_token)
-            .single_esdt(
+            .single_kda(
                 &payment.token_identifier,
                 payment.token_nonce,
                 &payment.amount,
@@ -174,14 +174,14 @@ pub trait BridgeProxyContract:
             .sync_call();
 
         require!(
-            transfers.total_egld_amount == 0,
-            "Expected only one esdt payment"
+            transfers.klv_amount == 0,
+            "Expected only one kda payment"
         );
         require!(
-            transfers.esdt_payments.len() == 1,
-            "Expected only one esdt payment"
+            transfers.kda_payments.len() == 1,
+            "Expected only one kda payment"
         );
-        transfers.esdt_payments.get(0)
+        transfers.kda_payments.get(0)
     }
 
     fn finish_execute_gracefully(&self, tx_id: usize) {

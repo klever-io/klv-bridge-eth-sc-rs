@@ -4,8 +4,6 @@ resolver = "2"
 members = [
   "multi-transfer-kda",
   "multi-transfer-kda/meta",
-  "bridge-proxy",
-  "bridge-proxy/meta",
   "multisig",
   "multisig/meta",
   "bridged-tokens-wrapper",

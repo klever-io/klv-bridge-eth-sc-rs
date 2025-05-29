@@ -30,7 +30,8 @@ pub trait KDASafe:
     + token_module::TokenModule
     + tx_batch_module::TxBatchModule
     + max_bridged_amount_module::MaxBridgedAmountModule
-    + klever_sc_modules::pause::PauseModule
+    + klever_sc_modules::only_admin::OnlyAdminModule
+    + klever_sc_modules::pause_admin::PauseAdminModule
 {
     /// fee_estimator_contract_address - The address of a Price Aggregator contract,
     /// which will get the price of token A in token B
@@ -103,7 +104,7 @@ pub trait KDASafe:
     ///
     /// Only TransactionStatus::Executed (3) and TransactionStatus::Rejected (4) values are allowed.
     /// Number of provided statuses must be equal to number of transactions in the batch.
-    #[only_owner]
+    #[only_admin]
     #[endpoint(setTransactionBatchStatus)]
     fn set_transaction_batch_status(
         &self,
@@ -376,7 +377,7 @@ pub trait KDASafe:
         KdaTokenPayment::new(token_id, 0, refund_amount)
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(setBridgedTokensWrapperAddress)]
     fn set_bridged_tokens_wrapper_contract_address(
         &self,
@@ -394,7 +395,7 @@ pub trait KDASafe:
         }
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(withdrawRefundFeesForEthereum)]
     fn withdraw_refund_fees_for_ethereum(
         &self,
@@ -414,7 +415,7 @@ pub trait KDASafe:
         refund_fees_for_ethereum_mapper.set(BigUint::zero());
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(withdrawTransactionFees)]
     fn withdraw_transaction_fees(&self, token_id: TokenIdentifier, multisig_owner: ManagedAddress) {
         let accumulated_transaction_fees_mapper = self.accumulated_transaction_fees(&token_id);

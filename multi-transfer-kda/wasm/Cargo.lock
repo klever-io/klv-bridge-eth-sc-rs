@@ -204,6 +204,7 @@ name = "max-bridged-amount-module"
 version = "0.0.0"
 dependencies = [
  "klever-sc",
+ "klever-sc-modules",
 ]
 
 [[package]]
@@ -350,6 +351,7 @@ version = "0.0.0"
 dependencies = [
  "fee-estimator-module",
  "klever-sc",
+ "klever-sc-modules",
 ]
 
 [[package]]

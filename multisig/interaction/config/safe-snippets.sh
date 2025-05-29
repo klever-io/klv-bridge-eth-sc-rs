@@ -72,3 +72,11 @@ upgradeSafeContract() {
 
     update-config SAFE ${NEW_SAFE_ADDR}
 }
+
+addAdminToKdaSafe(){
+    CHECK_VARIABLES SAFE
+
+    operator sc invoke ${SAFE} addAdmin --key-file=${ALICE} \
+    --args A:${ALICE_ADDRESS} \
+    --await --sign --node ${PROXY}
+}

@@ -26,7 +26,7 @@ deployMultisig() {
 changeChildContractsOwnershipSafe() {
     CHECK_VARIABLES SAFE MULTISIG
 
-    operator sc invoke ${SAFE} changeOwnerAddress --key-file=${ALICE} \
+    operator sc invoke ${SAFE} addAdmin --key-file=${ALICE} \
     --args A:${MULTISIG} \
     --await --sign --node ${PROXY}
 }
@@ -34,7 +34,7 @@ changeChildContractsOwnershipSafe() {
 changeChildContractsOwnershipMultiTransfer() {
     CHECK_VARIABLES MULTI_TRANSFER MULTISIG
     
-    operator sc invoke ${MULTI_TRANSFER} changeOwnerAddress --key-file=${ALICE} \
+    operator sc invoke ${MULTI_TRANSFER} addAdmin --key-file=${ALICE} \
     --args A:${MULTISIG} \
     --await --sign --node ${PROXY}
 }

@@ -49,3 +49,11 @@ upgradeMultiTransferContract() {
 
     update-config MULTI_TRANSFER ${NEW_MULTI_TRANSFER_ADDR}
 }
+
+addAdminToMultiTransfer(){
+    CHECK_VARIABLES MULTI_TRANSFER
+
+    operator sc invoke ${MULTI_TRANSFER} addAdmin --key-file=${ALICE} \
+    --args A:${ALICE_ADDRESS} \
+    --await --sign --node ${PROXY}
+}

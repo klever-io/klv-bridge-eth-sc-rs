@@ -1,4 +1,10 @@
 [settings]
+main = "multi-transfer-kda"
+
+# the only purpose of this config is to specify the allocator
+[contracts.multi-transfer-kda]
+allocator = "static64k"
+
 
 [[proxy]]
 path = "../multisig/src/multi_transfer_kda_proxy.rs"

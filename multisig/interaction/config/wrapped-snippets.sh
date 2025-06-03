@@ -8,131 +8,115 @@
 deployBridgedTokensWrapper() {
     CHECK_VARIABLES BRIDGED_TOKENS_WRAPPER_WASM
     
-    mxpy contract deploy --bytecode=${BRIDGED_TOKENS_WRAPPER_WASM} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 \
-    --send --outfile="deploy-bridged-tokens-wrapper-testnet.interaction.json" --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    SC_RESULT=$(eval operator sc create --key-file=${ALICE} --wasm ${BRIDGED_TOKENS_WRAPPER_WASM} \
+    --await --result-only --sign --node ${PROXY})
 
-    TRANSACTION=$(mxpy data parse --file="./deploy-bridged-tokens-wrapper-testnet.interaction.json" --expression="data['emittedTransactionHash']")
-    ADDRESS=$(mxpy data parse --file="./deploy-bridged-tokens-wrapper-testnet.interaction.json" --expression="data['contractAddress']")
+    check_result ${SC_RESULT}
 
-    mxpy data store --key=address-testnet-bridged-tokens-wrapper --value=${ADDRESS}
-    mxpy data store --key=deployTransaction-testnet --value=${TRANSACTION}
+    CONTRACT_ADDRESS=$(jq '.logs.events[] | select(.identifier=="SCDeploy") | .address' <<< "${SC_RESULT}")
+    CONTRACT_ADDRESS=$(echo ${CONTRACT_ADDRESS} | tr -d '"')
 
     echo ""
-    echo "Bridged tokens wrapper SC: ${ADDRESS}"
-    update-config BRIDGED_TOKENS_WRAPPER ${ADDRESS}
+    echo "Bridged tokens wrapper SC: ${CONTRACT_ADDRESS}"
+    update-config BRIDGED_TOKENS_WRAPPER ${CONTRACT_ADDRESS}
 }
 
 setLocalRolesBridgedTokensWrapper() {
-    CHECK_VARIABLES ESDT_SYSTEM_SC_ADDRESS UNIVERSAL_TOKEN BRIDGED_TOKENS_WRAPPER
+    CHECK_VARIABLES UNIVERSAL_TOKEN BRIDGED_TOKENS_WRAPPER
     
-    mxpy contract call ${ESDT_SYSTEM_SC_ADDRESS} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="setSpecialRole" \
-    --arguments str:${UNIVERSAL_TOKEN} ${BRIDGED_TOKENS_WRAPPER} str:ESDTRoleLocalMint str:ESDTRoleLocalBurn\
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    # Trigger 6: AddRole - Add a permission role to the asset
+    local TRIGGER_ADD_ROLE=6
+
+    operator kda trigger ${TRIGGER_ADD_ROLE} --kdaID=${UNIVERSAL_TOKEN} --addRolesMint=${BRIDGED_TOKENS_WRAPPER} --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 unsetLocalRolesBridgedTokensWrapper() {
-    CHECK_VARIABLES ESDT_SYSTEM_SC_ADDRESS UNIVERSAL_TOKEN BRIDGED_TOKENS_WRAPPER
+    CHECK_VARIABLES UNIVERSAL_TOKEN BRIDGED_TOKENS_WRAPPER
     
-    mxpy contract call ${ESDT_SYSTEM_SC_ADDRESS} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="unSetSpecialRole" \
-    --arguments str:${UNIVERSAL_TOKEN} ${BRIDGED_TOKENS_WRAPPER} str:ESDTRoleLocalMint str:ESDTRoleLocalBurn\
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    # Trigger 7: RemoveRole - Remove a permission role of the asset
+    local TRIGGER_REMOVE_ROLE=7
+
+    operator kda trigger ${TRIGGER_REMOVE_ROLE} --kdaID=${UNIVERSAL_TOKEN} --receiver=${BRIDGED_TOKENS_WRAPPER} --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 addWrappedToken() {
     CHECK_VARIABLES BRIDGED_TOKENS_WRAPPER UNIVERSAL_TOKEN NR_DECIMALS_UNIVERSAL
 
-    mxpy contract call ${BRIDGED_TOKENS_WRAPPER} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=6000000 --function="addWrappedToken" \
-    --arguments str:${UNIVERSAL_TOKEN} ${NR_DECIMALS_UNIVERSAL} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${BRIDGED_TOKENS_WRAPPER} addWrappedToken --key-file=${ALICE} \
+    --args String:${UNIVERSAL_TOKEN} --args u32:${NR_DECIMALS_UNIVERSAL} \
+    --await --sign --node ${PROXY}
 }
 
 removeWrappedToken() {
     CHECK_VARIABLES BRIDGED_TOKENS_WRAPPER UNIVERSAL_TOKEN
 
-    mxpy contract call ${BRIDGED_TOKENS_WRAPPER} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=6000000 --function="removeWrappedToken" \
-    --arguments str:${UNIVERSAL_TOKEN} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
-}
-
-removeWrappedToken() {
-    CHECK_VARIABLES BRIDGED_TOKENS_WRAPPER UNIVERSAL_TOKEN
-
-    mxpy contract call ${BRIDGED_TOKENS_WRAPPER} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=6000000 --function="removeWrappedToken" \
-    --arguments str:${UNIVERSAL_TOKEN} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${BRIDGED_TOKENS_WRAPPER} removeWrappedToken --key-file=${ALICE} \
+    --args String:${UNIVERSAL_TOKEN} \
+    --await --sign --node ${PROXY}
 }
 
 wrapper-whitelistToken() {
     CHECK_VARIABLES BRIDGED_TOKENS_WRAPPER CHAIN_SPECIFIC_TOKEN NR_DECIMALS_CHAIN_SPECIFIC UNIVERSAL_TOKEN
 
-    mxpy contract call ${BRIDGED_TOKENS_WRAPPER} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=6000000 --function="whitelistToken" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} ${NR_DECIMALS_CHAIN_SPECIFIC} str:${UNIVERSAL_TOKEN} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${BRIDGED_TOKENS_WRAPPER} whitelistToken --key-file=${ALICE} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} --args u32:${NR_DECIMALS_CHAIN_SPECIFIC} --args String:${UNIVERSAL_TOKEN} \
+    --await --sign --node ${PROXY}
 }
 
 wrapper-blacklistToken() {
     CHECK_VARIABLES BRIDGED_TOKENS_WRAPPER CHAIN_SPECIFIC_TOKEN UNIVERSAL_TOKEN
 
-    mxpy contract call ${BRIDGED_TOKENS_WRAPPER} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=6000000 --function="blacklistToken" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${BRIDGED_TOKENS_WRAPPER} blacklistToken --key-file=${ALICE} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} \
+    --await --sign --node ${PROXY}
 }
 
 wrapper-updateWrappedToken() {
     CHECK_VARIABLES BRIDGED_TOKENS_WRAPPER UNIVERSAL_TOKEN NR_DECIMALS_UNIVERSAL
 
-    mxpy contract call ${BRIDGED_TOKENS_WRAPPER} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=6000000 --function="updateWrappedToken" \
-    --arguments str:${UNIVERSAL_TOKEN} ${NR_DECIMALS_UNIVERSAL} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${BRIDGED_TOKENS_WRAPPER} updateWrappedToken --key-file=${ALICE} \
+    --args String:${UNIVERSAL_TOKEN} --args u32:${NR_DECIMALS_UNIVERSAL} \
+    --await --sign --node ${PROXY}
 }
 
 wrapper-updateWhitelistedToken() {
     CHECK_VARIABLES BRIDGED_TOKENS_WRAPPER CHAIN_SPECIFIC_TOKEN NR_DECIMALS_CHAIN_SPECIFIC
 
-    mxpy contract call ${BRIDGED_TOKENS_WRAPPER} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=6000000 --function="updateWhitelistedToken" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} ${NR_DECIMALS_CHAIN_SPECIFIC} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${BRIDGED_TOKENS_WRAPPER} updateWhitelistedToken --key-file=${ALICE} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} --args u32:${NR_DECIMALS_CHAIN_SPECIFIC} \
+    --await --sign --node ${PROXY}
 }
-
 
 wrapper-unpause() {
     CHECK_VARIABLES BRIDGED_TOKENS_WRAPPER
 
-    mxpy contract call ${BRIDGED_TOKENS_WRAPPER} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=5000000 --function="unpause" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    operator sc invoke ${BRIDGED_TOKENS_WRAPPER} unpause --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 wrapper-pause() {
     CHECK_VARIABLES BRIDGED_TOKENS_WRAPPER
 
-    mxpy contract call ${BRIDGED_TOKENS_WRAPPER} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=5000000 --function="pause" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    operator sc invoke ${BRIDGED_TOKENS_WRAPPER} pause --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 wrapper-pauseV2() {
     CHECK_VARIABLES BRIDGED_TOKENS_WRAPPER_v2
 
-    mxpy contract call ${BRIDGED_TOKENS_WRAPPER_v2} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=5000000 --function="pause" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    operator sc invoke ${BRIDGED_TOKENS_WRAPPER_v2} pause --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 wrapper-upgrade() {
     CHECK_VARIABLES BRIDGED_TOKENS_WRAPPER BRIDGED_TOKENS_WRAPPER_WASM
 
-    mxpy contract upgrade ${BRIDGED_TOKENS_WRAPPER} --bytecode=${BRIDGED_TOKENS_WRAPPER_WASM} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=50000000 --send \
-    --outfile="upgrade-bridged-tokens-wrapper.json" --proxy=${PROXY} --chain=${CHAIN_ID} || return 
+    operator sc upgrade ${BRIDGED_TOKENS_WRAPPER} --key-file=${ALICE} \
+    --wasm ${BRIDGED_TOKENS_WRAPPER_WASM} \
+    --await --sign --node ${PROXY}
+    
+    echo ""
+    echo "Bridged tokens wrapper upgraded successfully at address: ${BRIDGED_TOKENS_WRAPPER}"
 }

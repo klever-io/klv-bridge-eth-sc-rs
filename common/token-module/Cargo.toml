@@ -14,3 +14,7 @@ path="../../../klever-vm-sdk-rs-internal/framework/base"
 [dev-dependencies.klever-sc-scenario]
 version = "0.44.0"
 path="../../../klever-vm-sdk-rs-internal/framework/scenario"
+
+[dependencies.klever-sc-modules]
+version = "0.44.0"
+path="../../../klever-vm-sdk-rs-internal/contracts/modules"

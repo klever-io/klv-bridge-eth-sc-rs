@@ -3,6 +3,7 @@
 use klever_sc::{imports::*, storage::StorageKey};
 
 use eth_address::EthAddress;
+use klever_sc_modules::only_admin;
 use transaction::{EthTransaction, PaymentsVec, Transaction, TxNonce};
 
 pub mod bridged_tokens_wrapper_proxy;
@@ -16,6 +17,7 @@ const CHAIN_SPECIFIC_TO_UNIVERSAL_TOKEN_MAPPING: &[u8] = b"chainSpecificToUniver
 #[klever_sc::contract]
 pub trait MultiTransferKda:
     tx_batch_module::TxBatchModule + max_bridged_amount_module::MaxBridgedAmountModule
+    + only_admin::OnlyAdminModule
 {
     #[init]
     fn init(&self) {
@@ -39,7 +41,7 @@ pub trait MultiTransferKda:
         self.last_batch_id().set_if_empty(1);
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(batchTransferKdaToken)]
     fn batch_transfer_kda_token(
         &self,
@@ -99,7 +101,7 @@ pub trait MultiTransferKda:
         self.add_multiple_tx_to_batch(&refund_tx_list);
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(moveRefundBatchToSafe)]
     fn move_refund_batch_to_safe(&self) {
         let opt_current_batch = self.get_first_batch_any_status();
@@ -133,7 +135,7 @@ pub trait MultiTransferKda:
         }
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(setWrappingContractAddress)]
     fn set_wrapping_contract_address(&self, opt_new_address: OptionalValue<ManagedAddress>) {
         match opt_new_address {
@@ -149,7 +151,7 @@ pub trait MultiTransferKda:
         }
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(addUnprocessedRefundTxToBatch)]
     fn add_unprocessed_refund_tx_to_batch(&self, tx_id: u64) {
         let refund_tx = self.unprocessed_refund_txs(tx_id).get();
@@ -160,7 +162,7 @@ pub trait MultiTransferKda:
         self.unprocessed_refund_txs(tx_id).clear();
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(setKdaSafeContractAddress)]
     fn set_kda_safe_contract_address(&self, opt_new_address: OptionalValue<ManagedAddress>) {
         match opt_new_address {

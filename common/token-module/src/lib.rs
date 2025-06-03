@@ -14,13 +14,15 @@ pub struct AddressPercentagePair<M: ManagedTypeApi> {
 }
 
 #[klever_sc::module]
-pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
+pub trait TokenModule: fee_estimator_module::FeeEstimatorModule 
+    + klever_sc_modules::only_admin::OnlyAdminModule
+{
     // endpoints - owner-only
 
     /// Distributes the accumulated fees to the given addresses.
     /// Expected arguments are pairs of (address, percentage),
     /// where percentages must add up to the PERCENTAGE_TOTAL constant
-    #[only_owner]
+    #[only_admin]
     #[endpoint(distributeFees)]
     fn distribute_fees(
         &self,
@@ -64,7 +66,7 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
         }
     }
 
-    #[only_owner]
+    #[only_admin]
     #[payable("*")]
     #[endpoint(addTokenToWhitelist)]
     fn add_token_to_whitelist(
@@ -116,7 +118,7 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
         }
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(removeTokenFromWhitelist)]
     fn remove_token_from_whitelist(&self, token_id: TokenIdentifier) {
         self.token_ticker(&token_id).clear();
@@ -177,7 +179,7 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
         true
     }
 
-    #[only_owner]
+    #[only_admin]
     #[payable("*")]
     #[endpoint(initSupply)]
     fn init_supply(&self, token_id: &TokenIdentifier, amount: &BigUint) {
@@ -200,7 +202,7 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
         });
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(initSupplyMintBurn)]
     fn init_supply_mint_burn(
         &self,
@@ -256,7 +258,7 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule {
         );
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(setMultiTransferContractAddress)]
     fn set_multi_transfer_contract_address(&self, opt_new_address: OptionalValue<ManagedAddress>) {
         match opt_new_address {

@@ -197,6 +197,7 @@ version = "0.0.0"
 dependencies = [
  "fee-estimator-module",
  "klever-sc",
+ "klever-sc-modules",
 ]
 
 [[package]]

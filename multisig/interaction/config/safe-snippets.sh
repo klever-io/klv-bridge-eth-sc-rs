@@ -1,79 +1,82 @@
 deploySafe() {
     CHECK_VARIABLES SAFE_WASM MULTI_TRANSFER AGGREGATOR
     
-    mxpy contract deploy --bytecode=${SAFE_WASM} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=150000000 \
-    --arguments ${AGGREGATOR} ${MULTI_TRANSFER} 1 \
-    --send --outfile="deploy-safe-testnet.interaction.json" --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    SC_RESULT=$(eval operator sc create --key-file=${ALICE} --wasm ${SAFE_WASM} \
+    --args A:${AGGREGATOR} --args A:${MULTI_TRANSFER} --args n:1 \
+    --await --result-only --sign --node ${PROXY})
 
-    TRANSACTION=$(mxpy data parse --file="./deploy-safe-testnet.interaction.json" --expression="data['emittedTransactionHash']")
-    ADDRESS=$(mxpy data parse --file="./deploy-safe-testnet.interaction.json" --expression="data['contractAddress']")
+    check_result ${SC_RESULT}
 
-    mxpy data store --key=address-testnet-safe --value=${ADDRESS}
-    mxpy data store --key=deployTransaction-testnet --value=${TRANSACTION}
+    CONTRACT_ADDRESS=$(jq '.logs.events[] | select(.identifier=="SCDeploy") | .address' <<< "${SC_RESULT}")
+    CONTRACT_ADDRESS=$(echo ${CONTRACT_ADDRESS} | tr -d '"')
 
     echo ""
-    echo "Safe contract address: ${ADDRESS}"
-    update-config SAFE ${ADDRESS}
+    echo "Safe contract address: ${CONTRACT_ADDRESS}"
+    update-config SAFE ${CONTRACT_ADDRESS}
 }   
 
-setLocalRolesEsdtSafe() {
-    CHECK_VARIABLES ESDT_SYSTEM_SC_ADDRESS CHAIN_SPECIFIC_TOKEN SAFE
+setLocalRolesKdaSafe() {
+    CHECK_VARIABLES CHAIN_SPECIFIC_TOKEN SAFE
+    
+    # Trigger 6: AddRole - Add a permission role to the asset
+    local TRIGGER_ADD_ROLE=6
 
-    mxpy contract call ${ESDT_SYSTEM_SC_ADDRESS} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="setSpecialRole" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} ${SAFE} str:ESDTRoleLocalBurn str:ESDTRoleLocalMint \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator kda trigger ${TRIGGER_ADD_ROLE} --kdaID=${CHAIN_SPECIFIC_TOKEN} --addRolesMint=${SAFE} --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
-unsetLocalRolesEsdtSafe() {
-    CHECK_VARIABLES ESDT_SYSTEM_SC_ADDRESS CHAIN_SPECIFIC_TOKEN SAFE
+unsetLocalRolesKdaSafe() {
+    CHECK_VARIABLES CHAIN_SPECIFIC_TOKEN SAFE
+    
+    # Trigger 7: RemoveRole - Remove a permission role of the asset
+    local TRIGGER_REMOVE_ROLE=7
 
-    mxpy contract call ${ESDT_SYSTEM_SC_ADDRESS} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="unSetSpecialRole" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} ${SAFE} str:ESDTRoleLocalBurn str:ESDTRoleLocalMint \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator kda trigger ${TRIGGER_REMOVE_ROLE} --kdaID=${CHAIN_SPECIFIC_TOKEN} --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
-setBridgedTokensWrapperOnEsdtSafe() {
+setBridgedTokensWrapperOnKdaSafe() {
     CHECK_VARIABLES SAFE BRIDGED_TOKENS_WRAPPER
 
-    mxpy contract call ${SAFE} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="setBridgedTokensWrapperAddress" \
-    --arguments ${BRIDGED_TOKENS_WRAPPER} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
-}
-
-setSCProxyOnEsdtSafe() {
-    CHECK_VARIABLES SAFE BRIDGE_PROXY
-
-    mxpy contract call ${SAFE} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="setBridgeProxyContractAddress" \
-    --arguments ${BRIDGE_PROXY} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${SAFE} setBridgedTokensWrapperAddress --key-file=${ALICE} \
+    --args A:${BRIDGED_TOKENS_WRAPPER} \
+    --await --sign --node ${PROXY}
 }
 
 deploySafeForUpgrade() {
-    CHECK_VARIABLES SAFE_WASM MULTI_TRANSFER AGGREGATOR BRIDGE_PROXY
+    CHECK_VARIABLES SAFE_WASM MULTI_TRANSFER AGGREGATOR
 
-    mxpy contract deploy --bytecode=${SAFE_WASM} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=150000000 \
-    --arguments ${AGGREGATOR} ${MULTI_TRANSFER} 1 \
-    --send --outfile="deploy-safe-upgrade.interaction.json" --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    SC_RESULT=$(eval operator sc create --key-file=${ALICE} --wasm ${SAFE_WASM} \
+    --args A:${AGGREGATOR} --args A:${MULTI_TRANSFER} --args n:1 \
+    --await --result-only --sign --node ${PROXY})
 
-    TRANSACTION=$(mxpy data parse --file="./deploy-safe-upgrade.interaction.json" --expression="data['emittedTransactionHash']")
-    ADDRESS=$(mxpy data parse --file="./deploy-safe-upgrade.interaction.json" --expression="data['contractAddress']")
+    check_result ${SC_RESULT}
+
+    CONTRACT_ADDRESS=$(jq '.logs.events[] | select(.identifier=="SCDeploy") | .address' <<< "${SC_RESULT}")
+    CONTRACT_ADDRESS=$(echo ${CONTRACT_ADDRESS} | tr -d '"')
 
     echo ""
-    echo "New safe contract address: ${ADDRESS}"
+    echo "New safe contract address: ${CONTRACT_ADDRESS}"
+    
+    # Store for later use in upgradeSafeContract
+    NEW_SAFE_ADDR=${CONTRACT_ADDRESS}
 }
 
 upgradeSafeContract() {
-    local NEW_SAFE_ADDR=$(mxpy data parse --file="./deploy-safe-upgrade.interaction.json" --expression="data['contractAddress']")
+    CHECK_VARIABLES MULTISIG SAFE NEW_SAFE_ADDR AGGREGATOR MULTI_TRANSFER
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=400000000 --function="upgradeChildContractFromSource" \
-    --arguments ${SAFE} ${NEW_SAFE_ADDR} 0x00 \
-    ${AGGREGATOR} ${MULTI_TRANSFER} ${BRIDGE_PROXY} 1 \
-    --send --outfile="upgrade-safe-child-sc.json" --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} upgradeChildContractFromSource --key-file=${ALICE} \
+    --args A:${SAFE} --args A:${NEW_SAFE_ADDR} --args bool:true \
+    --args A:${AGGREGATOR} --args A:${MULTI_TRANSFER} --args n:1 \
+    --await --sign --node ${PROXY}
+
+    update-config SAFE ${NEW_SAFE_ADDR}
+}
+
+addAdminToKdaSafe(){
+    CHECK_VARIABLES SAFE
+
+    operator sc invoke ${SAFE} addAdmin --key-file=${ALICE} \
+    --args A:${ALICE_ADDRESS} \
+    --await --sign --node ${PROXY}
 }

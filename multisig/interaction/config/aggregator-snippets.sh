@@ -1,41 +1,39 @@
 deployAggregator() {
     CHECK_VARIABLES AGGREGATOR_WASM CHAIN_SPECIFIC_TOKEN ORACLE_ADDR_0 ORACLE_ADDR_1 ORACLE_ADDR_2
 
-    STAKE=$(echo "$ORACLE_REQUIRED_STAKE*10^18" | bc)
-    mxpy contract deploy --bytecode=${AGGREGATOR_WASM} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=100000000 --arguments str:EGLD ${STAKE} 1 2 3 \
-    ${ORACLE_ADDR_0} ${ORACLE_ADDR_1} ${ORACLE_ADDR_2} \
-    --send --outfile=deploy-price-agregator-testnet.interaction.json --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    STAKE=$(echo "$ORACLE_REQUIRED_STAKE*10^6" | bc)
 
-    TRANSACTION=$(mxpy data parse --file="./deploy-price-agregator-testnet.interaction.json" --expression="data['emittedTransactionHash']")
-    ADDRESS=$(mxpy data parse --file="./deploy-price-agregator-testnet.interaction.json" --expression="data['contractAddress']")
+    SC_RESULT=$(eval operator sc create --key-file=${ALICE} --wasm ${AGGREGATOR_WASM} \
+    --args String:KLV --args u64:${STAKE} --args u64:1 --args u64:2 --args u64:3 \
+    --args A:${ORACLE_ADDR_0} --args A:${ORACLE_ADDR_1} --args A:${ORACLE_ADDR_2} \
+    --await --result-only --sign --node ${PROXY})
 
-    mxpy data store --key=address-testnet-safe --value=${ADDRESS}
-    mxpy data store --key=deployTransaction-testnet --value=${TRANSACTION}
+    check_result ${SC_RESULT}
 
+    CONTRACT_ADDRESS=$(jq '.logs.events[] | select(.identifier=="SCDeploy") | .address' <<< "${SC_RESULT}")
+    CONTRACT_ADDRESS=$(echo ${CONTRACT_ADDRESS} | tr -d '"')
+    
     echo ""
-    echo "Price agregator: ${ADDRESS}"
-    update-config AGGREGATOR ${ADDRESS}
+    echo "Price agregator: ${CONTRACT_ADDRESS}"
+    update-config AGGREGATOR ${CONTRACT_ADDRESS}
 }
 
 stakeOracles() {
     CHECK_VARIABLES AGGREGATOR
 
-    STAKE=$(echo "$ORACLE_REQUIRED_STAKE*10^18" | bc)
+    STAKE=$(echo "$ORACLE_REQUIRED_STAKE*10^6" | bc)
     echo "---------------------------------------------------------"
-    mxpy --verbose contract call ${AGGREGATOR} --recall-nonce --pem=${ORACLE_WALLET0} \
-    --gas-limit=35000000 --function="stake" --value=${STAKE} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
-    echo "---------------------------------------------------------"
-    echo "---------------------------------------------------------"
-    mxpy --verbose contract call ${AGGREGATOR} --recall-nonce --pem=${ORACLE_WALLET1} \
-    --gas-limit=35000000 --function="stake" --value=${STAKE} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${AGGREGATOR} stake --key-file=${ORACLE_WALLET0} \
+    --values KLV=${STAKE} --await --sign --node ${PROXY}
+
     echo "---------------------------------------------------------"
     echo "---------------------------------------------------------"
-    mxpy --verbose contract call ${AGGREGATOR} --recall-nonce --pem=${ORACLE_WALLET2} \
-    --gas-limit=35000000 --function="stake" --value=${STAKE} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${AGGREGATOR} stake --key-file=${ORACLE_WALLET1} \
+    --values KLV=${STAKE} --await --sign --node ${PROXY}
+    echo "---------------------------------------------------------"
+    echo "---------------------------------------------------------"
+    operator sc invoke ${AGGREGATOR} stake --key-file=${ORACLE_WALLET2} \
+    --values KLV=${STAKE} --await --sign --node ${PROXY}
     echo "---------------------------------------------------------"
 }
 
@@ -45,61 +43,50 @@ submitAggregatorBatch() {
     FEE=$(echo "scale=0; $FEE_AMOUNT*10^$NR_DECIMALS_CHAIN_SPECIFIC/1" | bc)
 
     CURRENT_TIME=$(date +%s)
-    mxpy --verbose contract call ${AGGREGATOR} --recall-nonce --pem=${ORACLE_WALLET0} \
-    --gas-limit=15000000 --function="submitBatch" \
-    --arguments str:GWEI str:${CHAIN_SPECIFIC_TOKEN_TICKER} ${CURRENT_TIME} ${FEE} 0 \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    operator sc invoke ${AGGREGATOR} submitBatch --key-file=${ORACLE_WALLET0} \
+    --args String:GWEI --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args u64:${CURRENT_TIME} --args n:${FEE} --args u8:0 \
+    --await --sign --node ${PROXY}
 
     CURRENT_TIME=$(date +%s)
-    mxpy --verbose contract call ${AGGREGATOR} --recall-nonce --pem=${ORACLE_WALLET1} \
-    --gas-limit=15000000 --function="submitBatch" \
-    --arguments str:GWEI str:${CHAIN_SPECIFIC_TOKEN_TICKER} ${CURRENT_TIME} ${FEE} 0 \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    operator sc invoke ${AGGREGATOR} submitBatch --key-file=${ORACLE_WALLET1} \
+    --args String:GWEI --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args u64:${CURRENT_TIME} --args n:${FEE} --args u8:0 \
+    --await --sign --node ${PROXY}
 
     CURRENT_TIME=$(date +%s)
-    mxpy --verbose contract call ${AGGREGATOR} --recall-nonce --pem=${ORACLE_WALLET2} \
-    --gas-limit=15000000 --function="submitBatch" \
-    --arguments str:GWEI str:${CHAIN_SPECIFIC_TOKEN_TICKER} ${CURRENT_TIME} ${FEE} 0 \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    operator sc invoke ${AGGREGATOR} submitBatch --key-file=${ORACLE_WALLET2} \
+    --args String:GWEI --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args u64:${CURRENT_TIME} --args n:${FEE} --args u8:0 \
+    --await --sign --node ${PROXY}
 }
 
 setPairDecimals() {
     CHECK_VARIABLES AGGREGATOR
 
-    mxpy contract call ${AGGREGATOR} --recall-nonce "${MXPY_SIGN[@]}" \
-        --gas-limit=15000000 --function="setPairDecimals" \
-        --arguments str:GWEI str:${CHAIN_SPECIFIC_TOKEN_TICKER} 0 \
-        --send --proxy=${PROXY} --chain=${CHAIN_ID} || return  
+    operator sc invoke ${AGGREGATOR} setPairDecimals --key-file=${ALICE} \
+    --args String:GWEI --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args u8:0 \
+    --await --sign --node ${PROXY}
 }
 
 pauseAggregator() {
     CHECK_VARIABLES AGGREGATOR
 
-    mxpy contract call ${AGGREGATOR} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=5000000 --function="pause" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID} || return
-}
-
-pauseAggregatorV2() {
-    CHECK_VARIABLES AGGREGATOR_v2
-
-    mxpy contract call ${AGGREGATOR_v2} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=5000000 --function="pause" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    operator sc invoke ${AGGREGATOR} pause --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 unpauseAggregator() {
     CHECK_VARIABLES AGGREGATOR
 
-    mxpy contract call ${AGGREGATOR} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=5000000 --function="unpause" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    operator sc invoke ${AGGREGATOR} unpause --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 aggregator-upgrade() {
     CHECK_VARIABLES AGGREGATOR AGGREGATOR_WASM
 
-    mxpy contract upgrade ${AGGREGATOR} --bytecode=${AGGREGATOR_WASM} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=100000000 --send \
-    --outfile="upgrade-aggregator.json" --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    operator sc upgrade ${AGGREGATOR} --key-file=${ALICE} \
+    --wasm ${AGGREGATOR_WASM} \
+    --await --sign --node ${PROXY}
+    
+    echo ""
+    echo "Price aggregator upgraded successfully at address: ${AGGREGATOR}"
 }

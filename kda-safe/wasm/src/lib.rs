@@ -5,8 +5,8 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           49
-// Total number of exported functions:  51
+// Endpoints:                           53
+// Total number of exported functions:  55
 
 #![no_std]
 
@@ -64,6 +64,10 @@ klever_sc_wasm_adapter::endpoints! {
         getLastBatchId => last_batch_id
         setMaxBridgedAmount => set_max_bridged_amount
         getMaxBridgedAmount => max_bridged_amount
+        isAdmin => is_admin
+        addAdmin => add_admin
+        removeAdmin => remove_admin
+        getAdmins => admins
         pause => pause_endpoint
         unpause => unpause_endpoint
         isPaused => paused_status

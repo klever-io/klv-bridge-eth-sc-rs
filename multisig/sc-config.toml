@@ -1,4 +1,9 @@
 [settings]
+main = "multisig"
+
+# the only purpose of this config is to specify the allocator
+[contracts.multisig]
+allocator = "static64k"
 
 [[proxy]]
 path = "../multisig/src/multisig_proxy.rs"

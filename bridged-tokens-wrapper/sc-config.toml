@@ -1,4 +1,9 @@
 [settings]
+main = "bridged-tokens-wrapper"
+
+# the only purpose of this config is to specify the allocator
+[contracts.bridged-tokens-wrapper]
+allocator = "static64k"
 
 [[proxy]]
 path = "../multi-transfer-esdt/src/bridged_tokens_wrapper_proxy.rs"

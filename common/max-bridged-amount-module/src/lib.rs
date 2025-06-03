@@ -3,8 +3,8 @@
 use klever_sc::imports::*;
 
 #[klever_sc::module]
-pub trait MaxBridgedAmountModule {
-    #[only_owner]
+pub trait MaxBridgedAmountModule: klever_sc_modules::only_admin::OnlyAdminModule {
+    #[only_admin]
     #[endpoint(setMaxBridgedAmount)]
     fn set_max_bridged_amount(&self, token_id: TokenIdentifier, max_amount: BigUint) {
         self.max_bridged_amount(&token_id).set(&max_amount);

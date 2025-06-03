@@ -1,70 +1,58 @@
 deployMultisig() {
     CHECK_VARIABLES RELAYER_ADDR_0 RELAYER_ADDR_1 RELAYER_ADDR_2 RELAYER_ADDR_3 \
     RELAYER_ADDR_4 RELAYER_ADDR_5 RELAYER_ADDR_6 RELAYER_ADDR_7 RELAYER_ADDR_8 \
-    RELAYER_ADDR_9 SAFE MULTI_TRANSFER BRIDGE_PROXY RELAYER_REQUIRED_STAKE SLASH_AMOUNT QUORUM MULTISIG_WASM
+    RELAYER_ADDR_9 SAFE MULTI_TRANSFER RELAYER_REQUIRED_STAKE SLASH_AMOUNT QUORUM MULTISIG_WASM
 
-    MIN_STAKE=$(echo "$RELAYER_REQUIRED_STAKE*10^18" | bc)
-    mxpy contract deploy --bytecode=${MULTISIG_WASM} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=200000000 \
-    --arguments ${SAFE} ${MULTI_TRANSFER} ${BRIDGE_PROXY} \
-    ${MIN_STAKE} ${SLASH_AMOUNT} ${QUORUM} \
-    ${RELAYER_ADDR_0} ${RELAYER_ADDR_1} ${RELAYER_ADDR_2} ${RELAYER_ADDR_3} \
-    --send --outfile="deploy-testnet.interaction.json" --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    MIN_STAKE=$(echo "$RELAYER_REQUIRED_STAKE*10^6" | bc)
+    
+    SC_RESULT=$(eval operator sc create --key-file=${ALICE} --wasm ${MULTISIG_WASM} \
+    --args A:${SAFE} --args A:${MULTI_TRANSFER} \
+    --args n:${MIN_STAKE} --args n:${SLASH_AMOUNT} --args n:${QUORUM} \
+    --args A:${RELAYER_ADDR_0} --args A:${RELAYER_ADDR_1} --args A:${RELAYER_ADDR_2} --args A:${RELAYER_ADDR_3} \
+    --args A:${RELAYER_ADDR_4} --args A:${RELAYER_ADDR_5} --args A:${RELAYER_ADDR_6} --args A:${RELAYER_ADDR_7} \
+    --args A:${RELAYER_ADDR_8} --args A:${RELAYER_ADDR_9} \
+    --await --result-only --sign --node ${PROXY})
 
-    TRANSACTION=$(mxpy data parse --file="./deploy-testnet.interaction.json" --expression="data['emitted_tx']['hash']")
-    ADDRESS=$(mxpy data parse --file="./deploy-testnet.interaction.json" --expression="data['contractAddress']")
+    check_result ${SC_RESULT}
 
-    mxpy data store --key=address-testnet-multisig --value=${ADDRESS}
-    mxpy data store --key=deployTransaction-testnet --value=${TRANSACTION}
+    CONTRACT_ADDRESS=$(jq '.logs.events[] | select(.identifier=="SCDeploy") | .address' <<< "${SC_RESULT}")
+    CONTRACT_ADDRESS=$(echo ${CONTRACT_ADDRESS} | tr -d '"')
 
     echo ""
-    echo "Multisig contract address: ${ADDRESS}"
-    update-config MULTISIG ${ADDRESS}
+    echo "Multisig contract address: ${CONTRACT_ADDRESS}"
+    update-config MULTISIG ${CONTRACT_ADDRESS}
 }
 
 changeChildContractsOwnershipSafe() {
     CHECK_VARIABLES SAFE MULTISIG
 
-    mxpy contract call ${SAFE} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=10000000 --function="ChangeOwnerAddress" \
-    --arguments ${MULTISIG} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
-}
-
-changeChildContractsOwnershipProxy() {
-    CHECK_VARIABLES BRIDGE_PROXY MULTISIG
-
-    mxpy contract call ${BRIDGE_PROXY} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=10000000 --function="ChangeOwnerAddress" \
-    --arguments ${MULTISIG} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${SAFE} addAdmin --key-file=${ALICE} \
+    --args A:${MULTISIG} \
+    --await --sign --node ${PROXY}
 }
 
 changeChildContractsOwnershipMultiTransfer() {
     CHECK_VARIABLES MULTI_TRANSFER MULTISIG
-
-    mxpy contract call ${MULTI_TRANSFER} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=10000000 --function="ChangeOwnerAddress" \
-    --arguments ${MULTISIG} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    
+    operator sc invoke ${MULTI_TRANSFER} addAdmin --key-file=${ALICE} \
+    --args A:${MULTISIG} \
+    --await --sign --node ${PROXY}
 }
 
 clearMapping() {
     CHECK_VARIABLES ERC20_TOKEN CHAIN_SPECIFIC_TOKEN MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="clearMapping" \
-    --arguments ${ERC20_TOKEN} str:${CHAIN_SPECIFIC_TOKEN} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} clearMapping --key-file=${ALICE} \
+    --args hex:${ERC20_TOKEN} --args String:${CHAIN_SPECIFIC_TOKEN} \
+    --await --sign --node ${PROXY}
 }
 
 addMapping() {
     CHECK_VARIABLES ERC20_TOKEN CHAIN_SPECIFIC_TOKEN MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="addMapping" \
-    --arguments ${ERC20_TOKEN} str:${CHAIN_SPECIFIC_TOKEN} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} addMapping --key-file=${ALICE} \
+    --args hex:${ERC20_TOKEN} --args String:${CHAIN_SPECIFIC_TOKEN} \
+    --await --sign --node ${PROXY}
 }
 
 addTokenToWhitelist() {
@@ -74,165 +62,140 @@ addTokenToWhitelist() {
     MINT=$(echo "$MINT_BALANCE*10^$NR_DECIMALS_CHAIN_SPECIFIC" | bc)
     BURN=$(echo "$BURN_BALANCE*10^$NR_DECIMALS_CHAIN_SPECIFIC" | bc)
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="esdtSafeAddTokenToWhitelist" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} str:${CHAIN_SPECIFIC_TOKEN_TICKER} ${MINTBURN_WHITELIST} ${NATIVE_TOKEN} \
-    ${BALANCE} ${MINT} ${BURN} --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} kdaSafeAddTokenToWhitelist --key-file=${ALICE} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args bool:${MINTBURN_WHITELIST} --args bool:${NATIVE_TOKEN} \
+    --args n:${BALANCE} --args n:${MINT} --args n:${BURN} \
+    --await --sign --node ${PROXY}
 }
 
 removeTokenFromWhitelist() {
     CHECK_VARIABLES CHAIN_SPECIFIC_TOKEN CHAIN_SPECIFIC_TOKEN_TICKER MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="esdtSafeRemoveTokenFromWhitelist" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} kdaSafeRemoveTokenFromWhitelist --key-file=${ALICE} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} \
+    --await --sign --node ${PROXY}
 }
 
-esdtSafeSetMaxTxBatchSize() {
+kdaSafeSetMaxTxBatchSize() {
     CHECK_VARIABLES MAX_TX_PER_BATCH MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=30000000 --function="esdtSafeSetMaxTxBatchSize" \
-    --arguments ${MAX_TX_PER_BATCH} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} kdaSafeSetMaxTxBatchSize --key-file=${ALICE} \
+    --args n:${MAX_TX_PER_BATCH} \
+    --await --sign --node ${PROXY}
 }
 
-esdtSafeSetMaxTxBatchBlockDuration() {
+kdaSafeSetMaxTxBatchBlockDuration() {
     CHECK_VARIABLES MAX_TX_BLOCK_DURATION_PER_BATCH MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=30000000 --function="esdtSafeSetMaxTxBatchBlockDuration" \
-    --arguments ${MAX_TX_BLOCK_DURATION_PER_BATCH} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
-}
-
-clearMapping() {
-    CHECK_VARIABLES ERC20_TOKEN CHAIN_SPECIFIC_TOKEN MULTISIG
-
-     mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="clearMapping" \
-    --arguments ${ERC20_TOKEN} str:${CHAIN_SPECIFIC_TOKEN} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} kdaSafeSetMaxTxBatchBlockDuration --key-file=${ALICE} \
+    --args n:${MAX_TX_BLOCK_DURATION_PER_BATCH} \
+    --await --sign --node ${PROXY}
 }
 
 changeQuorum() {
     CHECK_VARIABLES QUORUM MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="changeQuorum" \
-    --arguments ${QUORUM} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} changeQuorum --key-file=${ALICE} \
+    --args n:${QUORUM} \
+    --await --sign --node ${PROXY}
 }
 
 pause() {
     CHECK_VARIABLES MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="pause" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} pause --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 pauseV2() {
     CHECK_VARIABLES MULTISIG_v2
 
-    mxpy contract call ${MULTISIG_v2} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="pause" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG_v2} pause --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
-pauseEsdtSafe() {
+pauseKdaSafe() {
     CHECK_VARIABLES MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="pauseEsdtSafe" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} pauseKdaSafe --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
-pauseEsdtSafeV2() {
+pauseKdaSafeV2() {
     CHECK_VARIABLES MULTISIG_v2
 
-    mxpy contract call ${MULTISIG_v2} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="pauseEsdtSafe" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG_v2} pauseKdaSafe --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 pauseProxy() {
     CHECK_VARIABLES MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="pauseProxy" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} pauseProxy --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 unpause() {
     CHECK_VARIABLES MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="unpause" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} unpause --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
-unpauseEsdtSafe() {
+unpauseKdaSafe() {
     CHECK_VARIABLES MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="unpauseEsdtSafe" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} unpauseKdaSafe --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 unpauseProxy() {
     CHECK_VARIABLES MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="unpauseProxy" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} unpauseProxy --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
-esdtSafeSetMaxBridgedAmountForToken() {
+kdaSafeSetMaxBridgedAmountForToken() {
     CHECK_VARIABLES MAX_AMOUNT NR_DECIMALS_CHAIN_SPECIFIC CHAIN_SPECIFIC_TOKEN MULTISIG
 
     MAX=$(echo "scale=0; $MAX_AMOUNT*10^$NR_DECIMALS_CHAIN_SPECIFIC/1" | bc)
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="esdtSafeSetMaxBridgedAmountForToken" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} ${MAX} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    
+    operator sc invoke ${MULTISIG} kdaSafeSetMaxBridgedAmountForToken --key-file=${ALICE} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} --args n:${MAX} \
+    --await --sign --node ${PROXY}
 }
 
-multiTransferEsdtSetMaxBridgedAmountForToken() {
+multiTransferKdaSetMaxBridgedAmountForToken() {
     CHECK_VARIABLES MAX_AMOUNT NR_DECIMALS_CHAIN_SPECIFIC CHAIN_SPECIFIC_TOKEN MULTISIG
 
     MAX=$(echo "scale=0; $MAX_AMOUNT*10^$NR_DECIMALS_CHAIN_SPECIFIC/1" | bc)
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="multiTransferEsdtSetMaxBridgedAmountForToken" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} ${MAX} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    
+    operator sc invoke ${MULTISIG} multiTransferKdaSetMaxBridgedAmountForToken --key-file=${ALICE} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} --args n:${MAX} \
+    --await --sign --node ${PROXY}
 }
 
-multiTransferEsdtSetMaxBridgedAmountForTokenWithRAWValue() {
+multiTransferKdaSetMaxBridgedAmountForTokenWithRAWValue() {
     CHECK_VARIABLES ETH_MAX_AMOUNT CHAIN_SPECIFIC_TOKEN MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=40000000 --function="multiTransferEsdtSetMaxBridgedAmountForToken" \
-    --arguments str:${CHAIN_SPECIFIC_TOKEN} ${ETH_MAX_AMOUNT} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} multiTransferKdaSetMaxBridgedAmountForToken --key-file=${ALICE} \
+    --args String:${CHAIN_SPECIFIC_TOKEN} --args n:${ETH_MAX_AMOUNT} \
+    --await --sign --node ${PROXY}
 }
 
-
-setMultiTransferOnEsdtSafeThroughMultisig() {
+setMultiTransferOnKdaSafeThroughMultisig() {
     CHECK_VARIABLES MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="setMultiTransferOnEsdtSafe" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} setMultiTransferOnKdaSafe --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
-setEsdtSafeOnMultiTransferThroughMultisig() {
+setKdaSafeOnMultiTransferThroughMultisig() {
     CHECK_VARIABLES MULTISIG
 
-    mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="setEsdtSafeOnMultiTransfer" \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+    operator sc invoke ${MULTISIG} setKdaSafeOnMultiTransfer --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
 }
 
 initSupplyMintBurn() {
@@ -251,10 +214,9 @@ initSupplyMintBurn() {
   MINT=$(echo ${MINT%.*}) # trim decimals, if existing
   BURN=$(echo ${BURN%.*}) # trim decimals, if existing
 
-  mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-  --gas-limit=60000000 --function="initSupplyMintBurnEsdtSafe" \
-  --arguments str:${CHAIN_SPECIFIC_TOKEN} ${MINT} ${BURN} \
-  --send --proxy=${PROXY} --chain=${CHAIN_ID}
+  operator sc invoke ${MULTISIG} initSupplyMintBurnKdaSafe --key-file=${ALICE} \
+  --args String:${CHAIN_SPECIFIC_TOKEN} --args n:${MINT} --args n:${BURN} \
+  --await --sign --node ${PROXY}
 }
 
 syncValueWithEthereumDenom() {
@@ -263,8 +225,13 @@ syncValueWithEthereumDenom() {
   read -p "Chain specific token (human readable): " TOKEN
   read -p "Denominated value on Ethereum (should contain all digits): " ETH_VALUE
 
-  EXISTING_BURN=$(mxpy contract query ${SAFE} --proxy=${PROXY} --function getBurnBalances --arguments str:$TOKEN | jq '.[0].number')
-  EXISTING_MINT=$(mxpy contract query ${SAFE} --proxy=${PROXY} --function getMintBalances --arguments str:$TOKEN | jq '.[0].number')
+  # Using operator to query the contract
+  SAFE_QUERY_BURN=$(operator sc query ${SAFE} getBurnBalances --args String:$TOKEN --node=${PROXY})
+  EXISTING_BURN=$(echo $SAFE_QUERY_BURN | jq '.[0].number')
+  
+  SAFE_QUERY_MINT=$(operator sc query ${SAFE} getMintBalances --args String:$TOKEN --node=${PROXY})
+  EXISTING_MINT=$(echo $SAFE_QUERY_MINT | jq '.[0].number')
+  
   NEW_MINT=$(echo "$ETH_VALUE+$EXISTING_BURN" | bc)
   DIFF=$(echo "$EXISTING_MINT-$EXISTING_BURN" | bc)
   NEW_DIFF=$(echo "$NEW_MINT-$EXISTING_BURN" | bc)
@@ -272,23 +239,24 @@ syncValueWithEthereumDenom() {
   echo "For token ${TOKEN} the existing mint is ${EXISTING_MINT} and existing burn is ${EXISTING_BURN}. The minted value will be replaced with ${NEW_MINT}"
   echo "Existing diff ${DIFF}, new diff will be ${NEW_DIFF}"
 
-  mxpy contract call ${MULTISIG} --recall-nonce "${MXPY_SIGN[@]}" \
-    --gas-limit=60000000 --function="initSupplyMintBurnEsdtSafe" \
-    --arguments str:${TOKEN} ${NEW_MINT} ${EXISTING_BURN} \
-    --send --proxy=${PROXY} --chain=${CHAIN_ID}
+  operator sc invoke ${MULTISIG} initSupplyMintBurnKdaSafe --key-file=${ALICE} \
+    --args String:${TOKEN} --args n:${NEW_MINT} --args n:${EXISTING_BURN} \
+    --await --sign --node ${PROXY}
 }
 
 upgradeMultisig() {
-    CHECK_VARIABLES SAFE MULTI_TRANSFER BRIDGE_PROXY MULTISIG_WASM
+    CHECK_VARIABLES SAFE MULTI_TRANSFER MULTISIG_WASM
 
-    mxpy contract upgrade ${MULTISIG} --bytecode=${MULTISIG_WASM} --recall-nonce "${MXPY_SIGN[@]}" \
-      --gas-limit=100000000 --send \
-      --arguments ${SAFE} ${MULTI_TRANSFER} ${BRIDGE_PROXY} \
-      --outfile="upgrade-multisig-child-sc.json" --proxy=${PROXY} --chain=${CHAIN_ID} || return
+    SC_RESULT=$(eval operator sc upgrade ${MULTISIG} --key-file=${ALICE} \
+    --wasm ${MULTISIG_WASM} \
+    --args A:${SAFE} A:${MULTI_TRANSFER} \
+    --await --result-only --sign --node ${PROXY})
 
-    TRANSACTION=$(mxpy data parse --file="./upgrade-multisig-child-sc.json" --expression="data['emitted_tx']['hash']")
-    ADDRESS=$(mxpy data parse --file="./upgrade-multisig-child-sc.json" --expression="data['contractAddress']")
+    check_result ${SC_RESULT}
 
+    CONTRACT_ADDRESS=$(jq '.logs.events[] | select(.identifier=="SCDeploy") | .address' <<< "${SC_RESULT}")
+    CONTRACT_ADDRESS=$(echo ${CONTRACT_ADDRESS} | tr -d '"')
+    
     echo ""
-    echo "Multisig contract updated: ${ADDRESS}"
+    echo "Multisig contract upgraded successfully at address: ${CONTRACT_ADDRESS}"
 }

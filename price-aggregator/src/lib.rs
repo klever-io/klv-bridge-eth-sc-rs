@@ -410,6 +410,12 @@ pub trait PriceAggregator:
         self.clear_submissions(&pair);
     }
 
+    #[only_owner]
+    #[endpoint(changeContractName)]
+    fn change_contract_name(&self, new_name: ManagedBuffer) {
+        self.send().set_account_name(new_name);
+    }
+
     fn check_decimals(&self, from: &ManagedBuffer, to: &ManagedBuffer, decimals: u8) {
         let configured_decimals = self.get_pair_decimals(from, to);
         require!(

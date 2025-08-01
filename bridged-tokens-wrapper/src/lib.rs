@@ -133,6 +133,12 @@ pub trait BridgedTokensWrapper:
         self.token_decimals_num(&chain_specific_token_id).clear();
     }
 
+    #[only_owner]
+    #[endpoint(changeContractName)]
+    fn change_contract_name(&self, new_name: ManagedBuffer) {
+        self.send().set_account_name(new_name);
+    }
+
     #[payable("*")]
     #[endpoint(depositLiquidity)]
     fn deposit_liquidity(&self) {

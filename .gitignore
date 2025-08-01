@@ -9,6 +9,10 @@
 **/deploy-testnet.interaction.json
 **/testnet/
 **/deploy-child-sc-spam.json
+multisig/interaction/*.wasm
+
+# prevent accidental commit of key files
+*.pem
 
 # Klever IDE
 kleverchain.workspace.json

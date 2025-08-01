@@ -174,6 +174,19 @@ where
             .original_result()
     }
 
+    pub fn change_contract_name<
+        Arg0: ProxyArg<ManagedBuffer<Env::Api>>,
+    >(
+        self,
+        new_name: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("changeContractName")
+            .argument(&new_name)
+            .original_result()
+    }
+
     pub fn deposit_liquidity(
         self,
     ) -> TxTypedCall<Env, From, To, (), Gas, ()> {

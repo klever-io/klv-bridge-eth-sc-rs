@@ -5,8 +5,8 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           72
-// Total number of exported functions:  74
+// Endpoints:                           75
+// Total number of exported functions:  77
 
 #![no_std]
 
@@ -57,6 +57,9 @@ klever_sc_wasm_adapter::endpoints! {
         multiTransferKdaSetMaxRefundTxBatchSize => multi_transfer_kda_set_max_refund_tx_batch_size
         multiTransferKdaSetMaxRefundTxBatchBlockDuration => multi_transfer_kda_set_max_refund_tx_batch_block_duration
         multiTransferKdaSetWrappingContractAddress => multi_transfer_kda_set_wrapping_contract_address
+        changeContractName => change_contract_name
+        changeSafeContractName => change_safe_contract_name
+        changeMultiTransferContractName => change_multi_transfer_contract_name
         getQuorum => quorum
         getNumBoardMembers => num_board_members
         getRequiredStakeAmount => required_stake_amount

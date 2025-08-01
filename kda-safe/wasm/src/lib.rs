@@ -5,8 +5,8 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           53
-// Total number of exported functions:  55
+// Endpoints:                           54
+// Total number of exported functions:  56
 
 #![no_std]
 
@@ -25,6 +25,7 @@ klever_sc_wasm_adapter::endpoints! {
         setBridgedTokensWrapperAddress => set_bridged_tokens_wrapper_contract_address
         withdrawRefundFeesForEthereum => withdraw_refund_fees_for_ethereum
         withdrawTransactionFees => withdraw_transaction_fees
+        changeContractName => change_contract_name
         computeTotalAmmountsFromIndex => compute_total_amounts_from_index
         getRefundAmounts => get_refund_amounts
         getTotalRefundAmounts => get_total_refund_amounts

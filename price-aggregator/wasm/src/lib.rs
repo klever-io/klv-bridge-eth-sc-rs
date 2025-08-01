@@ -5,8 +5,8 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           21
-// Total number of exported functions:  23
+// Endpoints:                           22
+// Total number of exported functions:  24
 
 #![no_std]
 
@@ -29,6 +29,7 @@ klever_sc_wasm_adapter::endpoints! {
         setSubmissionCount => set_submission_count
         getOracles => get_oracles
         setPairDecimals => set_pair_decimals
+        changeContractName => change_contract_name
         getPairDecimals => get_pair_decimals
         submission_count => submission_count
         pause => pause_endpoint

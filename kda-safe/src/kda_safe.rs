@@ -431,6 +431,12 @@ pub trait KDASafe:
         accumulated_transaction_fees_mapper.set(BigUint::zero());
     }
 
+    #[only_admin]
+    #[endpoint(changeContractName)]
+    fn change_contract_name(&self, new_name: ManagedBuffer) {
+        self.send().set_account_name(new_name);
+    }
+
     #[view(computeTotalAmmountsFromIndex)]
     fn compute_total_amounts_from_index(
         &self,

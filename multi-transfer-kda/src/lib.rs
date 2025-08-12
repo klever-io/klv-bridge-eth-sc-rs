@@ -173,6 +173,12 @@ pub trait MultiTransferKda:
         }
     }
 
+    #[only_admin]
+    #[endpoint(changeContractName)]
+    fn change_contract_name(&self, new_name: ManagedBuffer) {
+        self.send().set_account_name(new_name);
+    }
+
     // private
 
     fn get_universal_token(&self, eth_tx: EthTransaction<Self::Api>) -> TokenIdentifier {

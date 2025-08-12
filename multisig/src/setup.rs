@@ -425,4 +425,34 @@ pub trait SetupModule:
             .set_wrapping_contract_address(opt_wrapping_contract_address)
             .sync_call();
     }
+
+    #[only_owner]
+    #[endpoint(changeContractName)]
+    fn change_contract_name(&self, new_name: ManagedBuffer) {
+        self.send().set_account_name(new_name);
+    }
+
+    #[only_owner]
+    #[endpoint(changeSafeContractName)]
+    fn change_safe_contract_name(&self, new_name: ManagedBuffer) {
+        let kda_safe_addr = self.kda_safe_address().get();
+
+        self.tx()
+            .to(kda_safe_addr)
+            .typed(kda_safe_proxy::KDASafeProxy)
+            .change_contract_name(new_name)
+            .sync_call();
+    }
+
+    #[only_owner]
+    #[endpoint(changeMultiTransferContractName)]
+    fn change_multi_transfer_contract_name(&self, new_name: ManagedBuffer) {
+        let multi_transfer_kda_addr = self.multi_transfer_kda_address().get();
+
+        self.tx()
+            .to(multi_transfer_kda_addr)
+            .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
+            .change_contract_name(new_name)
+            .sync_call();
+    }
 }

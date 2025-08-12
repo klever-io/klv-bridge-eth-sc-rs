@@ -5,8 +5,8 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           17
-// Total number of exported functions:  19
+// Endpoints:                           18
+// Total number of exported functions:  20
 
 #![no_std]
 
@@ -24,6 +24,7 @@ klever_sc_wasm_adapter::endpoints! {
         whitelistToken => whitelist_token
         updateWhitelistedToken => update_whitelisted_token
         blacklistToken => blacklist_token
+        changeContractName => change_contract_name
         depositLiquidity => deposit_liquidity
         wrapTokens => wrap_tokens
         unwrapToken => unwrap_token

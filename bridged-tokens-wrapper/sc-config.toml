@@ -6,7 +6,7 @@ main = "bridged-tokens-wrapper"
 allocator = "static64k"
 
 [[proxy]]
-path = "../multi-transfer-esdt/src/bridged_tokens_wrapper_proxy.rs"
+path = "../multi-transfer-kda/src/bridged_tokens_wrapper_proxy.rs"
 
 [[proxy]]
 path = "../multisig/src/bridged_tokens_wrapper_proxy.rs"

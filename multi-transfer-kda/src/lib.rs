@@ -66,7 +66,7 @@ pub trait MultiTransferKda:
             require!(is_success, "Invalid token or amount");
 
             let mut must_refund = false;
-            if eth_tx.to.is_zero() {
+            if eth_tx.to.is_zero() || self.blockchain().is_smart_contract(&eth_tx.to) {
                 self.transfer_failed_invalid_destination(batch_id, eth_tx.tx_nonce);
                 must_refund = true;
             } else if self.is_above_max_amount(&eth_tx.token_id, &eth_tx.amount) {

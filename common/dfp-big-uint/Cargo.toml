@@ -1,0 +1,12 @@
+[package]
+name = "dfp-big-uint"
+version = "0.0.0"
+authors = ["Klever <contact@klever.com>"]
+edition = "2021"
+
+[lib]
+path = "src/lib.rs"
+
+[dependencies.klever-sc]
+version = "0.44.0"
+path="../../../klever-vm-sdk-rs-internal/framework/base"

@@ -488,13 +488,13 @@ where
     >(
         self,
         token_id: Arg0,
-        amount: Arg1,
+        eth_amount: Arg1,
     ) -> TxTypedCall<Env, From, To, NotPayable, Gas, bool> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getTokens")
             .argument(&token_id)
-            .argument(&amount)
+            .argument(&eth_amount)
             .original_result()
     }
 
@@ -542,6 +542,30 @@ where
             .payment(NotPayable)
             .raw_call("setMultiTransferContractAddress")
             .argument(&opt_new_address)
+            .original_result()
+    }
+
+    /// Set token decimals for cross-chain conversion 
+    /// Called by Multisig admin when token mapping is configured 
+    /// @param token_id - The KDA token identifier on Klever 
+    /// @param eth_decimals - Decimals on Ethereum side (0-18) 
+    /// @param kda_decimals - Decimals on Klever side (0-8 max) 
+    pub fn set_token_decimals<
+        Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
+        Arg1: ProxyArg<u32>,
+        Arg2: ProxyArg<u32>,
+    >(
+        self,
+        token_id: Arg0,
+        eth_decimals: Arg1,
+        kda_decimals: Arg2,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("setTokenDecimals")
+            .argument(&token_id)
+            .argument(&eth_decimals)
+            .argument(&kda_decimals)
             .original_result()
     }
 
@@ -637,6 +661,38 @@ where
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getBurnBalances")
+            .argument(&token_id)
+            .original_result()
+    }
+
+    /// ERC20 token decimals on Ethereum side (can be up to 18) 
+    /// Used for cross-chain decimal conversion when minting/releasing tokens 
+    /// Set by admin via setTokenDecimals endpoint 
+    pub fn eth_token_decimals<
+        Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
+    >(
+        self,
+        token_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, u32> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("getEthTokenDecimals")
+            .argument(&token_id)
+            .original_result()
+    }
+
+    /// KDA token decimals on Klever side (max 8) 
+    /// Used for cross-chain decimal conversion when minting/releasing tokens 
+    /// Set by admin via setTokenDecimals endpoint 
+    pub fn kda_token_decimals<
+        Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
+    >(
+        self,
+        token_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, u32> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("getKdaTokenDecimals")
             .argument(&token_id)
             .original_result()
     }

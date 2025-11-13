@@ -5,8 +5,8 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           54
-// Total number of exported functions:  56
+// Endpoints:                           57
+// Total number of exported functions:  59
 
 #![no_std]
 
@@ -47,6 +47,7 @@ klever_sc_wasm_adapter::endpoints! {
         initSupply => init_supply
         initSupplyMintBurn => init_supply_mint_burn
         setMultiTransferContractAddress => set_multi_transfer_contract_address
+        setTokenDecimals => set_token_decimals
         getAllKnownTokens => token_whitelist
         isNativeToken => native_token
         isMintBurnToken => mint_burn_token
@@ -55,6 +56,8 @@ klever_sc_wasm_adapter::endpoints! {
         getTotalBalances => total_balances
         getMintBalances => mint_balances
         getBurnBalances => burn_balances
+        getEthTokenDecimals => eth_token_decimals
+        getKdaTokenDecimals => kda_token_decimals
         setMaxTxBatchSize => set_max_tx_batch_size
         setMaxTxBatchBlockDuration => set_max_tx_batch_block_duration
         getCurrentTxBatch => get_current_tx_batch

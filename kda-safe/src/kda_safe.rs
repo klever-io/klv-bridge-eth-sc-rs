@@ -7,6 +7,7 @@ klever_sc::derive_imports!();
 use core::convert::TryFrom;
 
 use core::ops::Deref;
+use dfp_big_uint::DFPBigUint;
 use eth_address::*;
 use fee_estimator_module::GWEI_STRING;
 use transaction::{transaction_status::TransactionStatus, Transaction};
@@ -309,6 +310,10 @@ pub trait KDASafe:
             .update(|fees| *fees += &required_fee);
 
         let actual_bridged_amount = payment_amount - required_fee.clone();
+        
+        // Convert from Klever decimals (max 8) to Ethereum decimals (up to 18)
+        let eth_side_amount = self.convert_kda_to_eth_amount(&payment_token, &actual_bridged_amount);
+        
         let tx_nonce = self.get_and_save_next_tx_id();
         let tx = Transaction {
             block_nonce: self.blockchain().get_block_nonce(),
@@ -316,7 +321,7 @@ pub trait KDASafe:
             from: refund_info.address.as_managed_buffer().clone(),
             to: to.as_managed_buffer().clone(),
             token_identifier: payment_token.clone(),
-            amount: actual_bridged_amount.clone(),
+            amount: eth_side_amount.clone(), // Store ETH-side amount in transaction
             is_refund_tx: false,
         };
 
@@ -346,7 +351,7 @@ pub trait KDASafe:
             batch_id,
             tx_nonce,
             payment_token,
-            actual_bridged_amount,
+            eth_side_amount, // Event emits ETH-side amount
             required_fee,
             refund_info.address.as_managed_buffer().clone(),
             tx.to,
@@ -523,6 +528,30 @@ pub trait KDASafe:
         }
     }
     // private
+
+    /// Convert amount from Klever decimals to Ethereum decimals
+    /// Uses stored decimals for both KDA and ETH sides
+    fn convert_kda_to_eth_amount(&self, token_id: &TokenIdentifier, kda_amount: &BigUint) -> BigUint {
+        let eth_decimals_mapper = self.eth_token_decimals(token_id);
+        let kda_decimals_mapper = self.kda_token_decimals(token_id);
+        
+        require!(
+            !eth_decimals_mapper.is_empty(),
+            "ETH decimals not configured for this token. Call setTokenDecimals first."
+        );
+        
+        require!(
+            !kda_decimals_mapper.is_empty(),
+            "KDA decimals not configured for this token. Call setTokenDecimals first."
+        );
+        
+        let eth_decimals = eth_decimals_mapper.get();
+        let kda_decimals = kda_decimals_mapper.get();
+        
+        DFPBigUint::from_raw(kda_amount.clone(), kda_decimals)
+            .convert(eth_decimals)
+            .to_raw()
+    }
 
     fn rebalance_for_refund(&self, token_id: &TokenIdentifier, amount: &BigUint) {
         let mintBurnToken = self.mint_burn_token(token_id).get();

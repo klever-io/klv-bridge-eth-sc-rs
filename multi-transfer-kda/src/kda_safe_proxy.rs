@@ -305,6 +305,24 @@ where
             .original_result()
     }
 
+    /// Convert amount from Ethereum decimals to Klever decimals 
+    /// Public endpoint for multi-transfer to use - ensures single conversion point 
+    pub fn convert_eth_to_kda_amount_endpoint<
+        Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
+        Arg1: ProxyArg<BigUint<Env::Api>>,
+    >(
+        self,
+        token_id: Arg0,
+        eth_amount: Arg1,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("convertEthToKdaAmount")
+            .argument(&token_id)
+            .argument(&eth_amount)
+            .original_result()
+    }
+
     pub fn bridged_tokens_wrapper_address(
         self,
     ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ManagedAddress<Env::Api>> {
@@ -482,19 +500,22 @@ where
             .original_result()
     }
 
+    /// Returns true if tokens were successfully minted/released 
+    /// Returns false if amount exceeds available balance or token is not whitelisted 
+    /// Note: Expects amount already converted to KDA decimals 
     pub fn get_tokens<
         Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
         Arg1: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         token_id: Arg0,
-        eth_amount: Arg1,
+        kda_amount: Arg1,
     ) -> TxTypedCall<Env, From, To, NotPayable, Gas, bool> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getTokens")
             .argument(&token_id)
-            .argument(&eth_amount)
+            .argument(&kda_amount)
             .original_result()
     }
 

@@ -527,7 +527,39 @@ pub trait KDASafe:
             accumulated_transaction_fees_mapper.get()
         }
     }
+
+    /// Convert amount from Ethereum decimals to Klever decimals
+    /// Public endpoint for multi-transfer to use - ensures single conversion point
+    #[view(convertEthToKdaAmount)]
+    fn convert_eth_to_kda_amount_endpoint(&self, token_id: &TokenIdentifier, eth_amount: &BigUint) -> BigUint {
+        self.convert_eth_to_kda_amount(token_id, eth_amount)
+    }
+
     // private
+
+    /// Convert amount from Ethereum decimals to Klever decimals
+    /// Uses stored decimals for both ETH and KDA sides
+    fn convert_eth_to_kda_amount(&self, token_id: &TokenIdentifier, eth_amount: &BigUint) -> BigUint {
+        let eth_decimals_mapper = self.eth_token_decimals(token_id);
+        let kda_decimals_mapper = self.kda_token_decimals(token_id);
+        
+        require!(
+            !eth_decimals_mapper.is_empty(),
+            "ETH decimals not configured for this token. Call setTokenDecimals first."
+        );
+        
+        require!(
+            !kda_decimals_mapper.is_empty(),
+            "KDA decimals not configured for this token. Call setTokenDecimals first."
+        );
+        
+        let eth_decimals = eth_decimals_mapper.get();
+        let kda_decimals = kda_decimals_mapper.get();
+        
+        DFPBigUint::from_raw(eth_amount.clone(), eth_decimals)
+            .convert(kda_decimals)
+            .to_raw()
+    }
 
     /// Convert amount from Klever decimals to Ethereum decimals
     /// Uses stored decimals for both KDA and ETH sides

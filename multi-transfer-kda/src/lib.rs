@@ -16,7 +16,8 @@ const CHAIN_SPECIFIC_TO_UNIVERSAL_TOKEN_MAPPING: &[u8] = b"chainSpecificToUniver
 
 #[klever_sc::contract]
 pub trait MultiTransferKda:
-    tx_batch_module::TxBatchModule + max_bridged_amount_module::MaxBridgedAmountModule
+    tx_batch_module::TxBatchModule
+    + max_bridged_amount_module::MaxBridgedAmountModule
     + only_admin::OnlyAdminModule
 {
     #[init]
@@ -55,11 +56,21 @@ pub trait MultiTransferKda:
         let safe_address = self.kda_safe_contract_address().get();
 
         for eth_tx in transfers {
+            // First, convert ETH amount to KDA amount using kda-safe's conversion (single source of truth)
+            let kda_amount: BigUint = self
+                .tx()
+                .to(safe_address.clone())
+                .typed(kda_safe_proxy::KDASafeProxy)
+                .convert_eth_to_kda_amount_endpoint(&eth_tx.token_id, &eth_tx.amount)
+                .returns(ReturnsResult)
+                .sync_call();
+
+            // Then, get tokens with the already-converted KDA amount
             let is_success: bool = self
                 .tx()
                 .to(safe_address.clone())
                 .typed(kda_safe_proxy::KDASafeProxy)
-                .get_tokens(&eth_tx.token_id, &eth_tx.amount)
+                .get_tokens(&eth_tx.token_id, &kda_amount)
                 .returns(ReturnsResult)
                 .sync_call();
 
@@ -69,7 +80,7 @@ pub trait MultiTransferKda:
             if eth_tx.to.is_zero() || self.blockchain().is_smart_contract(&eth_tx.to) {
                 self.transfer_failed_invalid_destination(batch_id, eth_tx.tx_nonce);
                 must_refund = true;
-            } else if self.is_above_max_amount(&eth_tx.token_id, &eth_tx.amount) {
+            } else if self.is_above_max_amount(&eth_tx.token_id, &kda_amount) {
                 self.transfer_over_max_amount(batch_id, eth_tx.tx_nonce);
                 must_refund = true;
             }
@@ -82,17 +93,19 @@ pub trait MultiTransferKda:
             }
 
             // emit event before the actual transfer so we don't have to save the tx_nonces as well
+            // Use KDA amount since that's what was actually minted/transferred
             self.transfer_performed_event(
                 batch_id,
                 eth_tx.from.clone(),
                 eth_tx.to.clone(),
                 eth_tx.token_id.clone(),
-                eth_tx.amount.clone(),
+                kda_amount.clone(),
                 eth_tx.tx_nonce,
             );
 
             valid_tx_list.push(eth_tx.clone());
-            valid_payments_list.push(KdaTokenPayment::new(eth_tx.token_id, 0, eth_tx.amount));
+            // Use KDA amount for payment since that's the converted amount
+            valid_payments_list.push(KdaTokenPayment::new(eth_tx.token_id, 0, kda_amount));
         }
 
         let payments_after_wrapping = self.wrap_tokens(valid_payments_list);

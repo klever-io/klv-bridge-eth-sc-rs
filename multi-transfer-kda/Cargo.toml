@@ -17,9 +17,6 @@ path = "../common/tx-batch-module"
 [dependencies.eth-address]
 path = "../common/eth-address"
 
-[dependencies.dfp-big-uint]
-path = "../common/dfp-big-uint"
-
 [dependencies.max-bridged-amount-module]
 path = "../common/max-bridged-amount-module"
 

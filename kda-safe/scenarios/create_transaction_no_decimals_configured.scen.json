@@ -1,0 +1,70 @@
+{
+    "name": "create transaction without decimals configured",
+    "comment": "Test that createTransaction fails when token decimals are not configured",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "setup_accounts.scen.json"
+        },
+        {
+            "step": "scCall",
+            "txId": "create-transaction-no-decimals",
+            "comment": "Try to create transaction with WKLV-1234 that has no decimals set",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:WKLV-1234",
+                        "value": "1,500,000,000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "60,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "57",
+                "out": [],
+                "message": "str:ETH decimals not configured for this token. Call setTokenDecimals first.",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "checkState",
+            "comment": "Verify that no transaction was created and user still has their tokens",
+            "accounts": {
+                "address:user1": {
+                    "nonce": "1",
+                    "balance": "0",
+                    "kda": {
+                        "str:BRIDGE-1234": "2,000,000",
+                        "str:WKLV-1234": "2,000,000,000"
+                    },
+                    "storage": {}
+                },
+                "sc:kda_safe": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "kda": {
+                        "str:BRIDGE-1234": {
+                            "balance": "8,000,000",
+                            "canBurn": true,
+                            "canMin": true
+                        }
+                    },
+                    "storage": {
+                        "str:firstBatchId": "1",
+                        "str:lastBatchId": "1",
+                        "+": ""
+                    },
+                    "code": "file:../output/kda-safe.wasm"
+                }
+            }
+        }
+    ]
+}

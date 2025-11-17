@@ -17,7 +17,8 @@
                     "nonce": "0",
                     "balance": "0",
                     "kda": {
-                        "str:BRIDGE-1234": "2,000,000"
+                        "str:BRIDGE-1234": "2,000,000",
+                        "str:WKLV-1234": "2,000,000,000"
                     },
                     "storage": {}
                 },
@@ -72,6 +73,27 @@
         },
         {
             "step": "scCall",
+            "txId": "add-admin",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "addAdmin",
+                "arguments": [
+                    "address:owner"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
             "txId": "add-token-1",
             "tx": {
                 "from": "address:owner",
@@ -81,6 +103,34 @@
                 "arguments": [
                     "str:BRIDGE-1234",
                     "str:BRIDGE",
+                    "true",
+                    "false",
+                    "0",
+                    "0",
+                    "0"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "add-WKLV-token-to-whitelist",
+            "comment": "Add token to whitelist but do NOT call setTokenDecimals",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "addTokenToWhitelist",
+                "arguments": [
+                    "str:WKLV-1234",
+                    "str:WKLV",
                     "true",
                     "false",
                     "0",
@@ -134,8 +184,10 @@
                         "str:lastBatchId": "1",
                         "str:ethTxGasLimit": "150,000",
                         "str:tokenTicker|nested:str:BRIDGE-1234": "str:BRIDGE",
+                        "str:tokenTicker|nested:str:WKLV-1234": "str:WKLV",
                         "str:tokenTicker|nested:str:GWEI": "str:GWEI",
                         "str:tokenWhitelist.index|nested:str:BRIDGE-1234": "1",
+                        "str:tokenWhitelist.index|nested:str:WKLV-1234": "2",
                         "str:pause_module:paused": "true",
                         "+": ""
                     },
@@ -175,6 +227,11 @@
                             "balance": "0",
                             "canBurn": true,
                             "canMin": true
+                        },
+                        "str:WKLV-1234": {
+                            "balance": "0",
+                            "canBurn": true,
+                            "canMin": true
                         }
                     },
                     "storage": {
@@ -187,10 +244,13 @@
                         "str:lastBatchId": "1",
                         "str:ethTxGasLimit": "150,000",
                         "str:tokenTicker|nested:str:BRIDGE-1234": "str:BRIDGE",
+                        "str:tokenTicker|nested:str:WKLV-1234": "str:WKLV",
                         "str:tokenTicker|nested:str:GWEI": "str:GWEI",
                         "str:tokenWhitelist.index|nested:str:BRIDGE-1234": "1",
+                        "str:tokenWhitelist.index|nested:str:WKLV-1234": "2",
                         "str:tokenWhitelist.item|u32:1": "str:BRIDGE-1234",
-                        "str:tokenWhitelist.len": "1"
+                        "str:tokenWhitelist.item|u32:2": "str:WKLV-1234",
+                        "str:tokenWhitelist.len": "2"
                     },
                     "code": "file:../output/kda-safe.wasm",
                     "owner": "address:owner"
@@ -206,7 +266,8 @@
             },
             "expect": {
                 "out": [
-                    "str:BRIDGE-1234"
+                    "str:BRIDGE-1234",
+                    "str:WKLV-1234"
                 ]
             }
         }

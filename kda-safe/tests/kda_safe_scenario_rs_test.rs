@@ -90,3 +90,8 @@ fn setup_accounts_rs() {
 fn zero_fees_rs() {
     world().run("scenarios/zero_fees.scen.json");
 }
+
+#[test]
+fn create_transaction_no_decimals_configured_rs() {
+    world().run("scenarios/create_transaction_no_decimals_configured.scen.json");
+}

@@ -106,7 +106,7 @@
                 "arguments": [
                     "str:GWEI",
                     "str:WKLV",
-                    "u8:9"
+                    "u8:8"
                 ],
                 "gasLimit": "40,000,000",
                 "gasPrice": "0"

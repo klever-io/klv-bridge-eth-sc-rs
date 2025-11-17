@@ -89,6 +89,12 @@ pub trait StorageModule {
         erc20_address: &EthAddress<Self::Api>,
     ) -> SingleValueMapper<TokenIdentifier>;
 
+    /// Number of decimals for ERC20 tokens on Ethereum side (can be up to 18)
+    /// Used for cross-chain decimal conversion
+    #[view(getErc20Decimals)]
+    #[storage_mapper("erc20Decimals")]
+    fn erc20_decimals(&self, erc20_address: &EthAddress<Self::Api>) -> SingleValueMapper<u32>;
+
     // SC addresses
 
     #[view(getKdaSafeAddress)]

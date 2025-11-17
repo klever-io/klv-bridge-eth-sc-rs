@@ -172,7 +172,14 @@ impl MultiTransferTestState {
             .code(MULTI_TRANSFER_CODE_PATH)
             .new_address(MULTI_TRANSFER_ADDRESS)
             .run();
-
+        
+        self.world
+            .tx()
+            .from(MULTISIG_ADDRESS)
+            .to(MULTI_TRANSFER_ADDRESS)
+            .typed(multi_transfer_kda_proxy::MultiTransferKdaProxy)
+            .add_admin(MULTISIG_ADDRESS.eval_to_array())
+            .run();
         self
     }
 
@@ -202,6 +209,15 @@ impl MultiTransferTestState {
             )
             .code(KDA_SAFE_CODE_PATH)
             .run();
+
+        self.world
+            .tx()
+            .from(OWNER_ADDRESS)
+            .to(KDA_SAFE_ADDRESS)
+            .typed(kda_safe_proxy::KDASafeProxy)
+            .add_admin(OWNER_ADDRESS.eval_to_array())
+            .run();
+
 
         self
     }

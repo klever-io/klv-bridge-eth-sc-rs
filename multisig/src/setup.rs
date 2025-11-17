@@ -106,6 +106,44 @@ pub trait SetupModule:
         self.add_mapping_event(erc20_address, token_id);
     }
 
+    /// Set ERC20 and KDA token decimals and propagate to KdaSafe
+    /// Must be called after addMapping for the same token
+    /// @param erc20_address - The ERC20 token address on Ethereum
+    /// @param erc20_decimals - Decimals on Ethereum side (0-18)
+    /// @param kda_decimals - Decimals on Klever side (0-8)
+    #[only_owner]
+    #[endpoint(setErc20Decimals)]
+    fn set_erc20_decimals(
+        &self,
+        erc20_address: EthAddress<Self::Api>,
+        erc20_decimals: u32,
+        kda_decimals: u32,
+    ) {
+        require!(
+            !self.token_id_for_erc20_address(&erc20_address).is_empty(),
+            "Mapping does not exist. Call addMapping first."
+        );
+        require!(erc20_decimals <= 18, "Decimals cannot exceed 18");
+        require!(kda_decimals <= 8, "KDA decimals cannot exceed 8");
+
+        // Get token_id from mapping
+        let token_id = self.token_id_for_erc20_address(&erc20_address).get();
+
+        // Store decimals in Multisig
+        self.erc20_decimals(&erc20_address).set(erc20_decimals);
+
+        // Propagate to KdaSafe (token-module endpoint)
+        let kda_safe_addr = self.kda_safe_address().get();
+        let _: () = self
+            .tx()
+            .to(&kda_safe_addr)
+            .raw_call(ManagedBuffer::from("setTokenDecimals"))
+            .argument(&token_id)
+            .argument(&erc20_decimals)
+            .argument(&kda_decimals)
+            .sync_call();
+    }
+
     #[only_owner]
     #[endpoint(clearMapping)]
     fn clear_mapping(&self, erc20_address: EthAddress<Self::Api>, token_id: TokenIdentifier) {
@@ -128,6 +166,7 @@ pub trait SetupModule:
 
         self.erc20_address_for_token_id(&token_id).clear();
         self.token_id_for_erc20_address(&erc20_address).clear();
+        self.erc20_decimals(&erc20_address).clear();
         self.clear_mapping_event(erc20_address, token_id);
     }
 

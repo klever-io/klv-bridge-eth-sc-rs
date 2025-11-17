@@ -5,8 +5,8 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           75
-// Total number of exported functions:  77
+// Endpoints:                           77
+// Total number of exported functions:  79
 
 #![no_std]
 
@@ -37,6 +37,7 @@ klever_sc_wasm_adapter::endpoints! {
         slashBoardMember => slash_board_member
         changeQuorum => change_quorum
         addMapping => add_mapping
+        setErc20Decimals => set_erc20_decimals
         clearMapping => clear_mapping
         pauseKdaSafe => pause_kda_safe
         unpauseKdaSafe => unpause_kda_safe
@@ -70,6 +71,7 @@ klever_sc_wasm_adapter::endpoints! {
         getLastExecutedEthTxId => last_executed_eth_tx_id
         getErc20AddressForTokenId => erc20_address_for_token_id
         getTokenIdForErc20Address => token_id_for_erc20_address
+        getErc20Decimals => erc20_decimals
         getKdaSafeAddress => kda_safe_address
         getMultiTransferKdaAddress => multi_transfer_kda_address
         getProxyAddress => proxy_address

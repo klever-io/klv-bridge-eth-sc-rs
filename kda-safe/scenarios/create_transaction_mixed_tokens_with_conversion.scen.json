@@ -1,0 +1,150 @@
+{
+    "name": "create transaction with mixed tokens (same and different decimals)",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "setup_accounts.scen.json"
+        },
+        {
+            "step": "scQuery",
+            "txId": "check-eth-required-fee",
+            "comment": "Calculate required fee for ETH token (raw value)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "calculateRequiredFee",
+                "arguments": [
+                    "str:ETH"
+                ]
+            },
+            "expect": {
+                "status": "0",
+                "out": [
+                    "1,500,000"
+                ]
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-bridge-token-same-decimals",
+            "comment": "Bridge BRIDGE-1234 token with same decimals (6→6): 1,500,900 - required fee (1,500,000)",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:BRIDGE-1234",
+                        "nonce": "0",
+                        "value": "1,500,900"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-eth-token-different-decimals",
+            "comment": "Bridge ETH token with different decimals (8->18): 1,500,900 - required fee (1,500,000)",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:ETH",
+                        "nonce": "0",
+                        "value": "1,500,900"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "get-batch-1",
+            "comment": "Verify both transactions stored with amounts converted to ETH decimals after fees. BRIDGE stays 6 decimals (same on both sides), ETH converts from 8 to 18 decimals",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getBatch",
+                "arguments": [
+                    "1"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1",
+                    "0",
+                    "1",
+                    "address:user1",
+                    "0x0102030405060708091011121314151617181920",
+                    "str:BRIDGE-1234",
+                    "900",
+                    "0",
+                    "2",
+                    "address:user1",
+                    "0x0102030405060708091011121314151617181920",
+                    "str:ETH",
+                    "9,000,000,000,000"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "check-bridge-token-conversion",
+            "comment": "BRIDGE-1234: 1,500,900 (6 decimals) should stay 1,500,900 (6 decimals on ETH)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "convertKdaToEthAmount",
+                "arguments": [
+                    "str:BRIDGE-1234",
+                    "1,500,900"
+                ]
+            },
+            "expect": {
+                "status": "0",
+                "out": [
+                    "1,500,900"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "check-eth-token-conversion",
+            "comment": "ETH: 1,000,000,000 (8 KDA decimals) should convert to 10e18 (18 ETH decimals)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "convertKdaToEthAmount",
+                "arguments": [
+                    "str:ETH",
+                    "1,000,000,000"
+                ]
+            },
+            "expect": {
+                "status": "0",
+                "out": [
+                    "10,000,000,000,000,000,000"
+                ]
+            }
+        }
+    ]
+}

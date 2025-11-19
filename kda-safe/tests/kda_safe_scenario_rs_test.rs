@@ -95,3 +95,13 @@ fn zero_fees_rs() {
 fn create_transaction_no_decimals_configured_rs() {
     world().run("scenarios/create_transaction_no_decimals_configured.scen.json");
 }
+
+#[test]
+fn create_transaction_eth_token_with_conversion_rs() {
+    world().run("scenarios/create_transaction_eth_token_with_conversion.scen.json");
+}
+
+#[test]
+fn create_transaction_mixed_tokens_with_conversion_rs() {
+    world().run("scenarios/create_transaction_mixed_tokens_with_conversion.scen.json");
+}

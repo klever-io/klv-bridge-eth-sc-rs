@@ -18,7 +18,8 @@
                     "balance": "0",
                     "kda": {
                         "str:BRIDGE-1234": "2,000,000",
-                        "str:WKLV-1234": "2,000,000,000"
+                        "str:WKLV-1234": "2,000,000,000",
+                        "str:ETH": "2,000,000,000"
                     },
                     "storage": {}
                 },
@@ -26,7 +27,8 @@
                     "nonce": "0",
                     "balance": "0",
                     "kda": {
-                        "str:BRIDGE-1234": "2,000,000"
+                        "str:BRIDGE-1234": "2,000,000",
+                        "str:ETH": "2,000,000,000"
                     },
                     "storage": {}
                 }
@@ -149,6 +151,33 @@
         },
         {
             "step": "scCall",
+            "txId": "add-token-2",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "addTokenToWhitelist",
+                "arguments": [
+                    "str:ETH",
+                    "str:ETH",
+                    "true",
+                    "false",
+                    "0",
+                    "0",
+                    "0"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
             "txId": "add-bridged-tokens-wrapper-addr",
             "tx": {
                 "from": "address:owner",
@@ -157,6 +186,52 @@
                 "function": "setBridgedTokensWrapperAddress",
                 "arguments": [
                     "sc:bridged_tokens_wrapper"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "set-bridge-token-decimals",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "setTokenDecimals",
+                "arguments": [
+                    "str:BRIDGE-1234",
+                    "6",
+                    "6"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "set-eth-bridge-token-decimals",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "setTokenDecimals",
+                "arguments": [
+                    "str:ETH",
+                    "18",
+                    "8"
                 ],
                 "gasLimit": "50,000,000",
                 "gasPrice": "0"
@@ -185,9 +260,18 @@
                         "str:ethTxGasLimit": "150,000",
                         "str:tokenTicker|nested:str:BRIDGE-1234": "str:BRIDGE",
                         "str:tokenTicker|nested:str:WKLV-1234": "str:WKLV",
+                        "str:tokenTicker|nested:str:ETH": "str:ETH",
                         "str:tokenTicker|nested:str:GWEI": "str:GWEI",
                         "str:tokenWhitelist.index|nested:str:BRIDGE-1234": "1",
                         "str:tokenWhitelist.index|nested:str:WKLV-1234": "2",
+                        "str:tokenWhitelist.index|nested:str:ETH": "3",
+                        "str:tokenWhitelist.item|u32:1": "str:BRIDGE-1234",
+                        "str:tokenWhitelist.item|u32:2": "str:WKLV-1234",
+                        "str:tokenWhitelist.item|u32:3": "str:ETH",
+                        "str:ethTokenDecimals|nested:str:BRIDGE-1234": "6",
+                        "str:kdaTokenDecimals|nested:str:BRIDGE-1234": "6",
+                        "str:ethTokenDecimals|nested:str:ETH": "18",
+                        "str:kdaTokenDecimals|nested:str:ETH": "8",
                         "str:pause_module:paused": "true",
                         "+": ""
                     },
@@ -232,6 +316,11 @@
                             "balance": "0",
                             "canBurn": true,
                             "canMin": true
+                        },
+                        "str:ETH": {
+                            "balance": "0",
+                            "canBurn": true,
+                            "canMin": true
                         }
                     },
                     "storage": {
@@ -245,16 +334,44 @@
                         "str:ethTxGasLimit": "150,000",
                         "str:tokenTicker|nested:str:BRIDGE-1234": "str:BRIDGE",
                         "str:tokenTicker|nested:str:WKLV-1234": "str:WKLV",
+                        "str:tokenTicker|nested:str:ETH": "str:ETH",
                         "str:tokenTicker|nested:str:GWEI": "str:GWEI",
                         "str:tokenWhitelist.index|nested:str:BRIDGE-1234": "1",
                         "str:tokenWhitelist.index|nested:str:WKLV-1234": "2",
+                        "str:tokenWhitelist.index|nested:str:ETH": "3",
                         "str:tokenWhitelist.item|u32:1": "str:BRIDGE-1234",
                         "str:tokenWhitelist.item|u32:2": "str:WKLV-1234",
-                        "str:tokenWhitelist.len": "2"
+                        "str:tokenWhitelist.item|u32:3": "str:ETH",
+                        "str:ethTokenDecimals|nested:str:BRIDGE-1234": "6",
+                        "str:kdaTokenDecimals|nested:str:BRIDGE-1234": "6",
+                        "str:ethTokenDecimals|nested:str:ETH": "18",
+                        "str:kdaTokenDecimals|nested:str:ETH": "8",
+                        "str:tokenWhitelist.len": "3"
                     },
                     "code": "file:../output/kda-safe.wasm",
                     "owner": "address:owner"
                 }
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "add-admin",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "addAdmin",
+                "arguments": [
+                    "address:owner"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
             }
         },
         {
@@ -267,7 +384,8 @@
             "expect": {
                 "out": [
                     "str:BRIDGE-1234",
-                    "str:WKLV-1234"
+                    "str:WKLV-1234",
+                    "str:ETH"
                 ]
             }
         }

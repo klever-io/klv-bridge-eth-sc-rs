@@ -1,0 +1,98 @@
+{
+    "name": "create transaction with ETH token (18 ETH decimals → 8 KDA decimals)",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "setup_accounts.scen.json"
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-eth-token",
+            "comment": "Bridge 10 ETH tokens (10_00000000 = 10.0 with 8 KDA decimals) which should convert to 10e18 on ETH side",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:ETH",
+                        "nonce": "0",
+                        "value": "1,500,000,000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "get-batch-1",
+            "comment": "Verify the transaction was stored with amount converted to 18 decimals after fee deduction (1,500,000,000 - fees) ",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getBatch",
+                "arguments": [
+                    "1"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1",
+                    "0",
+                    "1",
+                    "address:user1",
+                    "0x0102030405060708091011121314151617181920",
+                    "str:ETH",
+                    "14,985,000,000,000,000,000"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "convert-kda-to-eth-amount",
+            "comment": "10 KDA tokens (1000000000 with 8 decimals) should convert to 10^19 on ETH side (18 decimals)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "convertKdaToEthAmount",
+                "arguments": [
+                    "str:ETH",
+                    "1,000,000,000"
+                ]
+            },
+            "expect": {
+                "status": "0",
+                "out": [
+                    "10,000,000,000,000,000,000"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "convert-eth-to-kda-amount",
+            "comment": "10 ETH tokens (10^19 with 18 decimals) should convert to 1000000000 on KDA side (8 decimals)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "convertEthToKdaAmount",
+                "arguments": [
+                    "str:ETH",
+                    "10,000,000,000,000,000,000"
+                ]
+            },
+            "expect": {
+                "status": "0",
+                "out": [
+                    "1,000,000,000"
+                ]
+            }
+        }
+    ]
+}

@@ -306,7 +306,7 @@ where
     }
 
     /// Convert amount from Ethereum decimals to Klever decimals 
-    /// Public endpoint for multi-transfer to use - ensures single conversion point 
+    /// Public endpoint for multi-transfer and to use - ensures single conversion point 
     pub fn convert_eth_to_kda_amount_endpoint<
         Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
         Arg1: ProxyArg<BigUint<Env::Api>>,
@@ -320,6 +320,24 @@ where
             .raw_call("convertEthToKdaAmount")
             .argument(&token_id)
             .argument(&eth_amount)
+            .original_result()
+    }
+
+    /// Convert amount from Klever decimals to Ethereum decimals 
+    /// Public endpoint for multi-transfer to use - ensures single conversion point 
+    pub fn convert_kda_to_eth_amount_endpoint<
+        Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
+        Arg1: ProxyArg<BigUint<Env::Api>>,
+    >(
+        self,
+        token_id: Arg0,
+        kda_amount: Arg1,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("convertKdaToEthAmount")
+            .argument(&token_id)
+            .argument(&kda_amount)
             .original_result()
     }
 

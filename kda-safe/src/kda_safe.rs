@@ -529,10 +529,17 @@ pub trait KDASafe:
     }
 
     /// Convert amount from Ethereum decimals to Klever decimals
-    /// Public endpoint for multi-transfer to use - ensures single conversion point
+    /// Public endpoint for multi-transfer and relayer to use - ensures single conversion point
     #[view(convertEthToKdaAmount)]
     fn convert_eth_to_kda_amount_endpoint(&self, token_id: &TokenIdentifier, eth_amount: &BigUint) -> BigUint {
         self.convert_eth_to_kda_amount(token_id, eth_amount)
+    }
+
+    /// Convert amount from Klever decimals to Ethereum decimals
+    /// Public endpoint for multi-transfer and relayer to use - ensures single conversion point
+    #[view(convertKdaToEthAmount)]
+    fn convert_kda_to_eth_amount_endpoint(&self, token_id: &TokenIdentifier, kda_amount: &BigUint) -> BigUint {
+        self.convert_kda_to_eth_amount(token_id, kda_amount)
     }
 
     // private

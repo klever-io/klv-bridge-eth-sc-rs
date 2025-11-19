@@ -5,8 +5,8 @@
 
 // Init:                                 1
 // Upgrade:                              1
-// Endpoints:                           58
-// Total number of exported functions:  60
+// Endpoints:                           59
+// Total number of exported functions:  61
 
 #![no_std]
 
@@ -32,6 +32,7 @@ klever_sc_wasm_adapter::endpoints! {
         getRefundFeesForEthereum => get_refund_fees_for_ethereum
         getTransactionFees => get_transaction_fees
         convertEthToKdaAmount => convert_eth_to_kda_amount_endpoint
+        convertKdaToEthAmount => convert_kda_to_eth_amount_endpoint
         getBridgedTokensWrapperAddress => bridged_tokens_wrapper_address
         setFeeEstimatorContractAddress => set_fee_estimator_contract_address
         setEthTxGasLimit => set_eth_tx_gas_limit

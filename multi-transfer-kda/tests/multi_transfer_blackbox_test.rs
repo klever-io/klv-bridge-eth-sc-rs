@@ -1193,6 +1193,98 @@ fn add_refund_batch_test() {
 }
 
 #[test]
+fn add_refund_batch_with_decimal_conversion_test() {
+    let mut state = MultiTransferTestState::new();
+
+    state.multi_transfer_deploy();
+    state.safe_deploy(Address::zero());
+    state.bridged_tokens_wrapper_deploy();
+    state.config_multi_transfer();
+
+    // Use BRIDGE-123456 which has 18 ETH decimals → 6 KDA decimals
+    // For this test, use MAX_AMOUNT in ETH decimals (18 decimals)
+    let eth_amount = BigUint::from(30_000u64) *  BigUint::from(10u64).pow(18u32); // This is in 18 ETH decimals
+
+    let kda_amount = state
+        .world
+        .query()
+        .to(KDA_SAFE_ADDRESS)
+        .typed(kda_safe_proxy::KDASafeProxy)
+        .convert_eth_to_kda_amount_endpoint(BRIDGE_TOKEN_ID, &eth_amount)
+        .returns(ReturnsResult)
+        .run();
+    
+    let eth_tx = EthTransaction {
+        from: EthAddress::zero(),
+        to: ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
+        token_id: TokenIdentifier::from(BRIDGE_TOKEN_ID),
+        amount: eth_amount.clone(),
+        tx_nonce: 1u64,
+        call_data: ManagedOption::none(),
+    };
+
+    let mut transfers: MultiValueEncoded<StaticApi, EthTransaction<StaticApi>> =
+        MultiValueEncoded::new();
+    transfers.push(eth_tx.clone());
+
+    // Calculate fee for BRIDGE token
+    let fee = state
+        .world
+        .query()
+        .to(KDA_SAFE_ADDRESS)
+        .typed(kda_safe_proxy::KDASafeProxy)
+        .calculate_required_fee(BRIDGE_TOKEN_ID)
+        .returns(ReturnsResult)
+        .run();
+
+    // Initial balance should be 0 since BRIDGE is a mint token
+    state.check_balances_on_safe(
+        BRIDGE_TOKEN_ID,
+        BigUint::zero(),
+        BigUint::zero(),
+        BigUint::zero(),
+    );
+
+    // Transfer the tokens - this will attempt to mint and transfer them on KDA side
+    // Since the user doesn't exist or can't receive, this will trigger a refund
+    state
+        .world
+        .tx()
+        .from(OWNER_ADDRESS)
+        .to(MULTI_TRANSFER_ADDRESS)
+        .typed(multi_transfer_proxy::MultiTransferKdaProxy)
+        .batch_transfer_kda_token(1u32, transfers)
+        .run();
+    
+    let expected_converted_amount = eth_amount / BigUint::from(10u64).pow(12u32);
+
+    state.check_balances_on_safe(BRIDGE_TOKEN_ID, BigUint::zero(), expected_converted_amount.clone(), BigUint::zero());
+
+    // Move refund batch to safe - this should restore balance minus fees
+    // The amount will be converted from 18 ETH decimals to 6 KDA decimals
+
+    // TODO: failing because conversion not applied when moving refund batch
+    state
+        .world
+        .tx()
+        .from(OWNER_ADDRESS)
+        .to(MULTI_TRANSFER_ADDRESS)
+        .typed(multi_transfer_proxy::MultiTransferKdaProxy)
+        .move_refund_batch_to_safe()
+        .run();
+
+    // Expected KDA amount: (MAX_AMOUNT - fee) converted from 18 to 6 decimals
+    // Conversion: divide by 10^12 to go from 18 decimals to 6 decimals
+    let expected_kda_amount = (expected_converted_amount - fee);
+    state.check_balances_on_safe(
+        BRIDGE_TOKEN_ID,
+        BigUint::zero(),
+        expected_kda_amount,
+        BigUint::zero(),
+    );
+}
+
+#[test]
 fn transfer_without_eth_decimals_configured_should_fail() {
     let mut state = MultiTransferTestState::new();
     let token_amount = BigUint::from(500u64);

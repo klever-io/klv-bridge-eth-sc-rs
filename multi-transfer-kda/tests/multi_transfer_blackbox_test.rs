@@ -58,7 +58,7 @@ const USER1_ADDRESS: TestAddress = TestAddress::new("user1");
 const USER2_ADDRESS: TestAddress = TestAddress::new("user2");
 
 const KDA_SAFE_ETH_TX_GAS_LIMIT: u64 = 150_000;
-const MAX_AMOUNT: u64 = 100_000_000_000_000u64;
+const MAX_AMOUNT: u64 = 30_000_000_000u64;
 
 const BALANCE: &str = "2,000,000";
 
@@ -253,6 +253,14 @@ impl MultiTransferTestState {
             .to(KDA_SAFE_ADDRESS)
             .typed(kda_safe_proxy::KDASafeProxy)
             .set_token_decimals(TokenIdentifier::from_kda_bytes("BRIDGE-123456"), 18u32, 6u32)
+            .run();
+
+        self.world
+            .tx()
+            .from(OWNER_ADDRESS)
+            .to(MULTI_TRANSFER_ADDRESS)
+            .typed(multi_transfer_proxy::MultiTransferKdaProxy)
+            .set_max_bridged_amount(BRIDGE_TOKEN_ID, MAX_AMOUNT - 1)
             .run();
 
         self.world
@@ -608,6 +616,8 @@ fn basic_transfer_with_decimal_round_down_conversion_test() {
         .typed(multi_transfer_proxy::MultiTransferKdaProxy)
         .batch_transfer_kda_token(1u32, transfers)
         .run();
+
+    state.check_balances_on_safe(BRIDGE_TOKEN_ID, BigUint::zero(), BigUint::zero(), BigUint::zero());
 
     // With 18→6 decimal conversion: 500 * 10^6 / 10^18 = 0 (rounded down)
     state

@@ -8,18 +8,19 @@ pub mod transaction_status;
 
 // revert protection
 pub const MIN_BLOCKS_FOR_FINALITY: u64 = 10;
-pub const TX_MULTIRESULT_NR_FIELDS: usize = 6;
+pub const TX_MULTIRESULT_NR_FIELDS: usize = 7;
 
 pub type TxNonce = u64;
 pub type BlockNonce = u64;
 pub type SenderAddressRaw<M> = ManagedBuffer<M>;
 pub type ReceiverAddressRaw<M> = ManagedBuffer<M>;
-pub type TxAsMultiValue<M> = MultiValue6<
+pub type TxAsMultiValue<M> = MultiValue7<
     BlockNonce,
     TxNonce,
     SenderAddressRaw<M>,
     ReceiverAddressRaw<M>,
     TokenIdentifier<M>,
+    BigUint<M>,
     BigUint<M>,
 >;
 pub type PaymentsVec<M> = ManagedVec<M, KdaTokenPayment<M>>;
@@ -50,14 +51,16 @@ pub struct EthTransaction<M: ManagedTypeApi> {
     pub to: ManagedAddress<M>,
     pub token_id: TokenIdentifier<M>,
     pub amount: BigUint<M>,
+    pub converted_amount: BigUint<M>,
     pub tx_nonce: TxNonce,
     pub call_data: ManagedOption<M, ManagedBuffer<M>>,
 }
 
-pub type EthTxAsMultiValue<M> = MultiValue6<
+pub type EthTxAsMultiValue<M> = MultiValue7<
     EthAddress<M>,
     ManagedAddress<M>,
     TokenIdentifier<M>,
+    BigUint<M>,
     BigUint<M>,
     TxNonce,
     ManagedOption<M, ManagedBuffer<M>>,
@@ -72,12 +75,13 @@ pub struct Transaction<M: ManagedTypeApi> {
     pub to: ManagedBuffer<M>,
     pub token_identifier: TokenIdentifier<M>,
     pub amount: BigUint<M>,
+    pub converted_amount: BigUint<M>,
     pub is_refund_tx: bool,
 }
 
 impl<M: ManagedTypeApi> From<TxAsMultiValue<M>> for Transaction<M> {
     fn from(tx_as_multiresult: TxAsMultiValue<M>) -> Self {
-        let (block_nonce, nonce, from, to, token_identifier, amount) =
+        let (block_nonce, nonce, from, to, token_identifier, amount, converted_amount) =
             tx_as_multiresult.into_tuple();
 
         Transaction {
@@ -87,6 +91,7 @@ impl<M: ManagedTypeApi> From<TxAsMultiValue<M>> for Transaction<M> {
             to,
             token_identifier,
             amount,
+            converted_amount,
             is_refund_tx: false,
         }
     }
@@ -101,6 +106,7 @@ impl<M: ManagedTypeApi> Transaction<M> {
             self.to,
             self.token_identifier,
             self.amount,
+            self.converted_amount,
         )
             .into()
     }

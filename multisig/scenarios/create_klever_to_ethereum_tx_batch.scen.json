@@ -70,7 +70,8 @@
                             "4-to": "u32:20|0x0102030405060708091011121314151617181920",
                             "5-token_identifier": "nested:str:WKLV-123456",
                             "6-amount": "biguint:84,998,500,000",
-                            "7-is_refund_tx": "u8:0"
+                            "7-converted_amount": "biguint:84,998,500,000",
+                            "8-is_refund_tx": "u8:0"
                         },
                         "str:firstBatchId": "1",
                         "str:lastBatchId": "1",
@@ -146,6 +147,7 @@
                             "4-to": "u32:20|0x0102030405060708091011121314151617181920",
                             "5-token_identifier": "nested:str:WKLV-123456",
                             "6-amount": "biguint:84,998,500,000",
+                            "7-converted_amount": "biguint:84,998,500,000",
                             "7-is_refund_tx": "u8:0"
                         },
                         "str:pendingBatches|u64:1|str:.item|u32:2": {
@@ -154,8 +156,9 @@
                             "3-from": "u32:32|address:user",
                             "4-to": "u32:20|0x0102030405060708091011121314151617181920",
                             "5-token_identifier": "nested:str:ETH-123456",
-                            "6-amount": "biguint:94,998,500,000",
-                            "7-is_refund_tx": "u8:0"
+                            "6-amount": "biguint:94,998,500,000,000,000,000,000",
+                            "7-converted_amount": "biguint:94,998,500,000",
+                            "8-is_refund_tx": "u8:0"
                         },
                         "str:firstBatchId": "1",
                         "str:lastBatchId": "1",
@@ -191,11 +194,13 @@
                     "0x0102030405060708091011121314151617181920",
                     "str:WKLV-123456",
                     "84,998,500,000",
+                    "84,998,500,000",
                     "0",
                     "2",
                     "address:user",
                     "0x0102030405060708091011121314151617181920",
                     "str:ETH-123456",
+                    "94,998,500,000,000,000,000,000",
                     "94,998,500,000"
                 ]
             }

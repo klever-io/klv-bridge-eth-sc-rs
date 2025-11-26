@@ -52,6 +52,23 @@
             }
         },
         {
+            "step": "scCall",
+            "id": "",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda-safe",
+                "function": "addAdmin",
+                "arguments": [
+                    "0x6f776e65725f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f5f"
+                ],
+                "gasLimit": "5,000,000"
+            },
+            "expect": {
+                "out": [],
+                "status": "0"
+            }
+        },
+        {
             "step": "setState",
             "newAddresses": [
                 {
@@ -76,11 +93,28 @@
             }
         },
         {
+            "step": "scCall",
+            "id": "",
+            "tx": {
+                "from": "sc:multisig",
+                "to": "sc:multi-transfer",
+                "function": "addAdmin",
+                "arguments": [
+                    "0x000000000000000000006d756c74697369675f5f5f5f5f5f5f5f5f5f5f5f5f5f"
+                ],
+                "gasLimit": "5,000,000"
+            },
+            "expect": {
+                "out": [],
+                "status": "0"
+            }
+        },
+        {
             "step": "setState",
             "newAddresses": [
                 {
                     "creatorAddress": "address:owner",
-                    "creatorNonce": "4",
+                    "creatorNonce": "5",
                     "newAddress": "sc:bridged-tokens-wrapper"
                 }
             ]
@@ -203,6 +237,87 @@
             "id": "",
             "tx": {
                 "from": "address:owner",
+                "to": "sc:kda-safe",
+                "function": "addTokenToWhitelist",
+                "arguments": [
+                    "0x455448555344432d616661363839",
+                    "0x45544855534443",
+                    "0x01",
+                    "0x",
+                    "0x",
+                    "0x",
+                    "0x",
+                    "0x0249f0"
+                ],
+                "gasLimit": "5,000,000"
+            },
+            "expect": {
+                "out": [],
+                "status": "0"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda-safe",
+                "function": "setTokenDecimals",
+                "arguments": [
+                    "0x574b4c562d313233343536",
+                    "0x08",
+                    "0x08"
+                ],
+                "gasLimit": "5,000,000"
+            },
+            "expect": {
+                "out": [],
+                "status": "0"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda-safe",
+                "function": "setTokenDecimals",
+                "arguments": [
+                    "0x4554482d313233343536",
+                    "0x12",
+                    "0x08"
+                ],
+                "gasLimit": "5,000,000"
+            },
+            "expect": {
+                "out": [],
+                "status": "0"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda-safe",
+                "function": "setTokenDecimals",
+                "arguments": [
+                    "0x455448555344432d616661363839",
+                    "0x06",
+                    "0x06"
+                ],
+                "gasLimit": "5,000,000"
+            },
+            "expect": {
+                "out": [],
+                "status": "0"
+            }
+        },
+        {
+            "step": "scCall",
+            "id": "",
+            "tx": {
+                "from": "address:owner",
                 "to": "sc:multisig",
                 "function": "unpause",
                 "arguments": [],
@@ -304,6 +419,7 @@
                     "0x691dee92137cddbe76ec34eeacbc3b7d91264148da5a69205133c395aa7662cf",
                     "0x455448555344432d616661363839",
                     "0x1388",
+                    "0x1388",
                     "0x01",
                     "0x"
                 ],
@@ -328,6 +444,7 @@
                     "0x691dee92137cddbe76ec34eeacbc3b7d91264148da5a69205133c395aa7662cf",
                     "0x455448555344432d616661363839",
                     "0x1388",
+                    "0x1388",
                     "0x01",
                     "0x"
                 ]
@@ -350,6 +467,7 @@
                     "0x3564393539653938656137336333353737386666",
                     "0x691dee92137cddbe76ec34eeacbc3b7d91264148da5a69205133c395aa7662cf",
                     "0x455448555344432d616661363839",
+                    "0x1388",
                     "0x1388",
                     "0x01",
                     "0x"

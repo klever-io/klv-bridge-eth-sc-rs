@@ -288,6 +288,50 @@ impl MultiTransferTestState {
         self.world
             .tx()
             .from(OWNER_ADDRESS)
+            .to(KDA_SAFE_ADDRESS)
+            .typed(kda_safe_proxy::KDASafeProxy)
+            .add_token_to_whitelist(
+                TokenIdentifier::from_kda_bytes("ETHUSDC-afa689"),
+                "ETHUSDC",
+                true,
+                false,
+                BigUint::zero(),
+                BigUint::zero(),
+                BigUint::zero(),
+                OptionalValue::Some(BigUint::from(KDA_SAFE_ETH_TX_GAS_LIMIT)),
+            )
+            .run();
+
+        // Configure decimals for WKLV token (8 decimals on both sides - no conversion)
+        self.world
+            .tx()
+            .from(OWNER_ADDRESS)
+            .to(KDA_SAFE_ADDRESS)
+            .typed(kda_safe_proxy::KDASafeProxy)
+            .set_token_decimals(TokenIdentifier::from_kda_bytes("WKLV-123456"), 8u32, 8u32)
+            .run();
+
+        // Configure decimals for ETH token (18 ETH decimals → 8 KDA decimals)
+        self.world
+            .tx()
+            .from(OWNER_ADDRESS)
+            .to(KDA_SAFE_ADDRESS)
+            .typed(kda_safe_proxy::KDASafeProxy)
+            .set_token_decimals(TokenIdentifier::from_kda_bytes("ETH-123456"), 18u32, 8u32)
+            .run();
+
+        // Configure decimals for ETHUSDC token (6 ETH decimals → 6 KDA decimals - no conversion)
+        self.world
+            .tx()
+            .from(OWNER_ADDRESS)
+            .to(KDA_SAFE_ADDRESS)
+            .typed(kda_safe_proxy::KDASafeProxy)
+            .set_token_decimals(TokenIdentifier::from_kda_bytes("ETHUSDC-afa689"), 6u32, 6u32)
+            .run();
+
+        self.world
+            .tx()
+            .from(OWNER_ADDRESS)
             .to(MULTISIG_ADDRESS)
             .typed(multisig_proxy::MultisigProxy)
             .unpause_endpoint()
@@ -374,6 +418,7 @@ fn ethereum_to_klever_call_data_empty_test() {
         ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         TokenIdentifier::from(WKLV_TOKEN_ID),
         token_amount.clone(),
+        token_amount.clone(),
         1u64,
         ManagedOption::none(),
     ));
@@ -437,6 +482,7 @@ fn ethereum_to_klever_relayer_call_data_several_tx_test() {
         ManagedAddress::from(addr.clone()),
         TokenIdentifier::from("ETHUSDC-afa689"),
         token_amount.clone(),
+        token_amount.clone(),
         1u64,
         ManagedOption::none(),
     ));
@@ -447,6 +493,7 @@ fn ethereum_to_klever_relayer_call_data_several_tx_test() {
         },
         ManagedAddress::from(addr.clone()),
         TokenIdentifier::from("ETHUSDC-afa689"),
+        token_amount.clone(),
         token_amount.clone(),
         2u64,
         ManagedOption::none(),
@@ -466,6 +513,7 @@ fn ethereum_to_klever_relayer_call_data_several_tx_test() {
         ManagedAddress::from(addr.clone()),
         TokenIdentifier::from("ETHUSDC-afa689"),
         token_amount.clone(),
+        token_amount.clone(),
         3u64,
         ManagedOption::some(call_data),
     ));
@@ -484,6 +532,7 @@ fn ethereum_to_klever_relayer_call_data_several_tx_test() {
         },
         ManagedAddress::from(addr.clone()),
         TokenIdentifier::from("ETHUSDC-afa689"),
+        token_amount.clone(),
         token_amount.clone(),
         4u64,
         ManagedOption::some(call_data2),
@@ -546,6 +595,7 @@ fn ethereum_to_klever_relayer_query_test() {
         },
         ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         TokenIdentifier::from(WKLV_TOKEN_ID),
+        token_amount.clone(),
         token_amount.clone(),
         1u64,
         ManagedOption::none(),
@@ -637,6 +687,7 @@ fn ethereum_to_klever_relayer_query2_test() {
         },
         ManagedAddress::from(ADDR),
         TokenIdentifier::from("ETHUSDC-afa689"),
+        token_amount.clone(),
         token_amount.clone(),
         1u64,
         ManagedOption::none(),
@@ -734,6 +785,7 @@ fn ethereum_to_klever_tx_batch_ok_test() {
         ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         TokenIdentifier::from(WKLV_TOKEN_ID),
         token_amount.clone(),
+        token_amount.clone(),
         1u64,
         ManagedOption::some(call_data.clone()),
     ));
@@ -744,6 +796,7 @@ fn ethereum_to_klever_tx_batch_ok_test() {
         },
         ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         TokenIdentifier::from(ETH_TOKEN_ID),
+        token_amount.clone(),
         token_amount.clone(),
         2u64,
         ManagedOption::some(call_data.clone()),
@@ -819,8 +872,9 @@ fn ethereum_to_klever_tx_batch_rejected_test() {
         EthAddress {
             raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
         },
-        ManagedAddress::from(KDA_SAFE_ADDRESS.eval_to_array()),
+        ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         TokenIdentifier::from(WKLV_TOKEN_ID),
+        over_the_limit_token_amount.clone(),
         over_the_limit_token_amount.clone(),
         1u64,
         ManagedOption::some(call_data.clone()),
@@ -830,8 +884,9 @@ fn ethereum_to_klever_tx_batch_rejected_test() {
         EthAddress {
             raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
         },
-        ManagedAddress::from(KDA_SAFE_ADDRESS.eval_to_array()),
+        ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         TokenIdentifier::from(ETH_TOKEN_ID),
+        over_the_limit_token_amount.clone(),
         over_the_limit_token_amount.clone(),
         2u64,
         ManagedOption::some(call_data.clone()),
@@ -887,5 +942,66 @@ fn ethereum_to_klever_tx_batch_rejected_test() {
         .to(MULTISIG_ADDRESS)
         .typed(multisig_proxy::MultisigProxy)
         .move_refund_batch_to_safe_from_child_contract()
+        .run();
+}
+
+#[test]
+fn propose_multi_transfer_without_decimals_configured_should_fail() {
+    let mut state = MultiTransferTestState::new();
+    let token_amount = BigUint::from(500u64);
+
+    state.multisig_deploy();
+    state.safe_deploy(Address::zero());
+    state.multi_transfer_deploy();
+    state.bridged_tokens_wrapper_deploy();
+    state.config_multisig();
+
+    // Add a token to whitelist but don't configure decimals
+    state
+        .world
+        .tx()
+        .from(OWNER_ADDRESS)
+        .to(KDA_SAFE_ADDRESS)
+        .typed(kda_safe_proxy::KDASafeProxy)
+        .add_token_to_whitelist(
+            TokenIdentifier::from_kda_bytes("UNCONFIGURED-123456"),
+            "UNCONF",
+            true,
+            false,
+            BigUint::zero(),
+            BigUint::zero(),
+            BigUint::zero(),
+            OptionalValue::Some(BigUint::from(KDA_SAFE_ETH_TX_GAS_LIMIT)),
+        )
+        .run();
+
+    let eth_tx = EthTxAsMultiValue::<StaticApi>::from((
+        EthAddress {
+            raw_addr: ManagedByteArray::default(),
+        },
+        ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
+        TokenIdentifier::from_kda_bytes("UNCONFIGURED-123456"),
+        token_amount.clone(),
+        token_amount.clone(),
+        1u64,
+        ManagedOption::none(),
+    ));
+
+    let mut transfers: MultiValueEncoded<StaticApi, EthTxAsMultiValue<StaticApi>> =
+        MultiValueEncoded::new();
+    transfers.push(eth_tx);
+
+    // Try to propose a batch with unconfigured token decimals - should fail
+    state
+        .world
+        .tx()
+        .from(RELAYER1_ADDRESS)
+        .to(MULTISIG_ADDRESS)
+        .typed(multisig_proxy::MultisigProxy)
+        .propose_multi_transfer_kda_batch(1u64, transfers)
+        .returns(ExpectError(
+            57,
+            "ETH decimals not configured for this token. Call setTokenDecimals first.",
+        ))
         .run();
 }

@@ -105,3 +105,8 @@ fn create_transaction_eth_token_with_conversion_rs() {
 fn create_transaction_mixed_tokens_with_conversion_rs() {
     world().run("scenarios/create_transaction_mixed_tokens_with_conversion.scen.json");
 }
+
+#[test]
+fn refund_transaction_eth_token_with_conversion_rs() {
+    world().run("scenarios/refund_transaction_eth_token_with_conversion.scen.json");
+}

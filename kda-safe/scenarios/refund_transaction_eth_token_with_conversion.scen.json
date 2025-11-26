@@ -1,0 +1,185 @@
+{
+    "name": "refund transaction with ETH token conversion (rejected tx flow)",
+    "comment": "Tests the complete refund flow for a KLV→ETH transaction that was rejected. Verifies refund is stored and claimed in KDA decimals (converted_amount), not ETH decimals.",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "create_transaction_eth_token_with_conversion.scen.json"
+        },
+        {
+            "step": "setState",
+            "comment": "Move to block 101 to finalize the batch (past maxTxBatchBlockDuration=100)",
+            "currentBlockInfo": {
+                "blockNonce": "101"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-batch-before-rejection",
+            "comment": "Verify batch has the ETH tx with: amount=14,985,000,000,000,000,000 (18 decimals ETH) and converted_amount=1,498,500,000 (8 decimals KDA)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getBatch",
+                "arguments": [
+                    "1"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1",
+                    "0",
+                    "1",
+                    "address:user1",
+                    "0x0102030405060708091011121314151617181920",
+                    "str:ETH",
+                    "14,985,000,000,000,000,000",
+                    "1,498,500,000"
+                ]
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "set-tx-status-rejected",
+            "comment": "Reject the transaction - status 4 = Rejected. Refund should use converted_amount (KDA decimals), not amount (ETH decimals)",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "setTransactionBatchStatus",
+                "arguments": [
+                    "1",
+                    "4"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "get-refund-amounts",
+            "comment": "Check that refund amount is stored in KDA decimals (1,498,500,000), NOT ETH decimals (14,985,000,000,000,000,000)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getRefundAmounts",
+                "arguments": [
+                    "address:user1"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "str:ETH",
+                    "1,498,500,000"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "get-total-refund-amounts",
+            "comment": "Verify total refund amount is also in KDA decimals",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getTotalRefundAmounts",
+                "arguments": []
+            },
+            "expect": {
+                "out": [
+                    "str:ETH",
+                    "1,498,500,000"
+                ]
+            }
+        },
+        {
+            "step": "checkState",
+            "comment": "Verify user1's ETH balance before claim (started with 2,000,000,000, sent 1,500,000,000)",
+            "accounts": {
+                "address:user1": {
+                    "nonce": "*",
+                    "balance": "0",
+                    "kda": {
+                        "str:ETH": "500,000,000"
+                    }
+                },
+                "+": {}
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "user1-claim-refund",
+            "comment": "Claim refund - user should receive 1,498,500,000 (8 decimals KDA), NOT the 18-decimal ETH amount",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "claimRefund",
+                "arguments": [
+                    "str:ETH"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "out": "*",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "checkState",
+            "comment": "Final verification: user1 should have 500,000,000 (remaining) + 1,498,500,000 (refund) = 1,998,500,000 ETH tokens. The 1,500,000 difference is the fee collected.",
+            "accounts": {
+                "address:user1": {
+                    "nonce": "*",
+                    "balance": "0",
+                    "kda": {
+                        "str:BRIDGE-1234": "2,000,000",
+                        "str:WKLV-1234": "2,000,000,000",
+                        "str:ETH": "1,998,500,000"
+                    },
+                    "storage": {}
+                },
+                "sc:kda_safe": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "kda": {
+                        "str:ETH": {
+                            "balance": "1,500,000",
+                            "canBurn": true
+                        }
+                    },
+                    "storage": {
+                        "str:pendingBatches|u64:1": "",
+                        "str:firstBatchId": "2",
+                        "str:lastBatchId": "2",
+                        "str:accumulatedTransactionFees|nested:str:ETH": "1,500,000",
+                        "+": ""
+                    },
+                    "code": "file:../output/kda-safe.wasm"
+                },
+                "+": {}
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-refund-cleared",
+            "comment": "Verify refund amount was cleared after claim",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getRefundAmounts",
+                "arguments": [
+                    "address:user1"
+                ]
+            },
+            "expect": {
+                "out": []
+            }
+        }
+    ]
+}

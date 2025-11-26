@@ -135,7 +135,7 @@ pub trait KDASafe:
                 TransactionStatus::Executed => {}
                 TransactionStatus::Rejected => {
                     let addr = ManagedAddress::try_from(tx.from.clone()).unwrap();
-                    self.mark_refund(&addr, &tx.token_identifier, &tx.amount);
+                    self.mark_refund(&addr, &tx.token_identifier, &tx.converted_amount);
                 }
                 _ => {
                     sc_panic!("Transaction status may only be set to Executed or Rejected");
@@ -186,8 +186,8 @@ pub trait KDASafe:
                 "Token identifiers do not match"
             );
             require!(
-                refund_tx.amount == refund_payment.amount,
-                "Amounts do not match"
+                refund_tx.converted_amount == refund_payment.amount,
+                "Converted amounts do not match"
             );
 
             let required_fee = match cached_token_ids
@@ -204,11 +204,16 @@ pub trait KDASafe:
                 }
             };
 
-            if refund_tx.amount <= required_fee {
+            if refund_tx.converted_amount <= required_fee {
                 continue;
             }
 
-            let actual_bridged_amount = refund_tx.amount - &required_fee;
+            let actual_bridged_amount = refund_tx.converted_amount.clone() - &required_fee;
+            
+            // Calculate ETH-side fee to deduct from original ETH amount
+            let eth_side_fee = self.convert_kda_to_eth_amount(&refund_tx.token_identifier, &required_fee);
+            let eth_side_refund_amount = &refund_tx.amount - &eth_side_fee;
+            
             self.refund_fees_for_ethereum(&refund_tx.token_identifier)
                 .update(|fees| *fees += required_fee);
             let tx_nonce = self.get_and_save_next_tx_id();
@@ -220,7 +225,8 @@ pub trait KDASafe:
                 from: refund_tx.to,
                 to: refund_tx.from,
                 token_identifier: refund_tx.token_identifier.clone(),
-                amount: actual_bridged_amount.clone(),
+                amount: eth_side_refund_amount,  // Original ETH amount minus ETH-side fee (for Ethereum refund)
+                converted_amount: actual_bridged_amount.clone(),  // KDA amount after fee (what will be burned)
                 is_refund_tx: true,
             };
             new_transactions.push(new_tx);
@@ -321,7 +327,8 @@ pub trait KDASafe:
             from: refund_info.address.as_managed_buffer().clone(),
             to: to.as_managed_buffer().clone(),
             token_identifier: payment_token.clone(),
-            amount: eth_side_amount.clone(), // Store ETH-side amount in transaction
+            amount: eth_side_amount.clone(), // ETH-side amount for relayer/Ethereum
+            converted_amount: actual_bridged_amount.clone(), // KDA-side amount (what will be burned)
             is_refund_tx: false,
         };
 

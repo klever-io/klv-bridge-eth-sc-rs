@@ -87,6 +87,48 @@
         },
         {
             "step": "scCall",
+            "txId": "add-admin",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda-safe",
+                "value": "0",
+                "function": "addAdmin",
+                "arguments": [
+                    "address:owner"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "add-admin",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:multi_transfer_kda",
+                "value": "0",
+                "function": "addAdmin",
+                "arguments": [
+                    "address:owner"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
             "txId": "add-token-1",
             "tx": {
                 "from": "address:owner",
@@ -186,7 +228,7 @@
             "step": "checkState",
             "accounts": {
                 "address:owner": {
-                    "nonce": "5",
+                    "nonce": "7",
                     "balance": "0",
                     "kda": {
                         "str:BRIDGE-123456": {
@@ -214,7 +256,10 @@
                         "str:lastBatchId": "1",
                         "str:maxTxBatchSize": "10",
                         "str:maxTxBatchBlockDuration": "0xffffffffffffffff",
-                        "str:kdaSafeContractAddress": "sc:kda-safe"
+                        "str:kdaSafeContractAddress": "sc:kda-safe",
+                        "str:only_admin_module:admins.len": "1",
+                        "str:only_admin_module:admins.item|u32:1": "address:owner",
+                        "str:only_admin_module:admins.index|address:owner": "1"
                     }
                 },
                 "sc:kda-safe": {

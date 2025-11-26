@@ -56,16 +56,11 @@ pub trait MultiTransferKda:
         let safe_address = self.kda_safe_contract_address().get();
 
         for eth_tx in transfers {
-            // First, convert ETH amount to KDA amount using kda-safe's conversion (single source of truth)
-            let kda_amount: BigUint = self
-                .tx()
-                .to(safe_address.clone())
-                .typed(kda_safe_proxy::KDASafeProxy)
-                .convert_eth_to_kda_amount_endpoint(&eth_tx.token_id, &eth_tx.amount)
-                .returns(ReturnsResult)
-                .sync_call();
+            // Use the pre-converted KDA amount from the transaction
+            // (already calculated in proposeMultiTransferKdaBatch)
+            let kda_amount = eth_tx.converted_amount.clone();
 
-            // Then, get tokens with the already-converted KDA amount
+            // Get tokens with the already-converted KDA amount
             let is_success: bool = self
                 .tx()
                 .to(safe_address.clone())
@@ -129,11 +124,15 @@ pub trait MultiTransferKda:
                 let mut refund_payments = ManagedVec::new();
 
                 for tx_fields in all_tx_fields {
-                    let (_, _, _, _, token_identifier, amount) =
+                    let (_, _, _, _, token_identifier, _eth_amount, converted_amount) =
                         tx_fields.clone().into_tuple();
 
-                        refund_batch.push(Transaction::from(tx_fields));
-                        refund_payments.push(KdaTokenPayment::new(token_identifier, 0, amount));
+                    let tx = Transaction::from(tx_fields);
+                    refund_batch.push(tx);
+                    
+                    // Use the converted KDA amount for payment (what was actually minted on Klever blockchain)
+                    // The original ETH amount is stored in tx.amount for the refund on Ethereum side
+                    refund_payments.push(KdaTokenPayment::new(token_identifier, 0, converted_amount));
                 }
 
                 let kda_safe_addr = self.kda_safe_contract_address().get();
@@ -219,7 +218,8 @@ pub trait MultiTransferKda:
             from: eth_tx.from.as_managed_buffer().clone(),
             to: eth_tx.to.as_managed_buffer().clone(),
             token_identifier: eth_tx.token_id,
-            amount: eth_tx.amount,
+            amount: eth_tx.amount,  // Original ETH amount - for refund on Ethereum side
+            converted_amount: eth_tx.converted_amount,  // Converted KDA amount - for transfer on Klever side
             is_refund_tx: true,
         }
     }

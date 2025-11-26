@@ -306,7 +306,7 @@ where
     }
 
     /// Convert amount from Ethereum decimals to Klever decimals 
-    /// Public endpoint for multi-transfer and to use - ensures single conversion point 
+    /// Public endpoint for multi-transfer and relayer to use - ensures single conversion point 
     pub fn convert_eth_to_kda_amount_endpoint<
         Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
         Arg1: ProxyArg<BigUint<Env::Api>>,
@@ -324,7 +324,7 @@ where
     }
 
     /// Convert amount from Klever decimals to Ethereum decimals 
-    /// Public endpoint for multi-transfer to use - ensures single conversion point 
+    /// Public endpoint for multi-transfer and relayer to use - ensures single conversion point 
     pub fn convert_kda_to_eth_amount_endpoint<
         Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
         Arg1: ProxyArg<BigUint<Env::Api>>,
@@ -764,7 +764,7 @@ where
 
     pub fn get_current_tx_batch(
         self,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue6<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>>>>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue7<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>>>>> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getCurrentTxBatch")
@@ -773,7 +773,7 @@ where
 
     pub fn get_first_batch_any_status(
         self,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue6<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>>>>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue7<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>>>>> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getFirstBatchAnyStatus")
@@ -785,7 +785,7 @@ where
     >(
         self,
         batch_id: Arg0,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue6<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>>>>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue7<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>>>>> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getBatch")

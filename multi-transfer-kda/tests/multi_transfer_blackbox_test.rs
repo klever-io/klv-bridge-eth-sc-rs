@@ -28,7 +28,7 @@ use klever_sc_scenario::{
 
 use eth_address::*;
 use token_module::ProxyTrait as _;
-use transaction::{CallData, EthTransaction};
+use transaction::{CallData, EthTransaction, TxBatchSplitInFields};
 
 const UNIVERSAL_TOKEN_IDENTIFIER: &[u8] = b"UNIV-abc123";
 const BRIDGE_TOKEN_ID: &[u8] = b"BRIDGE-123456";
@@ -553,6 +553,7 @@ fn basic_transfer_test() {
         to: ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(TOKEN_ID),
         amount: token_amount.clone(),
+        converted_amount: token_amount.clone(),
         tx_nonce: 1u64,
         call_data: ManagedOption::some(call_data),
     };
@@ -593,6 +594,15 @@ fn basic_transfer_with_decimal_round_down_conversion_test() {
     call_data.clone().concat(ManagedBuffer::default());
 
     // Use BRIDGE_TOKEN_ID which has 18 ETH decimals → 6 KDA decimals
+    let kda_amount = state
+        .world
+        .query()
+        .to(KDA_SAFE_ADDRESS)
+        .typed(kda_safe_proxy::KDASafeProxy)
+        .convert_eth_to_kda_amount_endpoint(BRIDGE_TOKEN_ID, &eth_amount)
+        .returns(ReturnsResult)
+        .run();
+    
     let eth_tx = EthTransaction {
         from: EthAddress {
             raw_addr: ManagedByteArray::default(),
@@ -600,6 +610,7 @@ fn basic_transfer_with_decimal_round_down_conversion_test() {
         to: ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(BRIDGE_TOKEN_ID),
         amount: eth_amount.clone(),
+        converted_amount: kda_amount.clone(),
         tx_nonce: 1u64,
         call_data: ManagedOption::some(call_data),
     };
@@ -644,6 +655,15 @@ fn basic_transfer_with_decimal_conversion_test() {
     call_data.clone().concat(ManagedBuffer::default());
 
     // Use BRIDGE_TOKEN_ID which has 18 ETH decimals → 6 KDA decimals
+    let kda_amount = state
+        .world
+        .query()
+        .to(KDA_SAFE_ADDRESS)
+        .typed(kda_safe_proxy::KDASafeProxy)
+        .convert_eth_to_kda_amount_endpoint(BRIDGE_TOKEN_ID, &eth_amount)
+        .returns(ReturnsResult)
+        .run();
+    
     let eth_tx = EthTransaction {
         from: EthAddress {
             raw_addr: ManagedByteArray::default(),
@@ -651,6 +671,7 @@ fn basic_transfer_with_decimal_conversion_test() {
         to: ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(BRIDGE_TOKEN_ID),
         amount: eth_amount.clone(),
+        converted_amount: kda_amount.clone(),
         tx_nonce: 1u64,
         call_data: ManagedOption::some(call_data),
     };
@@ -702,13 +723,23 @@ fn batch_transfer_both_executed_test() {
         ManagedSerializer::new().top_encode_to_managed_buffer(&call_data);
 
     // First transaction: BRIDGE_TOKEN_ID with 18→6 decimal conversion
+    let bridge_kda_amount = state
+        .world
+        .query()
+        .to(KDA_SAFE_ADDRESS)
+        .typed(kda_safe_proxy::KDASafeProxy)
+        .convert_eth_to_kda_amount_endpoint(BRIDGE_TOKEN_ID, &bridge_eth_amount)
+        .returns(ReturnsResult)
+        .run();
+    
     let eth_tx1 = EthTransaction {
         from: EthAddress {
             raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
         },
         to: ManagedAddress::from(USER2_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(BRIDGE_TOKEN_ID),
-        amount: bridge_eth_amount,
+        amount: bridge_eth_amount.clone(),
+        converted_amount: bridge_kda_amount,
         tx_nonce: 1u64,
         call_data: ManagedOption::some(call_data.clone()),
     };
@@ -721,6 +752,7 @@ fn batch_transfer_both_executed_test() {
         to: ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(WRAPPED_TOKEN_ID),
         amount: wrapped_amount.clone(),
+        converted_amount: wrapped_amount.clone(),
         tx_nonce: 2u64,
         call_data: ManagedOption::some(call_data),
     };
@@ -779,6 +811,7 @@ fn batch_two_transfers_same_token_test() {
         to: ManagedAddress::from(USER2_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(TOKEN_ID),
         amount: token_amount.clone(),
+        converted_amount: token_amount.clone(),
         tx_nonce: 1u64,
         call_data: ManagedOption::some(call_data.clone()),
     };
@@ -790,6 +823,7 @@ fn batch_two_transfers_same_token_test() {
         to: ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(TOKEN_ID),
         amount: token_amount.clone(),
+        converted_amount: token_amount.clone(),
         tx_nonce: 2u64,
         call_data: ManagedOption::some(call_data),
     };
@@ -846,6 +880,7 @@ fn batch_transfer_both_failed_test() {
         to: ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(TOKEN_ID),
         amount: token_amount.clone(),
+        converted_amount: token_amount.clone(),
         tx_nonce: 1u64,
         call_data: ManagedOption::some(call_data.clone()),
     };
@@ -857,6 +892,7 @@ fn batch_transfer_both_failed_test() {
         to: ManagedAddress::from(USER2_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(TOKEN_ID),
         amount: token_amount.clone(),
+        converted_amount: token_amount.clone(),
         tx_nonce: 2u64,
         call_data: ManagedOption::some(call_data),
     };
@@ -1141,6 +1177,7 @@ fn add_refund_batch_test() {
         to: ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(TOKEN_ID),
         amount: BigUint::from(MAX_AMOUNT),
+        converted_amount: BigUint::from(MAX_AMOUNT),
         tx_nonce: 1u64,
         call_data: ManagedOption::none(),
     };
@@ -1219,6 +1256,7 @@ fn add_refund_batch_with_decimal_conversion_test() {
         to: ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
         token_id: TokenIdentifier::from(BRIDGE_TOKEN_ID),
         amount: eth_amount.clone(),
+        converted_amount: kda_amount.clone(),
         tx_nonce: 1u64,
         call_data: ManagedOption::none(),
     };
@@ -1261,9 +1299,8 @@ fn add_refund_batch_with_decimal_conversion_test() {
     state.check_balances_on_safe(BRIDGE_TOKEN_ID, BigUint::zero(), expected_converted_amount.clone(), BigUint::zero());
 
     // Move refund batch to safe - this should restore balance minus fees
-    // The amount will be converted from 18 ETH decimals to 6 KDA decimals
-
-    // TODO: failing because conversion not applied when moving refund batch
+    // The refund transaction should contain the non-converted (ETH) amount
+    // because this is what needs to be returned on the Ethereum side
     state
         .world
         .tx()
@@ -1273,65 +1310,60 @@ fn add_refund_batch_with_decimal_conversion_test() {
         .move_refund_batch_to_safe()
         .run();
 
-    // Expected KDA amount: (MAX_AMOUNT - fee) converted from 18 to 6 decimals
-    // Conversion: divide by 10^12 to go from 18 decimals to 6 decimals
-    let expected_kda_amount = (expected_converted_amount - fee);
+    // Get the batch from kda-safe to verify the refund transaction
+    let batch: OptionalValue<TxBatchSplitInFields<StaticApi>> = state
+        .world
+        .query()
+        .to(KDA_SAFE_ADDRESS)
+        .typed(kda_safe_proxy::KDASafeProxy)
+        .get_batch(1u64)
+        .returns(ReturnsResult)
+        .run();
+
+    match batch {
+        OptionalValue::Some(batch_data) => {
+            let (batch_id, transactions) = batch_data.into_tuple();
+            assert_eq!(batch_id, 1u64, "Batch ID should be 1");
+            
+            // Get the first (and only) transaction from the batch
+            let mut tx_count = 0;
+            let mut found_amount = BigUint::zero();
+            let mut found_token_id = TokenIdentifier::from("");
+            
+            for tx in transactions.into_iter() {
+                tx_count += 1;
+                let (block_nonce, nonce, from, to, token_id, amount, converted_amount) = tx.into_tuple();
+                found_amount = amount;
+                found_token_id = token_id;
+            }
+            
+            assert_eq!(tx_count, 1, "Should have exactly one refund transaction");
+            
+            // Verify the refund transaction contains the NON-CONVERTED (ETH) amount
+            // This is crucial because the refund needs to return the original ETH amount minus fees
+            let expected_fee_converted = fee.clone() *  BigUint::from(10u64).pow(12u32);
+            let expected_eth_amount = BigUint::from(30_000u64) *  BigUint::from(10u64).pow(18u32) - expected_fee_converted;
+            assert_eq!(
+                found_amount, expected_eth_amount,
+                "Refund transaction should contain the original ETH amount (non-converted)"
+            );
+            assert_eq!(
+                found_token_id,
+                TokenIdentifier::from(BRIDGE_TOKEN_ID),
+                "Token ID should match"
+            );
+        }
+        OptionalValue::None => {
+            panic!("Batch should exist after moving refund");
+        }
+    }
+
+    // Expected KDA amount: (converted_amount - fee) 
+    let expected_kda_amount = (expected_converted_amount.clone() - fee);
     state.check_balances_on_safe(
         BRIDGE_TOKEN_ID,
         BigUint::zero(),
+        expected_converted_amount,
         expected_kda_amount,
-        BigUint::zero(),
     );
-}
-
-#[test]
-fn transfer_without_eth_decimals_configured_should_fail() {
-    let mut state = MultiTransferTestState::new();
-    let token_amount = BigUint::from(500u64);
-
-    state.deploy_contracts();
-    state.config_multi_transfer();
-
-    let call_data = ManagedBuffer::from(b"add");
-    call_data
-        .clone()
-        .concat(ManagedBuffer::from(GAS_LIMIT.to_string()));
-    call_data.clone().concat(ManagedBuffer::default());
-
-    // Use WRAPPED_TOKEN_ID which is whitelisted but doesn't have decimals configured yet
-    // We need to whitelist it first without setting decimals
-    let eth_tx = EthTransaction {
-        from: EthAddress {
-            raw_addr: ManagedByteArray::default(),
-        },
-        to: ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
-        token_id: TokenIdentifier::from_kda_bytes(&b"UNCONFIGURED-TOKEN"[..]),
-        amount: token_amount.clone(),
-        tx_nonce: 1u64,
-        call_data: ManagedOption::some(call_data),
-    };
-
-    let mut transfers: MultiValueEncoded<StaticApi, EthTransaction<StaticApi>> =
-        MultiValueEncoded::new();
-    transfers.push(eth_tx);
-
-    // Try to transfer a token that doesn't have decimals configured - should fail during conversion
-    state
-        .world
-        .tx()
-        .from(OWNER_ADDRESS)
-        .to(MULTI_TRANSFER_ADDRESS)
-        .typed(multi_transfer_proxy::MultiTransferKdaProxy)
-        .batch_transfer_kda_token(1u32, transfers)
-        .with_result(ExpectError(
-            ERROR,
-            "ETH decimals not configured for this token. Call setTokenDecimals first.",
-        ))
-        .run();
-
-    // Verify that no tokens were transferred to the user
-    state
-        .world
-        .check_account(USER1_ADDRESS)
-        .kda_balance(TokenIdentifier::from_kda_bytes(&b"UNCONFIGURED-TOKEN"[..]), BigUint::zero());
 }

@@ -126,10 +126,10 @@ where
             .original_result()
     }
 
-    /// Converts failed Ethereum -> MultiversX transactions to MultiversX -> Ethereum transaction. 
+    /// Converts failed Ethereum -> Klever Blockchain transactions to Klever Blockchain -> Ethereum transaction. 
     /// This is done every now and then to refund the tokens. 
     ///  
-    /// As with normal MultiversX -> Ethereum transactions, a part of the tokens will be 
+    /// As with normal Klever Blockchain -> Ethereum transactions, a part of the tokens will be 
     /// subtracted to pay for the fees 
     pub fn add_refund_batch<
         Arg0: ProxyArg<ManagedVec<Env::Api, transaction::Transaction<Env::Api>>>,
@@ -143,7 +143,7 @@ where
             .original_result()
     }
 
-    /// Create an MultiversX -> Ethereum transaction. Only fungible tokens are accepted. 
+    /// Create an Klever Blockchain -> Ethereum transaction. Only fungible tokens are accepted. 
     ///  
     /// Every transfer will have a part of the tokens subtracted as fees. 
     /// The fee amount depends on the global eth_tx_gas_limit 
@@ -165,7 +165,7 @@ where
             .original_result()
     }
 
-    /// Claim funds for failed MultiversX -> Ethereum transactions. 
+    /// Claim funds for failed Klever Blockchain -> Ethereum transactions. 
     /// These are not sent automatically to prevent the contract getting stuck. 
     /// For example, if the receiver is a SC, a frozen account, etc. 
     pub fn claim_refund<

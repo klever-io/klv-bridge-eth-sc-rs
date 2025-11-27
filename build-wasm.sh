@@ -7,7 +7,7 @@ set -e
 KSC=~/klever-sdk/ksc
 
 # Find all contract directories (those containing meta/ folder with Cargo.toml)
-CONTRACTS=$(find . -type d -name "meta" -exec dirname {} \; | grep -v target | sort -u)
+CONTRACTS=$(find . -type d -name "meta" -exec dirname {} \; | grep -v target | grep -v "bridge-proxy" | sort -u)
 
 for contract_path in $CONTRACTS
 do

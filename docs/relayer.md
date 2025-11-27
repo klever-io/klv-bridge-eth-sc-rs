@@ -6,7 +6,7 @@ In this document, you will find all the possible actions, scenarios and what is 
 
 We're assuming all the smart contracts are already setup as described [here](setup.md).    
 
-For details about multisig smart contract design, check here: https://github.com/multiversx/mx-sdk-rs/blob/master/contracts/examples/multisig/README.md.  
+For details about multisig smart contract design, check [here](../multisig/README.md). 
 
 If you're interested in a more abstract explanation, check the [readme](../README.md).  
 

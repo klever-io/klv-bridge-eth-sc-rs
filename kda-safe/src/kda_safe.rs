@@ -124,7 +124,7 @@ pub trait KDASafe:
         );
 
         for (tx, tx_status) in tx_batch.iter().zip(tx_statuses.to_vec().iter()) {
-            // Since tokens don't exist in the EsdtSafe in the case of a refund transaction
+            // Since tokens don't exist in the KdaSafe in the case of a refund transaction
             // we have no tokens to burn, nor to refund
             if tx.is_refund_tx {
                 continue;
@@ -155,10 +155,10 @@ pub trait KDASafe:
         self.clear_first_batch(&mut tx_batch);
     }
 
-    /// Converts failed Ethereum -> MultiversX transactions to MultiversX -> Ethereum transaction.
+    /// Converts failed Ethereum -> Klever Blockchain transactions to Klever Blockchain -> Ethereum transaction.
     /// This is done every now and then to refund the tokens.
     ///
-    /// As with normal MultiversX -> Ethereum transactions, a part of the tokens will be
+    /// As with normal Klever Blockchain -> Ethereum transactions, a part of the tokens will be
     /// subtracted to pay for the fees
     #[payable("*")]
     #[endpoint(addRefundBatch)]
@@ -212,7 +212,7 @@ pub trait KDASafe:
                 .update(|fees| *fees += required_fee);
             let tx_nonce = self.get_and_save_next_tx_id();
 
-            // "from" and "to" are inverted, since this was initially an Ethereum -> MultiversX tx
+            // "from" and "to" are inverted, since this was initially an Ethereum -> Klever Blockchain tx
             let new_tx = Transaction {
                 block_nonce,
                 nonce: tx_nonce,
@@ -260,7 +260,7 @@ pub trait KDASafe:
 
     // endpoints
 
-    /// Create an MultiversX -> Ethereum transaction. Only fungible tokens are accepted.
+    /// Create an Klever Blockchain -> Ethereum transaction. Only fungible tokens are accepted.
     ///
     /// Every transfer will have a part of the tokens subtracted as fees.
     /// The fee amount depends on the global eth_tx_gas_limit
@@ -354,7 +354,7 @@ pub trait KDASafe:
        
     }
 
-    /// Claim funds for failed MultiversX -> Ethereum transactions.
+    /// Claim funds for failed Klever Blockchain -> Ethereum transactions.
     /// These are not sent automatically to prevent the contract getting stuck.
     /// For example, if the receiver is a SC, a frozen account, etc.
     #[endpoint(claimRefund)]

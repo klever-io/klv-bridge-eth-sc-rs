@@ -1,0 +1,227 @@
+{
+    "name": "create transaction precision loss - amounts too small after conversion",
+    "comment": "Tests that very small amounts that would round to zero after 8→18 decimal conversion are properly handled. Tests minimum bridgeable amounts for ETH token (18 decimals ETH, 8 decimals KDA).",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "setup_accounts.scen.json"
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-conversion-1-kda-unit",
+            "comment": "1 KDA unit (10^-8) should convert to 10^10 wei (10 Gwei) on ETH side",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "convertKdaToEthAmount",
+                "arguments": [
+                    "str:ETH",
+                    "1"
+                ]
+            },
+            "expect": {
+                "status": "0",
+                "out": [
+                    "10,000,000,000"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-conversion-100-kda-units",
+            "comment": "100 KDA units should convert to 10^12 wei (1000 Gwei) on ETH side",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "convertKdaToEthAmount",
+                "arguments": [
+                    "str:ETH",
+                    "100"
+                ]
+            },
+            "expect": {
+                "status": "0",
+                "out": [
+                    "1,000,000,000,000"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-reverse-conversion-1-wei",
+            "comment": "1 wei should convert to 0 KDA units (precision loss)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "convertEthToKdaAmount",
+                "arguments": [
+                    "str:ETH",
+                    "1"
+                ]
+            },
+            "expect": {
+                "status": "0",
+                "out": [
+                    "0"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-reverse-conversion-1-gwei",
+            "comment": "1 Gwei (10^9 wei) should convert to 0 KDA units (below 10 Gwei threshold)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "convertEthToKdaAmount",
+                "arguments": [
+                    "str:ETH",
+                    "1,000,000,000"
+                ]
+            },
+            "expect": {
+                "status": "0",
+                "out": [
+                    "0"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-reverse-conversion-10-gwei",
+            "comment": "10 Gwei (10^10 wei) should convert to exactly 1 KDA unit - this is the minimum",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "convertEthToKdaAmount",
+                "arguments": [
+                    "str:ETH",
+                    "10,000,000,000"
+                ]
+            },
+            "expect": {
+                "status": "0",
+                "out": [
+                    "1"
+                ]
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-too-small-amount",
+            "comment": "Try to bridge 1 KDA unit (minimum possible). This will fail because after fee deduction, the amount becomes 0 or negative. Fee for 1 unit > 1 unit.",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:ETH",
+                        "nonce": "0",
+                        "value": "1"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "57",
+                "message": "str:Transaction fees cost more than the entire bridged amount",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-small-amount-fee-exceeds",
+            "comment": "Try to bridge 1000 KDA units. Still too small - fee will exceed bridged amount.",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:ETH",
+                        "nonce": "0",
+                        "value": "1000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "57",
+                "message": "str:Transaction fees cost more than the entire bridged amount",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-minimum-successful",
+            "comment": "Bridge 2,000,000 KDA units (0.02 ETH with 8 decimals). This should succeed as it's above the fee threshold. Fee ~1,500,000, leaving ~500,000 net.",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:ETH",
+                        "nonce": "0",
+                        "value": "2,000,000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-batch-minimum-amount",
+            "comment": "Verify the transaction was created. Amount should be converted to 18 decimals (net ~500,000 KDA units = 5*10^15 wei)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getBatch",
+                "arguments": [
+                    "1"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1",
+                    "0",
+                    "1",
+                    "address:user1",
+                    "0x0102030405060708091011121314151617181920",
+                    "str:ETH",
+                    "*",
+                    "*"
+                ]
+            }
+        },
+        {
+            "step": "checkState",
+            "comment": "Verify user1's ETH balance decreased by 2,000,000 (started with 2,000,000,000)",
+            "accounts": {
+                "address:user1": {
+                    "nonce": "*",
+                    "balance": "0",
+                    "kda": {
+                        "str:ETH": "1,998,000,000"
+                    }
+                },
+                "+": {}
+            }
+        }
+    ]
+}

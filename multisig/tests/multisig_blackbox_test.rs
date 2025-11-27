@@ -1005,3 +1005,170 @@ fn propose_multi_transfer_without_decimals_configured_should_fail() {
         ))
         .run();
 }
+
+/// Tests the complete ETH→KLV flow with 18→8 decimal conversion.
+/// Verifies that:
+/// 1. ETH token with 18 decimals converts to 8 decimals on KDA side
+/// 2. The converted_amount field is correctly calculated and used
+/// 3. User receives the correct KDA-decimal amount
+#[test]
+fn ethereum_to_klever_decimal_conversion_test() {
+    let mut state = MultiTransferTestState::new();
+    
+    // Amount in ETH decimals (18): 10 ETH = 10_000_000_000_000_000_000 wei
+    let eth_amount = BigUint::from(10_000_000_000_000_000_000u128);
+    // Expected amount in KDA decimals (8): 10 ETH = 1_000_000_000 (10.0 in 8 decimals)
+    let kda_amount = BigUint::from(1_000_000_000u64);
+
+    state.multisig_deploy();
+    state.safe_deploy(Address::zero());
+    state.multi_transfer_deploy();
+    state.bridged_tokens_wrapper_deploy();
+    state.config_multisig();
+
+    // Create ETH transaction with ETH-side amount and KDA-side converted_amount
+    let eth_tx = EthTxAsMultiValue::<StaticApi>::from((
+        EthAddress {
+            raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
+        },
+        ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
+        TokenIdentifier::from(ETH_TOKEN_ID),
+        eth_amount.clone(),       // amount: ETH decimals (18)
+        kda_amount.clone(),       // converted_amount: KDA decimals (8)
+        1u64,
+        ManagedOption::none(),
+    ));
+
+    let mut transfers: MultiValueEncoded<StaticApi, EthTxAsMultiValue<StaticApi>> =
+        MultiValueEncoded::new();
+    transfers.push(eth_tx);
+
+    // Propose the batch
+    state
+        .world
+        .tx()
+        .from(RELAYER1_ADDRESS)
+        .to(MULTISIG_ADDRESS)
+        .typed(multisig_proxy::MultisigProxy)
+        .propose_multi_transfer_kda_batch(1u32, transfers)
+        .run();
+
+    // Second relayer signs
+    state
+        .world
+        .tx()
+        .from(RELAYER2_ADDRESS)
+        .to(MULTISIG_ADDRESS)
+        .typed(multisig_proxy::MultisigProxy)
+        .sign(1usize)
+        .run();
+
+    // Execute the action
+    state
+        .world
+        .tx()
+        .from(RELAYER1_ADDRESS)
+        .to(MULTISIG_ADDRESS)
+        .typed(multisig_proxy::MultisigProxy)
+        .perform_action_endpoint(1usize)
+        .run();
+
+    // Verify user received the KDA-decimal amount (8 decimals), not ETH amount (18 decimals)
+    state
+        .world
+        .check_account(USER1_ADDRESS)
+        .kda_balance(TokenIdentifier::from(ETH_TOKEN_ID), kda_amount.clone());
+}
+
+/// Tests round-trip: ETH→KLV with conversion, then verifies amounts preserved correctly.
+/// Simulates: User on ETH sends tokens in batch → User on KLV receives correct KDA-decimal amounts
+#[test]
+fn round_trip_decimal_conversion_eth_to_klv_test() {
+    let mut state = MultiTransferTestState::new();
+    
+    // 5 ETH in ETH decimals (18): 5_000_000_000_000_000_000 wei
+    let eth_amount_1 = BigUint::from(5_000_000_000_000_000_000u128);
+    // 5 ETH in KDA decimals (8): 500_000_000
+    let kda_amount_1 = BigUint::from(500_000_000u64);
+    
+    // 0.1 ETH in ETH decimals (18): 100_000_000_000_000_000 wei  
+    let eth_amount_2 = BigUint::from(100_000_000_000_000_000u128);
+    // 0.1 ETH in KDA decimals (8): 10_000_000
+    let kda_amount_2 = BigUint::from(10_000_000u64);
+
+    state.multisig_deploy();
+    state.safe_deploy(Address::zero());
+    state.multi_transfer_deploy();
+    state.bridged_tokens_wrapper_deploy();
+    state.config_multisig();
+
+    // Create two ETH transactions with different amounts to test batch processing
+    // Both go to USER1 since that's the only user set up in test state
+    let eth_tx_1 = EthTxAsMultiValue::<StaticApi>::from((
+        EthAddress {
+            raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
+        },
+        ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
+        TokenIdentifier::from(ETH_TOKEN_ID),
+        eth_amount_1.clone(),     // ETH decimals (18)
+        kda_amount_1.clone(),     // KDA decimals (8)
+        1u64,
+        ManagedOption::none(),
+    ));
+
+    let eth_tx_2 = EthTxAsMultiValue::<StaticApi>::from((
+        EthAddress {
+            raw_addr: ManagedByteArray::new_from_bytes(b"01020304050607080910"),
+        },
+        ManagedAddress::from(USER1_ADDRESS.eval_to_array()),
+        TokenIdentifier::from(ETH_TOKEN_ID),
+        eth_amount_2.clone(),     // ETH decimals (18)
+        kda_amount_2.clone(),     // KDA decimals (8)
+        2u64,
+        ManagedOption::none(),
+    ));
+
+    let mut transfers: MultiValueEncoded<StaticApi, EthTxAsMultiValue<StaticApi>> =
+        MultiValueEncoded::new();
+    transfers.push(eth_tx_1);
+    transfers.push(eth_tx_2);
+
+    // Propose batch with two transactions
+    state
+        .world
+        .tx()
+        .from(RELAYER1_ADDRESS)
+        .to(MULTISIG_ADDRESS)
+        .typed(multisig_proxy::MultisigProxy)
+        .propose_multi_transfer_kda_batch(1u32, transfers)
+        .run();
+
+    // Sign and execute
+    state
+        .world
+        .tx()
+        .from(RELAYER2_ADDRESS)
+        .to(MULTISIG_ADDRESS)
+        .typed(multisig_proxy::MultisigProxy)
+        .sign(1usize)
+        .run();
+
+    state
+        .world
+        .tx()
+        .from(RELAYER1_ADDRESS)
+        .to(MULTISIG_ADDRESS)
+        .typed(multisig_proxy::MultisigProxy)
+        .perform_action_endpoint(1usize)
+        .run();
+
+    // Expected total: 500_000_000 + 10_000_000 = 510_000_000 (5.1 ETH in KDA decimals)
+    let expected_total = kda_amount_1.clone().add(kda_amount_2.clone());
+    
+    // Verify user received combined KDA-decimal amount from both transactions
+    state
+        .world
+        .check_account(USER1_ADDRESS)
+        .kda_balance(TokenIdentifier::from(ETH_TOKEN_ID), expected_total);
+}
+

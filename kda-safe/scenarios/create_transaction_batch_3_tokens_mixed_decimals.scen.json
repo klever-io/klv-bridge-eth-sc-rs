@@ -1,0 +1,229 @@
+{
+    "name": "create transaction - batch with 3+ tokens with different decimal configurations",
+    "comment": "Tests a batch with multiple tokens having different decimal configurations: ETH (18→8), BRIDGE (6→6), WKLV (8→8). Verifies each token converts correctly.",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "setup_accounts.scen.json"
+        },
+        {
+            "step": "scCall",
+            "txId": "configure-wklv-decimals",
+            "comment": "Configure WKLV token decimals (8→8, no conversion needed)",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "setTokenDecimals",
+                "arguments": [
+                    "str:WKLV-1234",
+                    "8",
+                    "8"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-eth-18-to-8",
+            "comment": "Transaction 1: ETH token (18 ETH decimals → 8 KDA decimals). Send 100M (1 ETH in 8 decimals)",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:ETH",
+                        "nonce": "0",
+                        "value": "100,000,000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-bridge-6-to-6",
+            "comment": "Transaction 2: BRIDGE token (6 ETH decimals → 6 KDA decimals - no conversion needed). Send 1,600,000",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:BRIDGE-1234",
+                        "nonce": "0",
+                        "value": "1,600,000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-wklv-8-to-8",
+            "comment": "Transaction 3: WKLV token (8 ETH decimals → 8 KDA decimals - no conversion needed). Send 200,000,000 (2 WKLV)",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:WKLV-1234",
+                        "nonce": "0",
+                        "value": "200,000,000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-batch-has-3-tx",
+            "comment": "Verify batch 1 has all 3 transactions. Use wildcard for complex structure - key assertions are the amounts. ETH: 985M*10^10 wei, 98.5M KDA. BRIDGE: 100K both. WKLV: 198.5M both.",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getBatch",
+                "arguments": [
+                    "1"
+                ]
+            },
+            "expect": {
+                "out": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-batch-tx-count",
+            "comment": "Verify pending batch count equals 1 (batch 1 is pending)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getCurrentTxBatch",
+                "arguments": []
+            },
+            "expect": {
+                "out": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-eth-fees",
+            "comment": "Verify ETH fees accumulated: 1,500,000 (in KDA 8 decimals)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getAccumulatedTransactionFees",
+                "arguments": [
+                    "str:ETH"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1,500,000"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-bridge-fees",
+            "comment": "Verify BRIDGE fees accumulated: 1,500,000 (in 6 decimals)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getAccumulatedTransactionFees",
+                "arguments": [
+                    "str:BRIDGE-1234"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1,500,000"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-wklv-fees",
+            "comment": "Verify WKLV fees accumulated: 1,500,000 (in 8 decimals)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getAccumulatedTransactionFees",
+                "arguments": [
+                    "str:WKLV-1234"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1,500,000"
+                ]
+            }
+        },
+        {
+            "step": "checkState",
+            "comment": "Verify contract holds all fees: ETH=1.5M, BRIDGE=1.5M, WKLV=1.5M",
+            "accounts": {
+                "sc:kda_safe": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "kda": {
+                        "str:ETH": {
+                            "balance": "1,500,000",
+                            "canBurn": "*"
+                        },
+                        "str:BRIDGE-1234": {
+                            "balance": "1,500,000",
+                            "canBurn": "*"
+                        },
+                        "str:WKLV-1234": {
+                            "balance": "1,500,000",
+                            "canBurn": "*"
+                        }
+                    },
+                    "storage": {
+                        "str:accumulatedTransactionFees|nested:str:ETH": "1,500,000",
+                        "str:accumulatedTransactionFees|nested:str:BRIDGE-1234": "1,500,000",
+                        "str:accumulatedTransactionFees|nested:str:WKLV-1234": "1,500,000",
+                        "+": ""
+                    },
+                    "code": "file:../output/kda-safe.wasm"
+                },
+                "+": {}
+            }
+        }
+    ]
+}

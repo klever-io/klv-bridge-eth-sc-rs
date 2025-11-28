@@ -14,6 +14,9 @@ const DEFAULT_MAX_TX_BATCH_SIZE: usize = 10;
 const DEFAULT_MAX_TX_BATCH_BLOCK_DURATION: u64 = u64::MAX;
 const CHAIN_SPECIFIC_TO_UNIVERSAL_TOKEN_MAPPING: &[u8] = b"chainSpecificToUniversalMapping";
 
+// Smart contract addresses have 8 leading zero bytes (NUM_INIT_CHARACTERS_FOR_SC_ADDRESS - VM_TYPE_LEN)
+const SC_ADDRESS_NUM_LEADING_ZEROS: usize = 8;
+
 #[klever_sc::contract]
 pub trait MultiTransferKda:
     tx_batch_module::TxBatchModule
@@ -72,7 +75,7 @@ pub trait MultiTransferKda:
             require!(is_success, "Invalid token or amount");
 
             let mut must_refund = false;
-            if eth_tx.to.is_zero() || self.blockchain().is_smart_contract(&eth_tx.to) {
+            if eth_tx.to.is_zero() || self.is_smart_contract_address(&eth_tx.to) {
                 self.transfer_failed_invalid_destination(batch_id, eth_tx.tx_nonce);
                 must_refund = true;
             } else if self.is_above_max_amount(&eth_tx.token_id, &kda_amount) {
@@ -222,6 +225,13 @@ pub trait MultiTransferKda:
             converted_amount: eth_tx.converted_amount,  // Converted KDA amount - for transfer on Klever side
             is_refund_tx: true,
         }
+    }
+
+    /// Checks if an address is a smart contract address by verifying
+    /// that the first 8 bytes are zeros (SC address prefix pattern).
+    fn is_smart_contract_address(&self, address: &ManagedAddress) -> bool {
+        let addr_bytes = address.to_byte_array();
+        addr_bytes[..SC_ADDRESS_NUM_LEADING_ZEROS].iter().all(|&b| b == 0)
     }
 
     fn wrap_tokens(&self, payments: PaymentsVec<Self::Api>) -> PaymentsVec<Self::Api> {

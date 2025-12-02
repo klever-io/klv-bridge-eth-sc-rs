@@ -65,6 +65,7 @@ name = "fee-estimator-module"
 version = "0.0.0"
 dependencies = [
  "klever-sc",
+ "klever-sc-modules",
 ]
 
 [[package]]
@@ -221,6 +222,7 @@ name = "tx-batch-module"
 version = "0.0.0"
 dependencies = [
  "klever-sc",
+ "klever-sc-modules",
  "transaction",
 ]
 

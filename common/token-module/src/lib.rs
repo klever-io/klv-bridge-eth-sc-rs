@@ -129,8 +129,11 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule
         self.token_whitelist().swap_remove(&token_id);
     }
 
+    /// Returns true if tokens were successfully minted/released
+    /// Returns false if amount exceeds available balance or token is not whitelisted
+    /// Note: Expects amount already converted to KDA decimals
     #[endpoint(getTokens)]
-    fn get_tokens(&self, token_id: &TokenIdentifier, amount: &BigUint) -> bool {
+    fn get_tokens(&self, token_id: &TokenIdentifier, kda_amount: &BigUint) -> bool {
         let caller = self.blockchain().get_caller();
         require!(
             caller == self.multi_transfer_contract_address().get(),
@@ -139,13 +142,13 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule
 
         if !self.mint_burn_token(token_id).get() {
             let total_balances_mapper = self.total_balances(token_id);
-            if &total_balances_mapper.get() >= amount {
+            if &total_balances_mapper.get() >= kda_amount {
                 total_balances_mapper.update(|total| {
-                    *total -= amount;
+                    *total -= kda_amount;
                 });
                 self.tx()
                     .to(ToCaller)
-                    .single_kda(token_id, 0, amount)
+                    .single_kda(token_id, 0, kda_amount)
                     .transfer();
 
                 return true;
@@ -158,22 +161,22 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule
         let mint_balances_mapper = self.mint_balances(token_id);
         if self.native_token(token_id).get() {
             require!(
-                burn_balances_mapper.get() >= &mint_balances_mapper.get() + amount,
+                burn_balances_mapper.get() >= &mint_balances_mapper.get() + kda_amount,
                 "Not enough burned tokens!"
             );
         }
 
-        let mint_executed = self.internal_mint(token_id, amount);
+        let mint_executed = self.internal_mint(token_id, kda_amount);
         if !mint_executed {
             return false;
         }
         self.tx()
             .to(ToCaller)
-            .single_kda(token_id, 0, amount)
+            .single_kda(token_id, 0, kda_amount)
             .transfer();
 
         mint_balances_mapper.update(|minted| {
-            *minted += amount;
+            *minted += kda_amount;
         });
 
         true
@@ -269,6 +272,22 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule
         }
     }
 
+    /// Set token decimals for cross-chain conversion
+    /// Called by Multisig admin when token mapping is configured
+    /// @param token_id - The KDA token identifier on Klever
+    /// @param eth_decimals - Decimals on Ethereum side (0-18)
+    /// @param kda_decimals - Decimals on Klever side (0-8 max)
+    #[only_admin]
+    #[endpoint(setTokenDecimals)]
+    fn set_token_decimals(&self, token_id: TokenIdentifier, eth_decimals: u32, kda_decimals: u32) {
+        require!(eth_decimals <= 18, "ETH decimals cannot exceed 18");
+        require!(kda_decimals <= 8, "KDA decimals cannot exceed 8");
+        self.require_token_in_whitelist(&token_id);
+        
+        self.eth_token_decimals(&token_id).set(eth_decimals);
+        self.kda_token_decimals(&token_id).set(kda_decimals);
+    }
+
     // storage
 
     #[view(getAllKnownTokens)]
@@ -305,4 +324,18 @@ pub trait TokenModule: fee_estimator_module::FeeEstimatorModule
     #[view(getBurnBalances)]
     #[storage_mapper("burnBalances")]
     fn burn_balances(&self, token_id: &TokenIdentifier) -> SingleValueMapper<BigUint>;
+
+    /// ERC20 token decimals on Ethereum side (can be up to 18)
+    /// Used for cross-chain decimal conversion when minting/releasing tokens
+    /// Set by admin via setTokenDecimals endpoint
+    #[view(getEthTokenDecimals)]
+    #[storage_mapper("ethTokenDecimals")]
+    fn eth_token_decimals(&self, token_id: &TokenIdentifier) -> SingleValueMapper<u32>;
+
+    /// KDA token decimals on Klever side (max 8)
+    /// Used for cross-chain decimal conversion when minting/releasing tokens
+    /// Set by admin via setTokenDecimals endpoint
+    #[view(getKdaTokenDecimals)]
+    #[storage_mapper("kdaTokenDecimals")]
+    fn kda_token_decimals(&self, token_id: &TokenIdentifier) -> SingleValueMapper<u32>;
 }

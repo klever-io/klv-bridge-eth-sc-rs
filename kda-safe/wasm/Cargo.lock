@@ -21,6 +21,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf4b9d6a944f767f8e5e0db018570623c85f3d925ac718db4e06d0187adb21c1"
 
 [[package]]
+name = "dfp-big-uint"
+version = "0.0.0"
+dependencies = [
+ "klever-sc",
+]
+
+[[package]]
 name = "endian-type"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -38,6 +45,7 @@ name = "fee-estimator-module"
 version = "0.0.0"
 dependencies = [
  "klever-sc",
+ "klever-sc-modules",
 ]
 
 [[package]]
@@ -56,6 +64,7 @@ checksum = "6fe2267d4ed49bc07b63801559be28c718ea06c4738b7a03c94df7386d2cde46"
 name = "kda-safe"
 version = "0.0.0"
 dependencies = [
+ "dfp-big-uint",
  "eth-address",
  "fee-estimator-module",
  "klever-sc",
@@ -223,6 +232,7 @@ dependencies = [
 name = "token-module"
 version = "0.0.0"
 dependencies = [
+ "dfp-big-uint",
  "fee-estimator-module",
  "klever-sc",
  "klever-sc-modules",
@@ -241,6 +251,7 @@ name = "tx-batch-module"
 version = "0.0.0"
 dependencies = [
  "klever-sc",
+ "klever-sc-modules",
  "transaction",
 ]
 

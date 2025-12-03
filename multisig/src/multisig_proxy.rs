@@ -174,7 +174,7 @@ where
     /// Sender Address, Destination Address, Token ID, Amount, Tx Nonce 
     pub fn propose_multi_transfer_kda_batch<
         Arg0: ProxyArg<u64>,
-        Arg1: ProxyArg<MultiValueEncoded<Env::Api, MultiValue6<eth_address::EthAddress<Env::Api>, ManagedAddress<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, u64, ManagedOption<Env::Api, ManagedBuffer<Env::Api>>>>>,
+        Arg1: ProxyArg<MultiValueEncoded<Env::Api, MultiValue7<eth_address::EthAddress<Env::Api>, ManagedAddress<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, u64, ManagedOption<Env::Api, ManagedBuffer<Env::Api>>>>>,
     >(
         self,
         eth_batch_id: Arg0,
@@ -388,6 +388,30 @@ where
             .raw_call("addMapping")
             .argument(&erc20_address)
             .argument(&token_id)
+            .original_result()
+    }
+
+    /// Set ERC20 and KDA token decimals and propagate to KdaSafe 
+    /// Must be called after addMapping for the same token 
+    /// @param erc20_address - The ERC20 token address on Ethereum 
+    /// @param erc20_decimals - Decimals on Ethereum side (0-18) 
+    /// @param kda_decimals - Decimals on Klever side (0-8) 
+    pub fn set_erc20_decimals<
+        Arg0: ProxyArg<eth_address::EthAddress<Env::Api>>,
+        Arg1: ProxyArg<u32>,
+        Arg2: ProxyArg<u32>,
+    >(
+        self,
+        erc20_address: Arg0,
+        erc20_decimals: Arg1,
+        kda_decimals: Arg2,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("setErc20Decimals")
+            .argument(&erc20_address)
+            .argument(&erc20_decimals)
+            .argument(&kda_decimals)
             .original_result()
     }
 
@@ -721,6 +745,32 @@ where
             .original_result()
     }
 
+    pub fn change_safe_contract_name<
+        Arg0: ProxyArg<ManagedBuffer<Env::Api>>,
+    >(
+        self,
+        new_name: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("changeSafeContractName")
+            .argument(&new_name)
+            .original_result()
+    }
+
+    pub fn change_multi_transfer_contract_name<
+        Arg0: ProxyArg<ManagedBuffer<Env::Api>>,
+    >(
+        self,
+        new_name: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("changeMultiTransferContractName")
+            .argument(&new_name)
+            .original_result()
+    }
+
     /// Minimum number of signatures needed to perform any action. 
     pub fn quorum(
         self,
@@ -831,6 +881,21 @@ where
             .original_result()
     }
 
+    /// Number of decimals for ERC20 tokens on Ethereum side (can be up to 18) 
+    /// Used for cross-chain decimal conversion 
+    pub fn erc20_decimals<
+        Arg0: ProxyArg<eth_address::EthAddress<Env::Api>>,
+    >(
+        self,
+        erc20_address: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, u32> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("getErc20Decimals")
+            .argument(&erc20_address)
+            .original_result()
+    }
+
     pub fn kda_safe_address(
         self,
     ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ManagedAddress<Env::Api>> {
@@ -866,7 +931,7 @@ where
     /// Block Nonce, Tx Nonce, Sender Address, Receiver Address, Token ID, Amount 
     pub fn get_current_tx_batch(
         self,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue6<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>>>>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue7<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>>>>> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getCurrentTxBatch")
@@ -884,7 +949,7 @@ where
     >(
         self,
         batch_id: Arg0,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue6<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>>>>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue7<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>>>>> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getBatch")
@@ -896,7 +961,7 @@ where
     /// The result format is the same as getCurrentTxBatch 
     pub fn get_current_refund_batch(
         self,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue6<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>>>>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue7<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>>>>> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getCurrentRefundBatch")
@@ -923,7 +988,7 @@ where
     /// To check if it was executed as well, use the wasActionExecuted view 
     pub fn was_transfer_action_proposed<
         Arg0: ProxyArg<u64>,
-        Arg1: ProxyArg<MultiValueEncoded<Env::Api, MultiValue6<eth_address::EthAddress<Env::Api>, ManagedAddress<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, u64, ManagedOption<Env::Api, ManagedBuffer<Env::Api>>>>>,
+        Arg1: ProxyArg<MultiValueEncoded<Env::Api, MultiValue7<eth_address::EthAddress<Env::Api>, ManagedAddress<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, u64, ManagedOption<Env::Api, ManagedBuffer<Env::Api>>>>>,
     >(
         self,
         eth_batch_id: Arg0,
@@ -942,7 +1007,7 @@ where
     /// Will return 0 if the transfers were not proposed 
     pub fn get_action_id_for_transfer_batch<
         Arg0: ProxyArg<u64>,
-        Arg1: ProxyArg<MultiValueEncoded<Env::Api, MultiValue6<eth_address::EthAddress<Env::Api>, ManagedAddress<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, u64, ManagedOption<Env::Api, ManagedBuffer<Env::Api>>>>>,
+        Arg1: ProxyArg<MultiValueEncoded<Env::Api, MultiValue7<eth_address::EthAddress<Env::Api>, ManagedAddress<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>, u64, ManagedOption<Env::Api, ManagedBuffer<Env::Api>>>>>,
     >(
         self,
         eth_batch_id: Arg0,

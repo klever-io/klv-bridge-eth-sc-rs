@@ -262,9 +262,27 @@ pub trait Multisig:
         );
 
         let transfers_as_eth_tx = self.transfers_multi_value_to_eth_tx_vec(transfers);
-        self.require_valid_eth_tx_ids(&transfers_as_eth_tx);
+        
+        // Convert ETH amounts to KDA amounts for each transaction
+        let kda_safe_addr = self.kda_safe_address().get();
+        let mut transfers_with_conversion = ManagedVec::new();
+        
+        for mut eth_tx in transfers_as_eth_tx.into_iter() {
+            let kda_amount: BigUint = self
+                .tx()
+                .to(kda_safe_addr.clone())
+                .typed(kda_safe_proxy::KDASafeProxy)
+                .convert_eth_to_kda_amount_endpoint(&eth_tx.token_id, &eth_tx.amount)
+                .returns(ReturnsResult)
+                .sync_call();
+            
+            eth_tx.converted_amount = kda_amount;
+            transfers_with_conversion.push(eth_tx);
+        }
+        
+        self.require_valid_eth_tx_ids(&transfers_with_conversion);
 
-        let batch_hash = self.hash_eth_tx_batch(&transfers_as_eth_tx);
+        let batch_hash = self.hash_eth_tx_batch(&transfers_with_conversion);
         require!(
             self.batch_id_to_action_id_mapping(eth_batch_id)
                 .get(&batch_hash)
@@ -274,7 +292,7 @@ pub trait Multisig:
 
         let action_id = self.propose_action(Action::BatchTransferKdaToken {
             eth_batch_id,
-            transfers: transfers_as_eth_tx,
+            transfers: transfers_with_conversion,
         });
 
         self.batch_id_to_action_id_mapping(eth_batch_id)

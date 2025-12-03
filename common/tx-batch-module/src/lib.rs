@@ -10,10 +10,10 @@ pub mod batch_status;
 pub mod tx_batch_mapper;
 
 #[klever_sc::module]
-pub trait TxBatchModule {
+pub trait TxBatchModule: klever_sc_modules::only_admin::OnlyAdminModule {
     // endpoints - owner-only
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(setMaxTxBatchSize)]
     fn set_max_tx_batch_size(&self, new_max_tx_batch_size: usize) {
         require!(
@@ -24,7 +24,7 @@ pub trait TxBatchModule {
         self.max_tx_batch_size().set(new_max_tx_batch_size);
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(setMaxTxBatchBlockDuration)]
     fn set_max_tx_batch_block_duration(&self, new_max_tx_batch_block_duration: u64) {
         require!(

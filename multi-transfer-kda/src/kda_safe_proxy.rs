@@ -126,10 +126,10 @@ where
             .original_result()
     }
 
-    /// Converts failed Ethereum -> MultiversX transactions to MultiversX -> Ethereum transaction. 
+    /// Converts failed Ethereum -> Klever Blockchain transactions to Klever Blockchain -> Ethereum transaction. 
     /// This is done every now and then to refund the tokens. 
     ///  
-    /// As with normal MultiversX -> Ethereum transactions, a part of the tokens will be 
+    /// As with normal Klever Blockchain -> Ethereum transactions, a part of the tokens will be 
     /// subtracted to pay for the fees 
     pub fn add_refund_batch<
         Arg0: ProxyArg<ManagedVec<Env::Api, transaction::Transaction<Env::Api>>>,
@@ -143,7 +143,7 @@ where
             .original_result()
     }
 
-    /// Create an MultiversX -> Ethereum transaction. Only fungible tokens are accepted. 
+    /// Create an Klever Blockchain -> Ethereum transaction. Only fungible tokens are accepted. 
     ///  
     /// Every transfer will have a part of the tokens subtracted as fees. 
     /// The fee amount depends on the global eth_tx_gas_limit 
@@ -165,7 +165,7 @@ where
             .original_result()
     }
 
-    /// Claim funds for failed MultiversX -> Ethereum transactions. 
+    /// Claim funds for failed Klever Blockchain -> Ethereum transactions. 
     /// These are not sent automatically to prevent the contract getting stuck. 
     /// For example, if the receiver is a SC, a frozen account, etc. 
     pub fn claim_refund<
@@ -302,6 +302,42 @@ where
             .payment(NotPayable)
             .raw_call("getTransactionFees")
             .argument(&token_id)
+            .original_result()
+    }
+
+    /// Convert amount from Ethereum decimals to Klever decimals 
+    /// Public endpoint for multi-transfer and relayer to use - ensures single conversion point 
+    pub fn convert_eth_to_kda_amount_endpoint<
+        Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
+        Arg1: ProxyArg<BigUint<Env::Api>>,
+    >(
+        self,
+        token_id: Arg0,
+        eth_amount: Arg1,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("convertEthToKdaAmount")
+            .argument(&token_id)
+            .argument(&eth_amount)
+            .original_result()
+    }
+
+    /// Convert amount from Klever decimals to Ethereum decimals 
+    /// Public endpoint for multi-transfer and relayer to use - ensures single conversion point 
+    pub fn convert_kda_to_eth_amount_endpoint<
+        Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
+        Arg1: ProxyArg<BigUint<Env::Api>>,
+    >(
+        self,
+        token_id: Arg0,
+        kda_amount: Arg1,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, BigUint<Env::Api>> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("convertKdaToEthAmount")
+            .argument(&token_id)
+            .argument(&kda_amount)
             .original_result()
     }
 
@@ -482,19 +518,22 @@ where
             .original_result()
     }
 
+    /// Returns true if tokens were successfully minted/released 
+    /// Returns false if amount exceeds available balance or token is not whitelisted 
+    /// Note: Expects amount already converted to KDA decimals 
     pub fn get_tokens<
         Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
         Arg1: ProxyArg<BigUint<Env::Api>>,
     >(
         self,
         token_id: Arg0,
-        amount: Arg1,
+        kda_amount: Arg1,
     ) -> TxTypedCall<Env, From, To, NotPayable, Gas, bool> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getTokens")
             .argument(&token_id)
-            .argument(&amount)
+            .argument(&kda_amount)
             .original_result()
     }
 
@@ -542,6 +581,30 @@ where
             .payment(NotPayable)
             .raw_call("setMultiTransferContractAddress")
             .argument(&opt_new_address)
+            .original_result()
+    }
+
+    /// Set token decimals for cross-chain conversion 
+    /// Called by Multisig admin when token mapping is configured 
+    /// @param token_id - The KDA token identifier on Klever 
+    /// @param eth_decimals - Decimals on Ethereum side (0-18) 
+    /// @param kda_decimals - Decimals on Klever side (0-8 max) 
+    pub fn set_token_decimals<
+        Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
+        Arg1: ProxyArg<u32>,
+        Arg2: ProxyArg<u32>,
+    >(
+        self,
+        token_id: Arg0,
+        eth_decimals: Arg1,
+        kda_decimals: Arg2,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, ()> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("setTokenDecimals")
+            .argument(&token_id)
+            .argument(&eth_decimals)
+            .argument(&kda_decimals)
             .original_result()
     }
 
@@ -641,6 +704,38 @@ where
             .original_result()
     }
 
+    /// ERC20 token decimals on Ethereum side (can be up to 18) 
+    /// Used for cross-chain decimal conversion when minting/releasing tokens 
+    /// Set by admin via setTokenDecimals endpoint 
+    pub fn eth_token_decimals<
+        Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
+    >(
+        self,
+        token_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, u32> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("getEthTokenDecimals")
+            .argument(&token_id)
+            .original_result()
+    }
+
+    /// KDA token decimals on Klever side (max 8) 
+    /// Used for cross-chain decimal conversion when minting/releasing tokens 
+    /// Set by admin via setTokenDecimals endpoint 
+    pub fn kda_token_decimals<
+        Arg0: ProxyArg<TokenIdentifier<Env::Api>>,
+    >(
+        self,
+        token_id: Arg0,
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, u32> {
+        self.wrapped_tx
+            .payment(NotPayable)
+            .raw_call("getKdaTokenDecimals")
+            .argument(&token_id)
+            .original_result()
+    }
+
     pub fn set_max_tx_batch_size<
         Arg0: ProxyArg<usize>,
     >(
@@ -669,7 +764,7 @@ where
 
     pub fn get_current_tx_batch(
         self,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue6<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>>>>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue7<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>>>>> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getCurrentTxBatch")
@@ -678,7 +773,7 @@ where
 
     pub fn get_first_batch_any_status(
         self,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue6<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>>>>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue7<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>>>>> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getFirstBatchAnyStatus")
@@ -690,7 +785,7 @@ where
     >(
         self,
         batch_id: Arg0,
-    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue6<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>>>>>> {
+    ) -> TxTypedCall<Env, From, To, NotPayable, Gas, OptionalValue<MultiValue2<u64, MultiValueEncoded<Env::Api, MultiValue7<u64, u64, ManagedBuffer<Env::Api>, ManagedBuffer<Env::Api>, TokenIdentifier<Env::Api>, BigUint<Env::Api>, BigUint<Env::Api>>>>>> {
         self.wrapped_tx
             .payment(NotPayable)
             .raw_call("getBatch")

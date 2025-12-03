@@ -6,14 +6,14 @@ mod price_aggregator_proxy;
 pub const GWEI_STRING: &[u8] = b"GWEI";
 
 #[klever_sc::module]
-pub trait FeeEstimatorModule {
-    #[only_owner]
+pub trait FeeEstimatorModule: klever_sc_modules::only_admin::OnlyAdminModule {
+    #[only_admin]
     #[endpoint(setFeeEstimatorContractAddress)]
     fn set_fee_estimator_contract_address(&self, new_address: ManagedAddress) {
         self.fee_estimator_contract_address().set(&new_address);
     }
 
-    #[only_owner]
+    #[only_admin]
     #[endpoint(setEthTxGasLimit)]
     fn set_eth_tx_gas_limit(&self, new_limit: BigUint) {
         self.eth_tx_gas_limit().set(&new_limit);
@@ -21,7 +21,7 @@ pub trait FeeEstimatorModule {
 
     /// Default price being used if the aggregator lacks a mapping for this token
     /// or the aggregator address is not set
-    #[only_owner]
+    #[only_admin]
     #[endpoint(setDefaultPricePerGasUnit)]
     fn set_default_price_per_gas_unit(
         &self,
@@ -33,7 +33,7 @@ pub trait FeeEstimatorModule {
     }
 
     /// Token ticker being used when querying the aggregator for GWEI prices
-    #[only_owner]
+    #[only_admin]
     #[endpoint(setTokenTicker)]
     fn set_token_ticker(&self, token_id: TokenIdentifier, ticker: ManagedBuffer) {
         self.token_ticker(&token_id).set(&ticker);

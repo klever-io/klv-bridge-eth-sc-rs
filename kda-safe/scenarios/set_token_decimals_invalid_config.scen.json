@@ -1,0 +1,154 @@
+{
+    "name": "set token decimals - invalid configurations",
+    "comment": "Tests that setTokenDecimals properly rejects invalid decimal configurations. ETH decimals cannot exceed 18, KDA decimals cannot exceed 8.",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "setup_accounts.scen.json"
+        },
+        {
+            "step": "scCall",
+            "txId": "set-eth-decimals-too-high",
+            "comment": "Attempt to set ETH decimals to 19 (max is 18) - should fail",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "setTokenDecimals",
+                "arguments": [
+                    "str:BRIDGE-1234",
+                    "19",
+                    "8"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "57",
+                "message": "str:ETH decimals cannot exceed 18",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "set-kda-decimals-too-high",
+            "comment": "Attempt to set KDA decimals to 9 (max is 8) - should fail",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "setTokenDecimals",
+                "arguments": [
+                    "str:BRIDGE-1234",
+                    "18",
+                    "9"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "57",
+                "message": "str:KDA decimals cannot exceed 8",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "set-both-decimals-too-high",
+            "comment": "Attempt to set both decimals too high - should fail on ETH check first",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "setTokenDecimals",
+                "arguments": [
+                    "str:BRIDGE-1234",
+                    "20",
+                    "10"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "57",
+                "message": "str:ETH decimals cannot exceed 18",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "set-valid-max-decimals",
+            "comment": "Set maximum valid decimals (18 ETH, 8 KDA) - should succeed",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "setTokenDecimals",
+                "arguments": [
+                    "str:BRIDGE-1234",
+                    "18",
+                    "8"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "set-valid-min-decimals",
+            "comment": "Set minimum valid decimals (0 ETH, 0 KDA) - should succeed",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "setTokenDecimals",
+                "arguments": [
+                    "str:BRIDGE-1234",
+                    "0",
+                    "0"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "set-unwhitelisted-token-fails",
+            "comment": "Attempt to set decimals for a token not in whitelist - should fail",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "setTokenDecimals",
+                "arguments": [
+                    "str:NOTWHITELISTED-1234",
+                    "18",
+                    "8"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "57",
+                "message": "str:Token not in whitelist",
+                "gas": "*",
+                "refund": "*"
+            }
+        }
+    ]
+}

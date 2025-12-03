@@ -14,9 +14,13 @@ const DEFAULT_MAX_TX_BATCH_SIZE: usize = 10;
 const DEFAULT_MAX_TX_BATCH_BLOCK_DURATION: u64 = u64::MAX;
 const CHAIN_SPECIFIC_TO_UNIVERSAL_TOKEN_MAPPING: &[u8] = b"chainSpecificToUniversalMapping";
 
+// Smart contract addresses have 8 leading zero bytes (NUM_INIT_CHARACTERS_FOR_SC_ADDRESS - VM_TYPE_LEN)
+const SC_ADDRESS_NUM_LEADING_ZEROS: usize = 8;
+
 #[klever_sc::contract]
 pub trait MultiTransferKda:
-    tx_batch_module::TxBatchModule + max_bridged_amount_module::MaxBridgedAmountModule
+    tx_batch_module::TxBatchModule
+    + max_bridged_amount_module::MaxBridgedAmountModule
     + only_admin::OnlyAdminModule
 {
     #[init]
@@ -55,21 +59,26 @@ pub trait MultiTransferKda:
         let safe_address = self.kda_safe_contract_address().get();
 
         for eth_tx in transfers {
+            // Use the pre-converted KDA amount from the transaction
+            // (already calculated in proposeMultiTransferKdaBatch)
+            let kda_amount = eth_tx.converted_amount.clone();
+
+            // Get tokens with the already-converted KDA amount
             let is_success: bool = self
                 .tx()
                 .to(safe_address.clone())
                 .typed(kda_safe_proxy::KDASafeProxy)
-                .get_tokens(&eth_tx.token_id, &eth_tx.amount)
+                .get_tokens(&eth_tx.token_id, &kda_amount)
                 .returns(ReturnsResult)
                 .sync_call();
 
             require!(is_success, "Invalid token or amount");
 
             let mut must_refund = false;
-            if eth_tx.to.is_zero() {
+            if eth_tx.to.is_zero() || self.is_smart_contract_address(&eth_tx.to) {
                 self.transfer_failed_invalid_destination(batch_id, eth_tx.tx_nonce);
                 must_refund = true;
-            } else if self.is_above_max_amount(&eth_tx.token_id, &eth_tx.amount) {
+            } else if self.is_above_max_amount(&eth_tx.token_id, &kda_amount) {
                 self.transfer_over_max_amount(batch_id, eth_tx.tx_nonce);
                 must_refund = true;
             }
@@ -82,17 +91,19 @@ pub trait MultiTransferKda:
             }
 
             // emit event before the actual transfer so we don't have to save the tx_nonces as well
+            // Use KDA amount since that's what was actually minted/transferred
             self.transfer_performed_event(
                 batch_id,
                 eth_tx.from.clone(),
                 eth_tx.to.clone(),
                 eth_tx.token_id.clone(),
-                eth_tx.amount.clone(),
+                kda_amount.clone(),
                 eth_tx.tx_nonce,
             );
 
             valid_tx_list.push(eth_tx.clone());
-            valid_payments_list.push(KdaTokenPayment::new(eth_tx.token_id, 0, eth_tx.amount));
+            // Use KDA amount for payment since that's the converted amount
+            valid_payments_list.push(KdaTokenPayment::new(eth_tx.token_id, 0, kda_amount));
         }
 
         let payments_after_wrapping = self.wrap_tokens(valid_payments_list);
@@ -116,11 +127,15 @@ pub trait MultiTransferKda:
                 let mut refund_payments = ManagedVec::new();
 
                 for tx_fields in all_tx_fields {
-                    let (_, _, _, _, token_identifier, amount) =
+                    let (_, _, _, _, token_identifier, _eth_amount, converted_amount) =
                         tx_fields.clone().into_tuple();
 
-                        refund_batch.push(Transaction::from(tx_fields));
-                        refund_payments.push(KdaTokenPayment::new(token_identifier, 0, amount));
+                    let tx = Transaction::from(tx_fields);
+                    refund_batch.push(tx);
+                    
+                    // Use the converted KDA amount for payment (what was actually minted on Klever blockchain)
+                    // The original ETH amount is stored in tx.amount for the refund on Ethereum side
+                    refund_payments.push(KdaTokenPayment::new(token_identifier, 0, converted_amount));
                 }
 
                 let kda_safe_addr = self.kda_safe_contract_address().get();
@@ -206,9 +221,17 @@ pub trait MultiTransferKda:
             from: eth_tx.from.as_managed_buffer().clone(),
             to: eth_tx.to.as_managed_buffer().clone(),
             token_identifier: eth_tx.token_id,
-            amount: eth_tx.amount,
+            amount: eth_tx.amount,  // Original ETH amount - for refund on Ethereum side
+            converted_amount: eth_tx.converted_amount,  // Converted KDA amount - for transfer on Klever side
             is_refund_tx: true,
         }
+    }
+
+    /// Checks if an address is a smart contract address by verifying
+    /// that the first 8 bytes are zeros (SC address prefix pattern).
+    fn is_smart_contract_address(&self, address: &ManagedAddress) -> bool {
+        let addr_bytes = address.to_byte_array();
+        addr_bytes[..SC_ADDRESS_NUM_LEADING_ZEROS].iter().all(|&b| b == 0)
     }
 
     fn wrap_tokens(&self, payments: PaymentsVec<Self::Api>) -> PaymentsVec<Self::Api> {

@@ -1,0 +1,114 @@
+{
+    "name": "create transaction - precision loss max amount",
+    "comment": "Tests that large amounts are correctly converted without overflow. Tests maximum safe values for 18→8 decimal conversion.",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "setup_accounts.scen.json"
+        },
+        {
+            "step": "setState",
+            "comment": "Give user a very large amount of ETH tokens to test upper bounds",
+            "accounts": {
+                "address:user1": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "kda": {
+                        "str:ETH": "1,000,000,000,000,000,000,000"
+                    }
+                }
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-very-large-amount",
+            "comment": "Bridge 1T tokens (8 decimals: 1,000,000,000,000,000 = 10M ETH). Tests BigUint can handle very large conversions to 18 decimals.",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:ETH",
+                        "nonce": "0",
+                        "value": "1,000,000,000,000,000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-very-large-amount",
+            "comment": "Verify 10M ETH transaction (minus fees). Net: 999,999,998,500,000 KDA = 9,999,999,985,000,000,000,000,000 wei (approx 9.99M ETH)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getBatch",
+                "arguments": [
+                    "1"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1",
+                    "0",
+                    "1",
+                    "address:user1",
+                    "0x0102030405060708091011121314151617181920",
+                    "str:ETH",
+                    "9,999,999,985,000,000,000,000,000",
+                    "999,999,998,500,000"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-fees-accumulated",
+            "comment": "Verify fees accumulated correctly: 1,500,000 (0.015 ETH in 8 decimals)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getAccumulatedTransactionFees",
+                "arguments": [
+                    "str:ETH"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1,500,000"
+                ]
+            }
+        },
+        {
+            "step": "checkState",
+            "comment": "Final verification: contract holds fees from transaction",
+            "accounts": {
+                "sc:kda_safe": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "kda": {
+                        "str:ETH": {
+                            "balance": "1,500,000",
+                            "canBurn": "*"
+                        }
+                    },
+                    "storage": {
+                        "str:accumulatedTransactionFees|nested:str:ETH": "1,500,000",
+                        "+": ""
+                    },
+                    "code": "file:../output/kda-safe.wasm"
+                },
+                "+": {}
+            }
+        }
+    ]
+}

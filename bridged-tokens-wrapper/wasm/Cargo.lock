@@ -41,6 +41,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "dfp-big-uint"
+version = "0.0.0"
+dependencies = [
+ "klever-sc",
+]
+
+[[package]]
 name = "endian-type"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -58,6 +65,7 @@ name = "fee-estimator-module"
 version = "0.0.0"
 dependencies = [
  "klever-sc",
+ "klever-sc-modules",
 ]
 
 [[package]]
@@ -195,6 +203,7 @@ dependencies = [
 name = "token-module"
 version = "0.0.0"
 dependencies = [
+ "dfp-big-uint",
  "fee-estimator-module",
  "klever-sc",
  "klever-sc-modules",
@@ -213,6 +222,7 @@ name = "tx-batch-module"
 version = "0.0.0"
 dependencies = [
  "klever-sc",
+ "klever-sc-modules",
  "transaction",
 ]
 

@@ -1,0 +1,11 @@
+[settings]
+main = "kda-safe"
+
+[[proxy]]
+path = "../multi-transfer-kda/src/kda_safe_proxy.rs"
+
+[[proxy]]
+path = "../bridged-tokens-wrapper/src/kda_safe_proxy.rs"
+
+[[proxy]]
+path = "../multisig/src/kda_safe_proxy.rs"

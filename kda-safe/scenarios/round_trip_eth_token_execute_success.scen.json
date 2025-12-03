@@ -1,0 +1,176 @@
+{
+    "name": "round trip ETH token - createTransaction execute success flow",
+    "comment": "Tests the complete KLV→ETH flow with ETH token (18 ETH decimals → 8 KDA decimals). Verifies createTransaction → getBatch (ETH amounts) → setTransactionBatchStatus(Executed) → fee accumulation in KDA decimals.",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "setup_accounts.scen.json"
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-10-eth",
+            "comment": "Bridge 10 ETH tokens (1,000,000,000 in 8 KDA decimals = 10.0 ETH). After fees (~1,500,000), net amount should be ~998,500,000 KDA = ~9.985 ETH.",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:ETH",
+                        "nonce": "0",
+                        "value": "1,000,000,000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-batch-eth-amounts",
+            "comment": "Verify batch shows ETH-side amount (18 decimals): 998,500,000 * 10^10 = 9,985,000,000,000,000,000 wei and converted_amount (8 decimals KDA): 998,500,000",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getBatch",
+                "arguments": [
+                    "1"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1",
+                    "0",
+                    "1",
+                    "address:user1",
+                    "0x0102030405060708091011121314151617181920",
+                    "str:ETH",
+                    "9,985,000,000,000,000,000",
+                    "998,500,000"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-fees-accumulated-kda-decimals",
+            "comment": "Verify accumulated fees are stored in KDA decimals (8 decimals): 1,500,000 (0.015 ETH worth)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getAccumulatedTransactionFees",
+                "arguments": [
+                    "str:ETH"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1,500,000"
+                ]
+            }
+        },
+        {
+            "step": "setState",
+            "comment": "Move to block 101 to finalize the batch",
+            "currentBlockInfo": {
+                "blockNonce": "101"
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "set-tx-status-executed",
+            "comment": "Mark transaction as executed (status 3)",
+            "tx": {
+                "from": "address:owner",
+                "to": "sc:kda_safe",
+                "value": "0",
+                "function": "setTransactionBatchStatus",
+                "arguments": [
+                    "1",
+                    "3"
+                ],
+                "gasLimit": "50,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-no-refund-on-success",
+            "comment": "Verify no refund was created for executed transaction",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getRefundAmounts",
+                "arguments": [
+                    "address:user1"
+                ]
+            },
+            "expect": {
+                "out": []
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-fees-still-accumulated",
+            "comment": "Verify fees are still accumulated in KDA decimals after execution",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getAccumulatedTransactionFees",
+                "arguments": [
+                    "str:ETH"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1,500,000"
+                ]
+            }
+        },
+        {
+            "step": "checkState",
+            "comment": "Final state: user has 1,000,000,000 ETH remaining (2B - 1B sent). Contract holds 1,500,000 (fees in KDA decimals).",
+            "accounts": {
+                "address:user1": {
+                    "nonce": "*",
+                    "balance": "0",
+                    "kda": {
+                        "str:BRIDGE-1234": "2,000,000",
+                        "str:WKLV-1234": "2,000,000,000",
+                        "str:ETH": "1,000,000,000"
+                    },
+                    "storage": {}
+                },
+                "sc:kda_safe": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "kda": {
+                        "str:ETH": {
+                            "balance": "1,500,000",
+                            "canBurn": true
+                        }
+                    },
+                    "storage": {
+                        "str:pendingBatches|u64:1": "",
+                        "str:firstBatchId": "2",
+                        "str:lastBatchId": "2",
+                        "str:accumulatedTransactionFees|nested:str:ETH": "1,500,000",
+                        "+": ""
+                    },
+                    "code": "file:../output/kda-safe.wasm"
+                },
+                "+": {}
+            }
+        }
+    ]
+}

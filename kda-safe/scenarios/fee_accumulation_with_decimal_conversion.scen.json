@@ -1,0 +1,261 @@
+{
+    "name": "fee accumulation with decimal conversion - multi-transaction test",
+    "comment": "Tests that fees accumulate correctly in KDA decimals even when tokens have different ETH/KDA decimal configurations. Verifies getAccumulatedTransactionFees returns correct values.",
+    "steps": [
+        {
+            "step": "externalSteps",
+            "path": "setup_accounts.scen.json"
+        },
+        {
+            "step": "scQuery",
+            "txId": "initial-eth-fees-zero",
+            "comment": "Verify initial fees are 0 (returns empty buffer 0x)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getAccumulatedTransactionFees",
+                "arguments": [
+                    "str:ETH"
+                ]
+            },
+            "expect": {
+                "out": [
+                    ""
+                ]
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-1-eth",
+            "comment": "Transaction 1: Send 100M ETH (1 ETH in 8 decimals). Fee: 1,500,000 (0.015 ETH in KDA decimals)",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:ETH",
+                        "nonce": "0",
+                        "value": "100,000,000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-fees-after-tx1",
+            "comment": "Verify ETH fees after tx1: 1,500,000 (in KDA 8 decimals)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getAccumulatedTransactionFees",
+                "arguments": [
+                    "str:ETH"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1,500,000"
+                ]
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-2-eth",
+            "comment": "Transaction 2: Send another 200M ETH (2 ETH in 8 decimals). Fee: 1,500,000",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:ETH",
+                        "nonce": "0",
+                        "value": "200,000,000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-fees-after-tx2",
+            "comment": "Verify ETH fees accumulated: 1,500,000 + 1,500,000 = 3,000,000",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getAccumulatedTransactionFees",
+                "arguments": [
+                    "str:ETH"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "3,000,000"
+                ]
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-3-eth",
+            "comment": "Transaction 3: Send another 300M ETH (3 ETH in 8 decimals). Fee: 1,500,000",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:ETH",
+                        "nonce": "0",
+                        "value": "300,000,000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-fees-after-tx3",
+            "comment": "Verify ETH fees accumulated: 3,000,000 + 1,500,000 = 4,500,000",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getAccumulatedTransactionFees",
+                "arguments": [
+                    "str:ETH"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "4,500,000"
+                ]
+            }
+        },
+        {
+            "step": "scCall",
+            "txId": "create-tx-bridge",
+            "comment": "Transaction 4: Send BRIDGE token (same decimals 6→6). Fee: 1,500,000",
+            "tx": {
+                "from": "address:user1",
+                "to": "sc:kda_safe",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:BRIDGE-1234",
+                        "nonce": "0",
+                        "value": "1,600,000"
+                    }
+                ],
+                "function": "createTransaction",
+                "arguments": [
+                    "0x0102030405060708091011121314151617181920"
+                ],
+                "gasLimit": "100,000,000",
+                "gasPrice": "0"
+            },
+            "expect": {
+                "status": "0",
+                "message": "",
+                "gas": "*",
+                "refund": "*"
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-bridge-fees",
+            "comment": "Verify BRIDGE fees: 1,500,000 (in native 6 decimals)",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getAccumulatedTransactionFees",
+                "arguments": [
+                    "str:BRIDGE-1234"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "1,500,000"
+                ]
+            }
+        },
+        {
+            "step": "scQuery",
+            "txId": "verify-eth-fees-unchanged",
+            "comment": "Verify ETH fees unchanged after BRIDGE tx: still 4,500,000",
+            "tx": {
+                "to": "sc:kda_safe",
+                "function": "getAccumulatedTransactionFees",
+                "arguments": [
+                    "str:ETH"
+                ]
+            },
+            "expect": {
+                "out": [
+                    "4,500,000"
+                ]
+            }
+        },
+        {
+            "step": "checkState",
+            "comment": "Final verification: contract holds all accumulated fees. ETH: 4.5M, BRIDGE: 1.5M. User sent: 100M+200M+300M ETH = 600M ETH, so remaining = 2B-600M = 1.4B. User sent 1.6M BRIDGE, remaining = 2M-1.6M = 400K.",
+            "accounts": {
+                "address:user1": {
+                    "nonce": "*",
+                    "balance": "0",
+                    "kda": {
+                        "str:ETH": "1,400,000,000",
+                        "str:BRIDGE-1234": "400,000",
+                        "str:WKLV-1234": "2,000,000,000"
+                    },
+                    "storage": {}
+                },
+                "sc:kda_safe": {
+                    "nonce": "0",
+                    "balance": "0",
+                    "kda": {
+                        "str:ETH": {
+                            "balance": "4,500,000",
+                            "canBurn": "*"
+                        },
+                        "str:BRIDGE-1234": {
+                            "balance": "1,500,000",
+                            "canBurn": "*"
+                        }
+                    },
+                    "storage": {
+                        "str:accumulatedTransactionFees|nested:str:ETH": "4,500,000",
+                        "str:accumulatedTransactionFees|nested:str:BRIDGE-1234": "1,500,000",
+                        "+": ""
+                    },
+                    "code": "file:../output/kda-safe.wasm"
+                },
+                "+": {}
+            }
+        }
+    ]
+}

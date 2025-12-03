@@ -90,3 +90,53 @@ fn setup_accounts_rs() {
 fn zero_fees_rs() {
     world().run("scenarios/zero_fees.scen.json");
 }
+
+#[test]
+fn create_transaction_no_decimals_configured_rs() {
+    world().run("scenarios/create_transaction_no_decimals_configured.scen.json");
+}
+
+#[test]
+fn create_transaction_eth_token_with_conversion_rs() {
+    world().run("scenarios/create_transaction_eth_token_with_conversion.scen.json");
+}
+
+#[test]
+fn create_transaction_mixed_tokens_with_conversion_rs() {
+    world().run("scenarios/create_transaction_mixed_tokens_with_conversion.scen.json");
+}
+
+#[test]
+fn refund_transaction_eth_token_with_conversion_rs() {
+    world().run("scenarios/refund_transaction_eth_token_with_conversion.scen.json");
+}
+
+#[test]
+fn create_transaction_precision_loss_too_small_rs() {
+    world().run("scenarios/create_transaction_precision_loss_too_small.scen.json");
+}
+
+#[test]
+fn round_trip_eth_token_execute_success_rs() {
+    world().run("scenarios/round_trip_eth_token_execute_success.scen.json");
+}
+
+#[test]
+fn create_transaction_precision_loss_max_amount_rs() {
+    world().run("scenarios/create_transaction_precision_loss_max_amount.scen.json");
+}
+
+#[test]
+fn set_token_decimals_invalid_config_rs() {
+    world().run("scenarios/set_token_decimals_invalid_config.scen.json");
+}
+
+#[test]
+fn create_transaction_batch_3_tokens_mixed_decimals_rs() {
+    world().run("scenarios/create_transaction_batch_3_tokens_mixed_decimals.scen.json");
+}
+
+#[test]
+fn fee_accumulation_with_decimal_conversion_rs() {
+    world().run("scenarios/fee_accumulation_with_decimal_conversion.scen.json");
+}

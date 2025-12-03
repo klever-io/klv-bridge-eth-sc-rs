@@ -7,6 +7,9 @@ edition = "2018"
 [dependencies.fee-estimator-module]
 path = "../fee-estimator-module"
 
+[dependencies.dfp-big-uint]
+path = "../dfp-big-uint"
+
 [dependencies.klever-sc]
 version = "0.44.0"
 path="../../../klever-vm-sdk-rs-internal/framework/base"

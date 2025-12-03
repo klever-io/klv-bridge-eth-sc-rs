@@ -481,6 +481,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "dfp-big-uint"
+version = "0.0.0"
+dependencies = [
+ "klever-sc",
+]
+
+[[package]]
 name = "digest"
 version = "0.10.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -581,6 +588,7 @@ name = "fee-estimator-module"
 version = "0.0.0"
 dependencies = [
  "klever-sc",
+ "klever-sc-modules",
  "klever-sc-scenario",
 ]
 
@@ -1103,6 +1111,7 @@ dependencies = [
 name = "kda-safe"
 version = "0.0.0"
 dependencies = [
+ "dfp-big-uint",
  "eth-address",
  "fee-estimator-module",
  "klever-sc",
@@ -2208,6 +2217,7 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 name = "token-module"
 version = "0.0.0"
 dependencies = [
+ "dfp-big-uint",
  "fee-estimator-module",
  "klever-sc",
  "klever-sc-modules",
@@ -2347,6 +2357,7 @@ name = "tx-batch-module"
 version = "0.0.0"
 dependencies = [
  "klever-sc",
+ "klever-sc-modules",
  "klever-sc-scenario",
  "transaction",
 ]

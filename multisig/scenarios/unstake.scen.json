@@ -92,7 +92,10 @@
             "accounts": {
                 "sc:multisig": {
                     "nonce": "*",
-                    "balance": "2000",
+                    "balance": "0",
+                    "kda": {
+                        "str:KFI": "2000"
+                    },
                     "storage": {
                         "str:quorum": "1",
                         "str:user_role|u32:1": "1",
@@ -153,12 +156,18 @@
             "accounts": {
                 "address:relayer2": {
                     "nonce": "*",
-                    "balance": "1000",
+                    "balance": "0",
+                    "kda": {
+                        "str:KFI": "1000"
+                    },
                     "storage": {}
                 },
                 "sc:multisig": {
                     "nonce": "*",
-                    "balance": "1000",
+                    "balance": "0",
+                    "kda": {
+                        "str:KFI": "1000"
+                    },
                     "storage": {
                         "str:quorum": "1",
                         "str:user_role|u32:1": "1",

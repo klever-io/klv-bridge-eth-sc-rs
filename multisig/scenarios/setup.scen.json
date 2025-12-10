@@ -110,12 +110,18 @@
                 },
                 "address:relayer1": {
                     "nonce": "0",
-                    "balance": "1000",
+                    "balance": "0",
+                    "kda": {
+                        "str:KFI": "1000"
+                    },
                     "storage": {}
                 },
                 "address:relayer2": {
                     "nonce": "0",
-                    "balance": "1000",
+                    "balance": "0",
+                    "kda": {
+                        "str:KFI": "1000"
+                    },
                     "storage": {}
                 },
                 "address:user": {
@@ -221,8 +227,13 @@
             "tx": {
                 "from": "address:relayer1",
                 "to": "sc:multisig",
-                "value": "1000",
                 "function": "stake",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:KFI",
+                        "value": "1000"
+                    }
+                ],
                 "arguments": [],
                 "gasLimit": "35,000,000",
                 "gasPrice": "0"
@@ -257,8 +268,13 @@
             "tx": {
                 "from": "address:relayer2",
                 "to": "sc:multisig",
-                "value": "1000",
                 "function": "stake",
+                "kdaValue": [
+                    {
+                        "tokenIdentifier": "str:KFI",
+                        "value": "1000"
+                    }
+                ],
                 "arguments": [],
                 "gasLimit": "35,000,000",
                 "gasPrice": "0"
@@ -286,7 +302,9 @@
                 },
                 "sc:multisig": {
                     "nonce": "*",
-                    "balance": "2000",
+                    "kda": {
+                        "str:KFI": "2000"
+                    },
                     "storage": {
                         "str:amountStaked|address:relayer1": "1000",
                         "str:amountStaked|address:relayer2": "1000",

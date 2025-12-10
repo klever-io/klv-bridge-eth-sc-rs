@@ -106,10 +106,10 @@ impl MultiTransferTestState {
             .nonce(1)
             .account(RELAYER1_ADDRESS)
             .nonce(1)
-            .balance(1_000u64)
+            .kda_balance(TokenIdentifier::from("KFI"),1_000u64)
             .account(RELAYER2_ADDRESS)
             .nonce(1)
-            .balance(1_000u64);
+            .kda_balance(TokenIdentifier::from("KFI"),1_000u64);
 
         let roles = vec![
             "KDARoleMint".to_string(),
@@ -359,7 +359,7 @@ impl MultiTransferTestState {
             .to(MULTISIG_ADDRESS)
             .typed(multisig_proxy::MultisigProxy)
             .stake()
-            .klv(1_000)
+            .single_kda(&TokenIdentifier::from("KFI"),0 ,&BigUint::from(1_000u64))
             .run();
 
         self.world
@@ -368,7 +368,7 @@ impl MultiTransferTestState {
             .to(MULTISIG_ADDRESS)
             .typed(multisig_proxy::MultisigProxy)
             .stake()
-            .klv(1_000)
+            .single_kda(&TokenIdentifier::from("KFI"),0 ,&BigUint::from(1_000u64))
             .run();
 
         let staked_relayers = self

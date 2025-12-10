@@ -149,9 +149,9 @@ pub trait Multisig:
             .sync_call();
     }
 
-    /// Board members have to stake a certain amount of KLV
+    /// Board members have to stake a certain amount of KFI
     /// before being allowed to sign actions
-    #[payable("KLV")]
+    #[payable("KFI")]
     #[endpoint]
     fn stake(&self, #[payment] payment: BigUint) {
         let caller = self.blockchain().get_caller();
@@ -184,7 +184,7 @@ pub trait Multisig:
         }
 
         self.amount_staked(&caller).set(&remaining_stake);
-        self.tx().to(ToCaller).klv(&amount).transfer();
+        self.tx().to(ToCaller).single_kda(&TokenIdentifier::from("KFI"), 0, &amount).transfer();
     }
 
     // KDA Safe SC calls
@@ -379,7 +379,7 @@ pub trait Multisig:
     fn withdraw_slashed_amount(&self) {
         let slashed_tokens_amount_mapper = self.slashed_tokens_amount();
         let slashed_amount = slashed_tokens_amount_mapper.get();
-        self.tx().to(ToCaller).klv(&slashed_amount).transfer();
+        self.tx().to(ToCaller).single_kda(&TokenIdentifier::from("KFI"), 0, &slashed_amount).transfer();
         slashed_tokens_amount_mapper.clear();
     }
 

@@ -37,37 +37,11 @@ case "$1" in
   confirmation stake-relayers-eth
   ;;
 
-'set-roles-on-esdt-safe-eth')
-  confirmation set-roles-on-esdt-safe-eth
+'set-roles-on-kda-safe-eth')
+  confirmation set-roles-on-kda-safe-eth
   ;;
 
 ### PART 2
-
-'deploy-bridge-contracts-bsc-v3')
-  confirmation deploy-bridge-contracts-bsc-v3
-  ;;
-
-'unpause-contracts-bsc-v3')
-  confirmation unpause-contracts-bsc-v3
-  ;;
-
-'set-tokens-on-bsc')
-  confirmation set-tokens-on-bsc
-  ;;
-
-'submit-aggregation-batches-bsc')
-  confirmation submit-aggregation-batches-bsc
-  ;;
-
-'stake-relayers-bsc')
-  confirmation stake-relayers-bsc
-  ;;
-
-'set-roles-on-esdt-safe-bsc')
-  confirmation set-roles-on-esdt-safe-bsc
-  ;;
-
-### PART 3
 
 'upgrade-wrapper')
   confirmation upgrade-wrapper
@@ -79,10 +53,6 @@ case "$1" in
 
 'set-token-limits-on-eth')
   confirmation set-token-limits-on-eth
-  ;;
-
-'set-token-limits-on-bsc')
-  confirmation set-token-limits-on-bsc
   ;;
 
 *)
@@ -98,25 +68,14 @@ case "$1" in
   echo " 1.5 submit-aggregation-batches-eth"
   echo " 1.6 stake-relayers-eth"
   echo " -----------"
-  echo " 1.7 set-roles-on-esdt-safe-eth"
+  echo " 1.7 set-roles-on-kda-safe-eth"
   echo -e
-  echo "PART 2 - BSC:"
-  echo " 2.1 deploy-bridge-contracts-bsc-v3"
-  echo " 2.2 unpause-contracts-bsc-v3"
-  echo " 2.3 set-tokens-on-bsc"
-  echo " -----------"
-  echo " 2.4 submit-aggregation-batches-bsc"
-  echo " 2.5 stake-relayers-bsc"
-  echo " -----------"
-  echo " 2.6 set-roles-on-esdt-safe-bsc"
+  echo "PART 2 - Upgrade wrapper:"
+  echo " 2.1 upgrade-wrapper"
+  echo " 2.2 unpause-wrapper"
   echo -e
-  echo "PART 3 - Upgrade wrapper:"
-  echo " 3.1 upgrade-wrapper"
-  echo " 3.2 unpause-wrapper"
-  echo -e
-  echo "PART 4 - Limits:"
-  echo " 4.1 set-token-limits-on-eth"
-  echo " 4.2 set-token-limits-on-bsc"
+  echo "PART 3 - Limits:"
+  echo " 3.1 set-token-limits-on-eth"
   echo -e
   ;;
 

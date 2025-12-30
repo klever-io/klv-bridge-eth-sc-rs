@@ -25,6 +25,10 @@ case "$1" in
   confirmation set-tokens-on-eth
   ;;
 
+'set-tokens-on-eth-wrapper')
+  confirmation set-tokens-on-eth-wrapper
+  ;;
+
 'stake-oracles')
   confirmation stake-oracles
   ;;
@@ -63,12 +67,13 @@ case "$1" in
   echo " 1.1 deploy-bridge-contracts-eth-v3"
   echo " 1.2 unpause-contracts-eth-v3"
   echo " 1.3 set-tokens-on-eth"
+  echo " 1.4 set-tokens-on-eth-wrapper"
   echo " -----------"
-  echo " 1.4 stake-oracles"
-  echo " 1.5 submit-aggregation-batches-eth"
-  echo " 1.6 stake-relayers-eth"
+  echo " 1.5 stake-oracles"
+  echo " 1.6 submit-aggregation-batches-eth"
+  echo " 1.7 stake-relayers-eth"
   echo " -----------"
-  echo " 1.7 set-roles-on-kda-safe-eth"
+  echo " 1.8 set-roles-on-kda-safe-eth"
   echo -e
   echo "PART 2 - Upgrade wrapper:"
   echo " 2.1 upgrade-wrapper"

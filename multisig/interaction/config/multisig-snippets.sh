@@ -1,16 +1,13 @@
 deployMultisig() {
-    CHECK_VARIABLES RELAYER_ADDR_0 RELAYER_ADDR_1 RELAYER_ADDR_2 RELAYER_ADDR_3 \
-    RELAYER_ADDR_4 RELAYER_ADDR_5 RELAYER_ADDR_6 RELAYER_ADDR_7 RELAYER_ADDR_8 \
-    RELAYER_ADDR_9 SAFE MULTI_TRANSFER RELAYER_REQUIRED_STAKE SLASH_AMOUNT QUORUM MULTISIG_WASM
+    CHECK_VARIABLES RELAYER_ADDR_0 RELAYER_ADDR_1 RELAYER_ADDR_2 \
+    SAFE MULTI_TRANSFER RELAYER_REQUIRED_STAKE SLASH_AMOUNT QUORUM MULTISIG_WASM
 
     MIN_STAKE=$(echo "$RELAYER_REQUIRED_STAKE*10^6" | bc)
     
     SC_RESULT=$(eval operator sc create --key-file=${ALICE} --wasm ${MULTISIG_WASM} \
     --args A:${SAFE} --args A:${MULTI_TRANSFER} \
     --args n:${MIN_STAKE} --args n:${SLASH_AMOUNT} --args n:${QUORUM} \
-    --args A:${RELAYER_ADDR_0} --args A:${RELAYER_ADDR_1} --args A:${RELAYER_ADDR_2} --args A:${RELAYER_ADDR_3} \
-    --args A:${RELAYER_ADDR_4} --args A:${RELAYER_ADDR_5} --args A:${RELAYER_ADDR_6} --args A:${RELAYER_ADDR_7} \
-    --args A:${RELAYER_ADDR_8} --args A:${RELAYER_ADDR_9} \
+    --args A:${RELAYER_ADDR_0} --args A:${RELAYER_ADDR_1} --args A:${RELAYER_ADDR_2} \
     --await --result-only --sign --node ${PROXY})
 
     check_result ${SC_RESULT}
@@ -76,6 +73,14 @@ removeTokenFromWhitelist() {
     --await --sign --node ${PROXY}
 }
 
+setErc20Decimals() {
+    CHECK_VARIABLES NR_DECIMALS_CHAIN_SPECIFIC NR_DECIMALS_ERC20 MULTISIG ERC20_TOKEN
+
+    operator sc invoke ${MULTISIG} setErc20Decimals --key-file=${ALICE} \
+    --args hex:${ERC20_TOKEN} --args u32:${NR_DECIMALS_ERC20} --args u32:${NR_DECIMALS_CHAIN_SPECIFIC} \
+    --await --sign --node ${PROXY}
+}
+
 kdaSafeSetMaxTxBatchSize() {
     CHECK_VARIABLES MAX_TX_PER_BATCH MULTISIG
 
@@ -88,7 +93,7 @@ kdaSafeSetMaxTxBatchBlockDuration() {
     CHECK_VARIABLES MAX_TX_BLOCK_DURATION_PER_BATCH MULTISIG
 
     operator sc invoke ${MULTISIG} kdaSafeSetMaxTxBatchBlockDuration --key-file=${ALICE} \
-    --args n:${MAX_TX_BLOCK_DURATION_PER_BATCH} \
+    --args u64:${MAX_TX_BLOCK_DURATION_PER_BATCH} \
     --await --sign --node ${PROXY}
 }
 
@@ -198,6 +203,13 @@ setKdaSafeOnMultiTransferThroughMultisig() {
     --await --sign --node ${PROXY}
 }
 
+moveRefundTransactionThroughMultisig() {
+    CHECK_VARIABLES MULTISIG
+
+    operator sc invoke ${MULTISIG} moveRefundBatchToSafeFromChildContract --key-file=${ALICE} \
+    --await --sign --node ${PROXY}
+}
+
 initSupplyMintBurn() {
   CHECK_VARIABLES MULTISIG
 
@@ -249,7 +261,7 @@ upgradeMultisig() {
 
     SC_RESULT=$(eval operator sc upgrade ${MULTISIG} --key-file=${ALICE} \
     --wasm ${MULTISIG_WASM} \
-    --args A:${SAFE} A:${MULTI_TRANSFER} \
+    --args A:${SAFE} --args A:${MULTI_TRANSFER} \
     --await --result-only --sign --node ${PROXY})
 
     check_result ${SC_RESULT}

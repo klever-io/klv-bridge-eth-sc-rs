@@ -1,10 +1,13 @@
 deployAggregator() {
-    CHECK_VARIABLES AGGREGATOR_WASM CHAIN_SPECIFIC_TOKEN ORACLE_ADDR_0 ORACLE_ADDR_1 ORACLE_ADDR_2
+    CHECK_VARIABLES AGGREGATOR_WASM CHAIN_SPECIFIC_TOKEN ORACLE_ADDR_0 ORACLE_ADDR_1 ORACLE_ADDR_2 \
+    AGGREGATOR_SUBMISSION_COUNT AGGREGATOR_SLASH_AMOUNT AGGREGATOR_SLASH_QUORUM
 
     STAKE=$(echo "$ORACLE_REQUIRED_STAKE*10^6" | bc)
+    SLASH=$(echo "$AGGREGATOR_SLASH_AMOUNT*10^6" | bc)
 
     SC_RESULT=$(eval operator sc create --key-file=${ALICE} --wasm ${AGGREGATOR_WASM} \
-    --args String:KLV --args u64:${STAKE} --args u64:1 --args u64:2 --args u64:3 \
+    --args String:KFI --args u64:${STAKE} --args u64:${SLASH} \
+    --args u64:${AGGREGATOR_SLASH_QUORUM} --args u64:${AGGREGATOR_SUBMISSION_COUNT} \
     --args A:${ORACLE_ADDR_0} --args A:${ORACLE_ADDR_1} --args A:${ORACLE_ADDR_2} \
     --await --result-only --sign --node ${PROXY})
 
@@ -24,16 +27,15 @@ stakeOracles() {
     STAKE=$(echo "$ORACLE_REQUIRED_STAKE*10^6" | bc)
     echo "---------------------------------------------------------"
     operator sc invoke ${AGGREGATOR} stake --key-file=${ORACLE_WALLET0} \
-    --values KLV=${STAKE} --await --sign --node ${PROXY}
-
+    --values KFI=${STAKE} --await --sign --node ${PROXY}
     echo "---------------------------------------------------------"
     echo "---------------------------------------------------------"
     operator sc invoke ${AGGREGATOR} stake --key-file=${ORACLE_WALLET1} \
-    --values KLV=${STAKE} --await --sign --node ${PROXY}
+    --values KFI=${STAKE} --await --sign --node ${PROXY}
     echo "---------------------------------------------------------"
     echo "---------------------------------------------------------"
     operator sc invoke ${AGGREGATOR} stake --key-file=${ORACLE_WALLET2} \
-    --values KLV=${STAKE} --await --sign --node ${PROXY}
+    --values KFI=${STAKE} --await --sign --node ${PROXY}
     echo "---------------------------------------------------------"
 }
 
@@ -43,16 +45,19 @@ submitAggregatorBatch() {
     FEE=$(echo "scale=0; $FEE_AMOUNT*10^$NR_DECIMALS_CHAIN_SPECIFIC/1" | bc)
 
     CURRENT_TIME=$(date +%s)
+    sleep 5
     operator sc invoke ${AGGREGATOR} submitBatch --key-file=${ORACLE_WALLET0} \
     --args String:GWEI --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args u64:${CURRENT_TIME} --args n:${FEE} --args u8:0 \
     --await --sign --node ${PROXY}
 
     CURRENT_TIME=$(date +%s)
+    sleep 5
     operator sc invoke ${AGGREGATOR} submitBatch --key-file=${ORACLE_WALLET1} \
     --args String:GWEI --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args u64:${CURRENT_TIME} --args n:${FEE} --args u8:0 \
     --await --sign --node ${PROXY}
 
     CURRENT_TIME=$(date +%s)
+    sleep 5
     operator sc invoke ${AGGREGATOR} submitBatch --key-file=${ORACLE_WALLET2} \
     --args String:GWEI --args String:${CHAIN_SPECIFIC_TOKEN_TICKER} --args u64:${CURRENT_TIME} --args n:${FEE} --args u8:0 \
     --await --sign --node ${PROXY}
